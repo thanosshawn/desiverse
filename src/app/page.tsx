@@ -48,16 +48,13 @@ export default function LandingPage() {
     async function fetchAndSeedCharacters() {
       try {
         setLoadingCharacters(true);
-        // Attempt to seed characters (it will skip if data exists)
-        // In a real production app, seeding would be an admin task or a one-time script.
-        // For development convenience, we can call it here.
         await seedInitialCharacters(); 
         
         const fetchedCharacters = await getAllCharacters();
         setCharacters(fetchedCharacters);
       } catch (error) {
         console.error("Failed to fetch or seed characters:", error);
-         setCharacters([]); // Fallback to empty on error
+         setCharacters([]); 
       } finally {
         setLoadingCharacters(false);
       }
@@ -71,7 +68,6 @@ export default function LandingPage() {
       <Header />
       
       <section className="relative py-20 md:py-32 text-center text-primary-foreground overflow-hidden">
-        {/* Using primary color for the hero gradient background */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-secondary opacity-90"></div>
         <div className="absolute inset-0 opacity-20" style={{backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23FFD700' fill-opacity='0.2'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414zM41.95 17.036l8.485 8.485-1.414 1.414-8.485-8.485 1.414-1.414z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")", filter: "blur(1px)"}}></div>
         <div className="container mx-auto px-4 relative z-10">
@@ -88,9 +84,9 @@ export default function LandingPage() {
                 See Characters 👀
               </Button>
             </Link>
-             <Link href="/admin/create-character" passHref>
+             <Link href="/admin/login" passHref> {/* Updated Link */}
               <Button size="lg" variant="outline" className="text-white border-white/80 hover:bg-white/90 hover:text-primary shadow-lg transform hover:scale-105 transition-transform">
-                <Edit className="mr-2 h-5 w-5" /> Create Character (Admin)
+                <Edit className="mr-2 h-5 w-5" /> Admin Panel
               </Button>
             </Link>
           </div>
@@ -262,5 +258,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-    

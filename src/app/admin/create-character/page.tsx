@@ -15,8 +15,9 @@ import { useToast } from '@/hooks/use-toast';
 import { createCharacterAction, type CreateCharacterActionState } from '../actions';
 import type { CharacterCreationFormSchema } from '@/lib/types';
 import { Header } from '@/components/layout/header';
-import { uploadCharacterAsset } from '@/lib/supabase/client'; // Import Supabase upload function
-import { Loader2 } from 'lucide-react';
+import { uploadCharacterAsset } from '@/lib/supabase/client'; 
+import { Loader2, LogOut } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const characterFormZodSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.').max(50, 'Name must be 50 characters or less.'),
@@ -37,9 +38,20 @@ const initialState: CreateCharacterActionState = {
 
 export default function CreateCharacterPage() {
   const { toast } = useToast();
+  const router = useRouter();
   const [state, formAction] = useFormState(createCharacterAction, initialState);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
+      if (!isAdmin) {
+        router.replace('/admin/login');
+        toast({ title: 'Unauthorized', description: 'Please login as admin.', variant: 'destructive' });
+      }
+    }
+  }, [router, toast]);
 
   const form = useForm<CharacterCreationFormSchema>({
     resolver: zodResolver(characterFormZodSchema),
@@ -106,19 +118,40 @@ export default function CreateCharacterPage() {
     } finally {
       if (fileType === 'avatar') setIsUploadingAvatar(false);
       if (fileType === 'background') setIsUploadingBackground(false);
-      // Reset file input to allow re-uploading the same file if needed
       event.target.value = '';
     }
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAdminLoggedIn');
+    toast({ title: 'Logged Out', description: 'You have been logged out as admin.' });
+    router.replace('/admin/login');
+  };
+  
+  // Initial check in case component mounts after localStorage check could have run (e.g. fast navigation)
+  if (typeof window !== 'undefined' && localStorage.getItem('isAdminLoggedIn') !== 'true') {
+    return (
+        <div className="flex flex-col min-h-screen bg-background items-center justify-center">
+             <Header />
+            <p className="text-lg">Redirecting to login...</p>
+            <Loader2 className="h-8 w-8 animate-spin mt-4"/>
+        </div>
+    );
+  }
   
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <Card className="max-w-2xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-2xl font-headline">Create New AI Character</CardTitle>
-            <CardDescription>Fill in the details for your new DesiBae character. You can upload images or paste public URLs from Supabase.</CardDescription>
+          <CardHeader className="flex flex-row justify-between items-center">
+            <div>
+                <CardTitle className="text-2xl font-headline">Create New AI Character</CardTitle>
+                <CardDescription>Fill in the details for your new DesiBae character. You can upload images or paste public URLs from Supabase.</CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" /> Logout
+            </Button>
           </CardHeader>
           <Form {...form}>
             <form action={formAction} className="space-y-6">
@@ -150,7 +183,6 @@ export default function CreateCharacterPage() {
                   )}
                 />
                 
-                {/* Avatar URL and Upload */}
                 <FormItem>
                   <FormLabel>Avatar Image</FormLabel>
                   <FormControl>
@@ -178,7 +210,6 @@ export default function CreateCharacterPage() {
                   />
                 </FormItem>
 
-                {/* Background Image URL and Upload */}
                  <FormItem>
                   <FormLabel>Background Image (Optional)</FormLabel>
                   <FormControl>

@@ -58,14 +58,16 @@
     "characters": {
       // All authenticated users can read character metadata
       ".read": "auth != null",
-      // Writing characters should be restricted (e.g., admin only - not shown here for simplicity)
-      ".write": false, // For now, disable direct client write to characters. Seed via script/admin SDK.
+      // Writing characters should be restricted (e.g., admin only). 
+      // For the prototype, we allow writes from admin actions which typically operate with broader permissions or specific auth.
+      // Client-side rule is false to prevent direct writes from arbitrary clients.
+      ".write": false, 
       "$characterId": {
         ".validate": "newData.hasChildren(['name', 'description', 'avatarUrl', 'basePrompt', 'styleTags', 'defaultVoiceTone', 'createdAt'])",
         "name": { ".validate": "newData.isString()" },
         "description": { ".validate": "newData.isString()" },
-        "avatarUrl": { ".validate": "newData.isString().isURL()" }, // Expecting a URL
-        "backgroundImageUrl": { ".validate": "newData.isString().isURL() || newData.val() == null" }, // Optional URL
+        "avatarUrl": { ".validate": "newData.isString().isURL()" }, 
+        "backgroundImageUrl": { ".validate": "newData.isString().isURL() || newData.val() == null" }, 
         "basePrompt": { ".validate": "newData.isString() && newData.val().length > 10" },
         "styleTags": {
           ".validate": "newData.isArray()",
@@ -73,8 +75,20 @@
         },
         "defaultVoiceTone": { ".validate": "newData.isString()" },
         "createdAt": { ".validate": "newData.isNumber()" },
-        "dataAiHint": { ".validate": "newData.isString() || newData.val() == null" }, // Kept for consistency with existing data
+        "dataAiHint": { ".validate": "newData.isString() || newData.val() == null" }, 
         "$other": { ".validate": false }
+      }
+    },
+    "admin_settings": {
+      "credentials": {
+        // For this prototype, allow read for admin login. 
+        // WARNING: INSECURE for production. In production, this path would be highly secured and not world-readable.
+        ".read": true, 
+        // Disallow client-side writes. Seeding should be done via a secure mechanism (e.g. Admin SDK script, or specific Firebase function).
+        // The seedAdminCredentialsIfNeeded function in rtdb.ts will attempt to write if path doesn't exist.
+        // For this to work initially if rules are strict, you might need to manually set write to true once, seed, then set to false.
+        // Or, ensure the user performing the first login/seed operation has sufficient privileges.
+        ".write": false 
       }
     }
   }

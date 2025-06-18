@@ -77,3 +77,9 @@ export interface CharacterCreationFormSchema {
   defaultVoiceTone: string;
   dataAiHint?: string;
 }
+
+// For Admin Login (Prototype - INSECURE for storing plain text passwords)
+export interface AdminCredentials {
+  username: string;
+  password?: string; // Password stored in plain text - VERY INSECURE
+}

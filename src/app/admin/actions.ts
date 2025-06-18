@@ -3,9 +3,10 @@
 
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { addCharacter } from '@/lib/firebase/rtdb';
+import { addCharacter, getAdminCredentials } from '@/lib/firebase/rtdb'; // Added getAdminCredentials
 import type { CharacterMetadata, CharacterCreationFormSchema } from '@/lib/types';
 
+// --- Create Character Action ---
 const characterFormSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(50),
   description: z.string().min(10, { message: 'Description must be at least 10 characters.' }).max(500),
@@ -86,6 +87,84 @@ export async function createCharacterAction(
     return {
       message: `Failed to create character: ${errorMessage}`,
       success: false,
+      errors: null,
+    };
+  }
+}
+
+
+// --- Admin Login Action ---
+const loginFormSchema = z.object({
+  username: z.string().min(1, { message: 'Username is required.' }),
+  password: z.string().min(1, { message: 'Password is required.' }),
+});
+
+export interface LoginAdminActionState {
+  success: boolean;
+  message: string;
+  errors?: Partial<Record<'username' | 'password', string[]>> | null;
+}
+
+export async function loginAdminAction(
+  prevState: LoginAdminActionState,
+  formData: FormData
+): Promise<LoginAdminActionState> {
+  const rawFormData = {
+    username: formData.get('username') as string,
+    password: formData.get('password') as string,
+  };
+
+  const validatedFields = loginFormSchema.safeParse(rawFormData);
+
+  if (!validatedFields.success) {
+     const fieldErrors: Partial<Record<'username' | 'password', string[]>> = {};
+     for (const issue of validatedFields.error.issues) {
+        const path = issue.path[0] as 'username' | 'password';
+        if (!fieldErrors[path]) {
+            fieldErrors[path] = [];
+        }
+        fieldErrors[path]?.push(issue.message);
+    }
+    return {
+      success: false,
+      message: 'Validation failed. Please check your input.',
+      errors: fieldErrors,
+    };
+  }
+
+  const { username, password } = validatedFields.data;
+
+  try {
+    const adminCreds = await getAdminCredentials();
+    
+    if (!adminCreds) {
+      return {
+        success: false,
+        message: 'Admin credentials not found in database. Please ensure they are seeded.',
+        errors: null,
+      };
+    }
+
+    // WARNING: Comparing plain text passwords. Insecure for production.
+    if (username === adminCreds.username && password === adminCreds.password) {
+      return {
+        success: true,
+        message: 'Login successful!',
+        errors: null,
+      };
+    } else {
+      return {
+        success: false,
+        message: 'Invalid username or password.',
+        errors: null,
+      };
+    }
+  } catch (error) {
+    console.error('Error during admin login:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return {
+      success: false,
+      message: `Login failed: ${errorMessage}`,
       errors: null,
     };
   }

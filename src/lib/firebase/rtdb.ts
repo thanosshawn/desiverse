@@ -1,4 +1,3 @@
-
 // src/lib/firebase/rtdb.ts
 import {
   ref,
@@ -14,7 +13,7 @@ import {
   type Unsubscribe,
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
-import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument } from '@/lib/types';
+import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials } from '@/lib/types';
 
 // Helper to get server timestamp value for RTDB
 const getServerTimestamp = () => rtdbServerTimestamp;
@@ -100,8 +99,6 @@ export async function getAllCharacters(): Promise<CharacterMetadata[]> {
 
 export async function addCharacter(characterId: string, data: Omit<CharacterMetadata, 'id'>): Promise<void> {
   const characterRef = ref(db, `characters/${characterId}`);
-  // Construct the full CharacterMetadata object, including the id derived from the key.
-  // This ensures the 'id' field is present in the RTDB object, matching the type.
   const characterDataWithId: CharacterMetadata = { ...data, id: characterId };
   await set(characterRef, characterDataWithId);
 }
@@ -125,7 +122,7 @@ export async function getOrCreateChatSession(userId: string, characterId: string
     const newChatSessionMeta: UserChatSessionMetadata = {
       characterId,
       characterName: characterMeta.name,
-      characterAvatarUrl: characterMeta.avatarUrl, // This will be the Supabase URL
+      characterAvatarUrl: characterMeta.avatarUrl,
       createdAt: getServerTimestamp() as unknown as number,
       updatedAt: getServerTimestamp() as unknown as number,
       lastMessageText: `Chat started with ${characterMeta.name}`,
@@ -202,10 +199,37 @@ export function getMessagesStream(
 }
 
 
+// --- Admin Credentials (Prototype - INSECURE plain text) ---
+export async function getAdminCredentials(): Promise<AdminCredentials | null> {
+  const credRef = ref(db, 'admin_settings/credentials');
+  const snapshot = await get(credRef);
+  return snapshot.exists() ? (snapshot.val() as AdminCredentials) : null;
+}
+
+export async function seedAdminCredentialsIfNeeded(): Promise<void> {
+  const credRef = ref(db, 'admin_settings/credentials');
+  const snapshot = await get(credRef);
+  if (!snapshot.exists()) {
+    // WARNING: Storing plain text credentials. Highly insecure. For prototype only.
+    const defaultCreds: AdminCredentials = {
+      username: 'admin',
+      password: 'admin', // Super insecure
+    };
+    try {
+      await set(credRef, defaultCreds);
+      console.log('Default admin credentials seeded to RTDB (INSECURE - PROTOTYPE ONLY).');
+    } catch (error) {
+      console.error('Error seeding admin credentials. Check RTDB rules for /admin_settings/credentials. It might need to be writable temporarily by an admin user or globally for first seed.', error);
+      // Rethrow or handle as appropriate if seeding is critical for app function
+      // For this prototype, we'll log and continue.
+    }
+  }
+}
+
+
 // --- Seed Data ---
-// Updated to reflect new CharacterMetadata schema and Supabase URL placeholder format
 export async function seedInitialCharacters() {
-  const now = Date.now(); // Use a consistent timestamp for creation for seed data
+  const now = Date.now(); 
   const supabasePlaceholderBaseUrl = 'https://your-project-ref.supabase.co/storage/v1/object/public/character-assets';
 
   const charactersDataToSeed: Record<string, CharacterMetadata> = {
@@ -233,36 +257,13 @@ export async function seedInitialCharacters() {
       createdAt: now,
       dataAiHint: 'indian man thinking'
     },
-    simran_001: { 
-      id: 'simran_001',
-      name: 'Simran', 
-      description: 'Simran is your go-to for fun, gossip, and honest advice. She\'s always up for a laugh and a chat about the latest trends.', 
-      avatarUrl: `${supabasePlaceholderBaseUrl}/avatars/simran.png`, 
-      backgroundImageUrl: `${supabasePlaceholderBaseUrl}/backgrounds/simran_bg.jpg`,
-      basePrompt: 'You are Simran, a sweet, sassy, and modern AI best friend. You chat in a very casual Hinglish, use a lot of relatable slang, and are always up for fun, gossip, and talking about trends. You are supportive and give honest advice.',
-      styleTags: ['sassy', 'modern', 'bff', 'fun-loving', 'honest'],
-      defaultVoiceTone: "Meera", 
-      createdAt: now,
-      dataAiHint: 'indian girl fashion'
-    },
-    aryan_001: { 
-      id: 'aryan_001',
-      name: 'Aryan', 
-      description: 'Aryan is an adventure seeker who loves to explore new things, from bike rides to trekking. He\'s looking for a partner in crime.', 
-      avatarUrl: `${supabasePlaceholderBaseUrl}/avatars/aryan.png`, 
-      backgroundImageUrl: `${supabasePlaceholderBaseUrl}/backgrounds/aryan_bg.jpg`, 
-      basePrompt: 'You are Aryan, an adventurous and cool AI companion. You talk about travel, bikes, sports, and exciting experiences in a friendly and energetic Hinglish. You are enthusiastic and always ready for a new plan.',
-      styleTags: ['adventurous', 'cool', 'energetic', 'traveler'],
-      defaultVoiceTone: "Anjali", 
-      createdAt: now,
-      dataAiHint: 'indian man cool'
-    },
+    // ... (other characters can be added here if needed)
   };
 
   const charactersRef = ref(db, 'characters');
   try {
     const snapshot = await get(charactersRef);
-    if (!snapshot.exists() || Object.keys(snapshot.val()).length === 0) {
+    if (!snapshot.exists() || Object.keys(snapshot.val()).length < 2) { // Check if fewer than 2 chars exist
       await set(charactersRef, charactersDataToSeed);
       console.log("Initial characters seeded successfully to RTDB!");
     } else {
@@ -272,4 +273,3 @@ export async function seedInitialCharacters() {
     console.error("Error seeding characters to RTDB: ", error);
   }
 }
-
