@@ -4,93 +4,99 @@
 
 @layer base {
   :root {
-    /* Light Mode - Gulabi Pink, Haldi Yellow, Mehndi Green inspired */
-    --background: hsl(330 50% 98%); /* Very light pink */
-    --foreground: hsl(330 30% 25%); /* Dark desaturated pink for text */
+    /* Light Mode - Saffron, Light Beige, Teal based */
+    --background: hsl(60 56% 91%); /* Light Beige (#F5F5DC) */
+    --foreground: hsl(36 40% 20%); /* Dark Saffron-Brown for text on beige */
     
-    --card: hsl(330 60% 96%); 
-    --card-foreground: hsl(330 30% 25%);
+    --card: hsl(60 56% 95%); /* Lighter Beige */
+    --card-foreground: hsl(36 40% 20%);
     
-    --popover: hsl(330 60% 96%);
-    --popover-foreground: hsl(330 30% 25%);
+    --popover: hsl(60 56% 95%);
+    --popover-foreground: hsl(36 40% 20%);
     
-    --primary: hsl(335 85% 60%); /* Gulabi Pink */
-    --primary-foreground: hsl(0 0% 100%); 
+    --primary: hsl(36 100% 60%); /* Saffron (#FF9933) */
+    --primary-foreground: hsl(0 0% 100%); /* White */
     
-    --secondary: hsl(90 55% 75%); /* Light Mehndi Green */
-    --secondary-foreground: hsl(90 40% 30%); 
+    --secondary: hsl(36 70% 80%); /* Soft, desaturated orange */
+    --secondary-foreground: hsl(36 70% 30%); 
     
-    --muted: hsl(330 40% 94%); 
-    --muted-foreground: hsl(330 20% 50%);
+    --muted: hsl(60 50% 96%); /* Very light beige */
+    --muted-foreground: hsl(60 20% 50%);
     
-    --accent: hsl(45 100% 60%); /* Haldi Yellow */
-    --accent-foreground: hsl(45 90% 25%); 
+    --accent: hsl(180 100% 25%); /* Teal (#008080) */
+    --accent-foreground: hsl(0 0% 100%); /* White */
     
     --destructive: hsl(0 80% 60%); 
     --destructive-foreground: hsl(0 0% 100%);
     
-    --border: hsl(330 40% 90%);
-    --input: hsl(330 50% 95%);
-    --ring: hsl(335 85% 65%); /* Gulabi Pink for focus */
+    --border: hsl(60 50% 85%); /* Beige border */
+    --input: hsl(60 50% 94%); /* Subtle input background */
+    --ring: hsl(36 100% 60%); /* Saffron for focus ring */
     
-    --chart-1: 335 80% 65%; /* Variations for charts if needed */
-    --chart-2: 45 90% 65%;
-    --chart-3: 90 50% 60%;
-    --chart-4: 210 70% 60%; /* A contrasting blue if needed */
-    --chart-5: 270 70% 65%; /* A contrasting purple if needed */
+    --chart-1: 36 100% 60%; /* Saffron */
+    --chart-2: 180 100% 25%; /* Teal */
+    --chart-3: 25 85% 60%;  /* Warm Orange */
+    --chart-4: 270 60% 70%; /* Soft Lavender */
+    --chart-5: 120 40% 60%; /* Muted Green */
     
     --radius: 0.8rem; /* Increased for softer, bubble-like UI */
 
-    /* Sidebar colors - themed */
-    --sidebar-background: hsl(330 45% 97%);
-    --sidebar-foreground: hsl(330 25% 30%);
-    --sidebar-primary: hsl(335 80% 62%);
+    /* Sidebar colors - Light Mode */
+    --sidebar-background: hsl(60 50% 96%); /* Off-white beige */
+    --sidebar-foreground: hsl(36 40% 30%); /* Dark saffron-brown */
+    --sidebar-primary: hsl(36 100% 55%); /* Deeper Saffron */
     --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(330 50% 93%);
-    --sidebar-accent-foreground: hsl(335 75% 55%);
-    --sidebar-border: hsl(330 40% 88%);
-    --sidebar-ring: hsl(335 80% 62%);
+    --sidebar-accent: hsl(60 50% 92%); /* Very light beige hover */
+    --sidebar-accent-foreground: hsl(36 100% 55%); /* Saffron hover text */
+    --sidebar-border: hsl(60 50% 88%);
+    --sidebar-ring: hsl(36 100% 55%);
   }
 
   .dark {
-    /* Dark Mode - Deeper, vibrant tones */
-    --background: hsl(330 20% 12%); /* Dark, slightly pinkish charcoal */
-    --foreground: hsl(330 30% 90%); 
+    /* Dark Mode - Dreamy Dark Purple/Indigo base, Saffron, Teal */
+    --background: hsl(270 10% 15%); /* Dark Desaturated Purple/Indigo */
+    --foreground: hsl(270 20% 90%); /* Light Lavender */
     
-    --card: hsl(330 20% 15%);
-    --card-foreground: hsl(330 30% 90%);
+    --card: hsl(270 10% 20%);
+    --card-foreground: hsl(270 20% 90%);
     
-    --popover: hsl(330 20% 15%);
-    --popover-foreground: hsl(330 30% 90%);
+    --popover: hsl(270 10% 20%);
+    --popover-foreground: hsl(270 20% 90%);
     
-    --primary: hsl(335 80% 68%); /* Brighter Gulabi Pink */
-    --primary-foreground: hsl(330 20% 10%); 
+    --primary: hsl(36 100% 65%); /* Brighter Saffron */
+    --primary-foreground: hsl(36 100% 10%); 
     
-    --secondary: hsl(90 40% 40%); /* Deeper Mehndi Green */
-    --secondary-foreground: hsl(90 60% 85%); 
+    --secondary: hsl(340 40% 35%); /* Dark Muted Rose */
+    --secondary-foreground: hsl(340 40% 85%); 
     
-    --muted: hsl(330 15% 20%);
-    --muted-foreground: hsl(330 20% 65%); 
+    --muted: hsl(270 8% 25%);
+    --muted-foreground: hsl(270 10% 65%); 
     
-    --accent: hsl(45 95% 68%); /* Brighter Haldi Yellow */
-    --accent-foreground: hsl(45 80% 15%); 
+    --accent: hsl(180 80% 50%); /* Brighter Teal */
+    --accent-foreground: hsl(180 100% 10%); 
     
     --destructive: hsl(0 70% 60%); 
     --destructive-foreground: hsl(0 0% 100%);
     
-    --border: hsl(330 15% 25%); 
-    --input: hsl(330 18% 18%); 
-    --ring: hsl(335 80% 68%);
+    --border: hsl(270 10% 30%); 
+    --input: hsl(270 10% 22%); 
+    --ring: hsl(36 100% 65%); /* Brighter Saffron ring */
+
+    --chart-1: 36 100% 65%; /* Brighter Saffron */
+    --chart-2: 180 80% 50%;  /* Brighter Teal */
+    --chart-3: 25 85% 65%;   /* Brighter Warm Orange */
+    --chart-4: 270 60% 75%;  /* Brighter Soft Lavender */
+    --chart-5: 120 40% 65%;  /* Brighter Muted Green */
 
     /* Sidebar colors for dark mode - themed */
-    --sidebar-background: hsl(330 18% 10%);
-    --sidebar-foreground: hsl(330 25% 88%);
-    --sidebar-primary: hsl(335 75% 65%);
-    --sidebar-primary-foreground: hsl(330 15% 8%);
-    --sidebar-accent: hsl(330 15% 14%);
-    --sidebar-accent-foreground: hsl(335 60% 80%);
-    --sidebar-border: hsl(330 15% 22%);
-    --sidebar-ring: hsl(335 75% 65%);
+    --sidebar-background: hsl(270 10% 12%);
+    --sidebar-foreground: hsl(270 20% 85%);
+    --sidebar-primary: hsl(36 100% 60%);
+    --sidebar-primary-foreground: hsl(36 100% 8%);
+    --sidebar-accent: hsl(270 10% 18%);
+    --sidebar-accent-foreground: hsl(36 100% 70%);
+    --sidebar-border: hsl(270 10% 25%);
+    --sidebar-ring: hsl(36 100% 60%);
   }
 }
 
@@ -100,6 +106,9 @@
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
+    /* Optional: Add a very subtle global background gradient if desired */
+    /* For light mode: background-image: linear-gradient(to bottom right, hsl(60 56% 91%), hsl(30 60% 93%)); */
+    /* For dark mode: background-image: linear-gradient(to bottom right, hsl(270 10% 15%), hsl(250 12% 18%)); */
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
