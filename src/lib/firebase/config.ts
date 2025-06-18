@@ -56,3 +56,4 @@ const db = getDatabase(app); // Initialize Realtime Database
 const storage = getStorage(app);
 
 export { app, auth, db, storage, firebaseConfig }; // Export db (RTDB instance)
+
