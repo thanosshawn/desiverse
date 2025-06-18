@@ -14,11 +14,10 @@ import {
   getOrCreateChatSession, 
   getMessagesStream, 
   addMessageToChat 
-} from '@/lib/firebase/rtdb'; // Use RTDB functions
+} from '@/lib/firebase/rtdb'; 
 import { Loader2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
-// Polyfill for crypto.randomUUID
 if (typeof crypto === 'undefined' || !crypto.randomUUID) {
   global.crypto = global.crypto || {} as Crypto;
   (global.crypto as any).randomUUID = uuidv4;
@@ -46,6 +45,16 @@ export default function ChatPage() {
   };
 
   useEffect(scrollToBottom, [messages]);
+
+  // Dynamic background style based on character metadata
+  const backgroundStyle = currentCharacterMeta?.backgroundImageUrl
+    ? { 
+        backgroundImage: `url(${currentCharacterMeta.backgroundImageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }
+    : {};
 
   useEffect(() => {
     if (authLoading) return;
@@ -80,27 +89,26 @@ export default function ChatPage() {
         toast({ title: 'Error Initializing Chat', description: error.message, variant: 'destructive' });
         router.push('/');
       }
-      // Page loading set to false by messages stream
     };
 
     initializeChat();
   }, [user, authLoading, characterId, router, toast]);
 
   useEffect(() => {
-    if (!user || !characterId || !currentChatSessionMeta) return; // Ensure chat session meta is loaded
+    if (!user || !characterId || !currentChatSessionMeta) return;
 
     const unsubscribe = getMessagesStream(
       user.uid,
-      characterId, // characterId is the chat session ID here
+      characterId, 
       (rtdbMessages) => {
         const uiMessages: ChatMessageUI[] = rtdbMessages.map(doc => ({
-          id: doc.id, // RTDB key is the ID
+          id: doc.id, 
           rtdbKey: doc.id,
           sender: doc.sender,
           type: doc.messageType === 'audio' ? 'audio' : doc.messageType === 'video' ? 'video' : 'text',
           content: doc.text,
           characterName: doc.sender === 'ai' ? currentCharacterMeta?.name : undefined,
-          timestamp: new Date(doc.timestamp), // Convert number to Date
+          timestamp: new Date(doc.timestamp), 
           audioSrc: doc.audioUrl,
           videoSrc: doc.videoUrl,
         }));
@@ -124,15 +132,6 @@ export default function ChatPage() {
     return optimisticId;
   };
 
-  const updateOptimisticMessageKey = (optimisticId: string, rtdbKey: string) => {
-     // With RTDB, the message will appear via the stream with its RTDB key as id.
-     // We might not need explicit update if stream handling is robust,
-     // but if optimistic ID needs to be replaced by RTDB key for some reason:
-    setMessages(prev => prev.map(msg => 
-      msg.id === optimisticId ? { ...msg, id: rtdbKey, rtdbKey: rtdbKey } : msg
-    ));
-  };
-
   const removeOptimisticMessage = (optimisticId: string) => {
      setMessages(prev => prev.filter(msg => msg.id !== optimisticId));
   };
@@ -146,10 +145,10 @@ export default function ChatPage() {
     const userMessageData: Omit<MessageDocument, 'timestamp'> = {
       sender: 'user',
       text: userInput,
-      messageType: 'text', // User messages are text by default through input
+      messageType: 'text', 
     };
     
-    const optimisticUserMessageId = addOptimisticMessage({
+    addOptimisticMessage({
       sender: 'user',
       type: 'text',
       content: userInput,
@@ -158,11 +157,7 @@ export default function ChatPage() {
     setCurrentVideoSrc(undefined);
 
     try {
-      // Save user message to RTDB
-      const userMessageRtdbKey = await addMessageToChat(user.uid, characterId, userMessageData);
-      // Optimistic message will be replaced by the one from RTDB stream with the correct key.
-      // updateOptimisticMessageKey(optimisticUserMessageId, userMessageRtdbKey);
-
+      await addMessageToChat(user.uid, characterId, userMessageData);
 
       const optimisticAiLoadingId = addOptimisticMessage({
         sender: 'ai',
@@ -171,18 +166,18 @@ export default function ChatPage() {
         characterName: currentCharacterMeta.name as CharacterName,
       });
 
+      // Pass the full currentCharacterMeta to the action
       const aiResponse = await handleUserMessageAction(
         userInput,
         messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({
-            id: m.rtdbKey || m.id, // Prefer rtdbKey if available
+            id: m.rtdbKey || m.id, 
             sender: m.sender,
-            content: m.content, // text content
-            timestamp: m.timestamp.getTime(), // Pass as number
-            // For AI context, we might simplify the history structure
-        })).slice(-10), // Pass recent history for context to AI
-        currentCharacterMeta,
+            content: m.content, 
+            timestamp: m.timestamp.getTime(), 
+        })).slice(-10), 
+        currentCharacterMeta, // Pass full metadata
         user.uid,
-        characterId // ChatId is characterId here
+        characterId 
       );
       
       removeOptimisticMessage(optimisticAiLoadingId);
@@ -203,7 +198,6 @@ export default function ChatPage() {
           audioUrl: aiResponse.audioDataUri,
           videoUrl: aiResponse.videoDataUri,
         };
-        // Save AI message to RTDB. It will appear via the stream.
         await addMessageToChat(user.uid, characterId, aiMessageData);
         
         if (aiResponse.videoDataUri) {
@@ -227,18 +221,18 @@ export default function ChatPage() {
 
   if (authLoading || pageLoading || !currentCharacterMeta || !currentChatSessionMeta) {
     return (
-      <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center">
+      <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={backgroundStyle}>
         <Header />
         <div className="flex-grow flex items-center justify-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="ml-4 text-lg text-muted-foreground">Loading your chat with {characterId || 'your Bae'}...</p>
+          <p className="ml-4 text-lg text-muted-foreground bg-background/80 p-2 rounded-md">Loading your chat with {currentCharacterMeta?.name || characterId || 'your Bae'}...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <div className="flex flex-col h-screen bg-background text-foreground" style={backgroundStyle}>
       <Header />
       <main className="flex-grow overflow-hidden">
         <ChatLayout
@@ -246,7 +240,7 @@ export default function ChatPage() {
           onSendMessage={handleSendMessage}
           isLoading={isLoadingMessage}
           currentCharacterName={currentCharacterMeta.name as CharacterName}
-          currentCharacterAvatar={currentCharacterMeta.avatarUrl}
+          currentCharacterAvatar={currentCharacterMeta.avatarUrl} // This will be the Supabase URL
           currentVideoMessageSrc={currentVideoSrc}
         />
       </main>

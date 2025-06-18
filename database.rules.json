@@ -1,3 +1,4 @@
+
 {
   "rules": {
     "users": {
@@ -60,14 +61,19 @@
       // Writing characters should be restricted (e.g., admin only - not shown here for simplicity)
       ".write": false, // For now, disable direct client write to characters. Seed via script/admin SDK.
       "$characterId": {
-        ".validate": "newData.hasChildren(['name', 'tagline', 'avatarUrl', 'description', 'prompt'])",
+        ".validate": "newData.hasChildren(['name', 'description', 'avatarUrl', 'basePrompt', 'styleTags', 'defaultVoiceTone', 'createdAt'])",
         "name": { ".validate": "newData.isString()" },
-        "tagline": { ".validate": "newData.isString()" },
-        "avatarUrl": { ".validate": "newData.isString()" },
         "description": { ".validate": "newData.isString()" },
-        "prompt": { ".validate": "newData.isString()" },
-        "voiceStyle": { ".validate": "newData.isString() || newData.val() == null" },
-        "dataAiHint": { ".validate": "newData.isString() || newData.val() == null" },
+        "avatarUrl": { ".validate": "newData.isString().isURL()" }, // Expecting a URL
+        "backgroundImageUrl": { ".validate": "newData.isString().isURL() || newData.val() == null" }, // Optional URL
+        "basePrompt": { ".validate": "newData.isString() && newData.val().length > 10" },
+        "styleTags": {
+          ".validate": "newData.isArray()",
+          "$tagIndex": { ".validate": "newData.isString()" }
+        },
+        "defaultVoiceTone": { ".validate": "newData.isString()" },
+        "createdAt": { ".validate": "newData.isNumber()" },
+        "dataAiHint": { ".validate": "newData.isString() || newData.val() == null" }, // Kept for consistency with existing data
         "$other": { ".validate": false }
       }
     }

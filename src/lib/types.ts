@@ -26,14 +26,16 @@ export interface UserProfile {
 }
 
 export interface CharacterMetadata {
-  id: string; // characterId, e.g., "priya", "rahul" (key in RTDB)
+  id: string; // characterId, e.g., "simran_001" (key in RTDB)
   name: CharacterName;
-  tagline: string;
-  avatarUrl: string;
-  description: string;
-  prompt: string; // Base prompt for Gemini
-  voiceStyle?: string; // For TTS
-  dataAiHint?: string; // For placeholder image generation
+  description: string; // e.g., "A shy, poetic girl from Delhi who loves chai."
+  avatarUrl: string; // URL from Supabase (e.g., /avatars/simran.png)
+  backgroundImageUrl?: string; // Optional URL from Supabase (e.g., /backgrounds/simran_bg.jpg)
+  basePrompt: string; // Personality primer (e.g., "You are Simran, a sweet and poetic Indian girl…")
+  styleTags: string[]; // e.g., ["romantic", "shy", "Bollywood fan"]
+  defaultVoiceTone: string; // e.g., "soft playful Hinglish"
+  createdAt: number; // RTDB timestamp (ms since epoch)
+  dataAiHint?: string; // For placeholder image generation (existing field, kept for consistency)
 }
 
 // Represents metadata for a chat session between a user and a character
@@ -41,7 +43,7 @@ export interface CharacterMetadata {
 export interface UserChatSessionMetadata {
   characterId: string; // Redundant, as it's the key, but useful for objects
   characterName: CharacterName;
-  characterAvatarUrl: string;
+  characterAvatarUrl: string; // This will be the Supabase URL
   createdAt: number; // RTDB timestamp
   updatedAt: number; // RTDB timestamp
   lastMessageText?: string;
