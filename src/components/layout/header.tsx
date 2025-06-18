@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe } from 'lucide-react';
+import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Check } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,15 +15,22 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
 import { usePathname } from 'next/navigation';
 import { listenToOnlineUsersCount, listenToTotalRegisteredUsers } from '@/lib/firebase/rtdb';
+import { useTheme } from 'next-themes';
 
 export function Header() {
   const { user, userProfile, loading, signInWithGoogle, signInAnonymously, signOut } = useAuth();
   const pathname = usePathname();
   const [onlineUsersCount, setOnlineUsersCount] = useState(0);
   const [totalRegisteredCount, setTotalRegisteredCount] = useState(0);
+  const { theme, setTheme, themes } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const unsubscribeOnline = listenToOnlineUsersCount(setOnlineUsersCount);
@@ -42,6 +49,20 @@ export function Header() {
       return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
     }
     return name.substring(0, 2).toUpperCase();
+  };
+
+  const getThemeIcon = () => {
+    if (!mounted) return <Palette className="h-5 w-5" />;
+    switch (theme) {
+      case 'light':
+        return <Sun className="h-5 w-5" />;
+      case 'dark':
+        return <Moon className="h-5 w-5" />;
+      case 'pink':
+        return <Sparkles className="h-5 w-5" />; // Or a specific pink theme icon
+      default:
+        return <Palette className="h-5 w-5" />;
+    }
   };
 
   return (
@@ -65,7 +86,30 @@ export function Header() {
             </div>
           </div>
         </div>
-        <nav className="flex items-center space-x-2 md:space-x-4">
+        <nav className="flex items-center space-x-1 md:space-x-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10 rounded-full" title="Change theme">
+                {getThemeIcon()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-card text-card-foreground rounded-xl shadow-2xl border-border">
+              <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+                <DropdownMenuRadioItem value="light" className="cursor-pointer hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
+                  <Sun className="mr-2 h-4 w-4" /> Light
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark" className="cursor-pointer hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
+                  <Moon className="mr-2 h-4 w-4" /> Dark
+                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="pink" className="cursor-pointer hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
+                  <Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Pink
+                </DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {loading ? (
             <Loader2 className="h-6 w-6 animate-spin text-primary-foreground" />
           ) : user ? (
@@ -143,4 +187,3 @@ export function Header() {
     </header>
   );
 }
-

@@ -16,6 +16,7 @@ import {
   goOfflineOnDisconnect,
   setOfflineStatus
 } from '@/lib/firebase/rtdb'; 
+import { useTheme } from 'next-themes'; // Import useTheme
 
 interface AuthContextType {
   user: User | null;
@@ -39,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { setTheme } = useTheme(); // Get setTheme from next-themes
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -48,7 +50,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         let existingProfile = await getUserProfile(currentUser.uid);
         if (existingProfile) {
           setUserProfile(existingProfile);
-          await updateUserProfile(currentUser.uid, { lastActive: rtdbServerTimestamp() }); 
+          await updateUserProfile(currentUser.uid, { lastActive: rtdbServerTimestamp() });
+          if (existingProfile.selectedTheme) { // Apply theme from profile
+            setTheme(existingProfile.selectedTheme);
+          }
         } else {
           const newUserProfileData: NewUserProfileWritePayload = {
             email: currentUser.email,
@@ -57,6 +62,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             joinedAt: rtdbServerTimestamp(), 
             lastActive: rtdbServerTimestamp(), 
             subscriptionTier: 'free',
+            selectedTheme: 'light', // Default theme for new users
+            languagePreference: 'hinglish',
           };
           await createUserProfile(currentUser.uid, newUserProfileData);
           
@@ -68,16 +75,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
              joinedAt: Date.now(), 
              lastActive: Date.now(),
              subscriptionTier: newUserProfileData.subscriptionTier || 'free',
-             selectedTheme: 'light', 
-             languagePreference: 'hinglish', 
-           } as UserProfile); 
+             selectedTheme: newUserProfileData.selectedTheme || 'light', 
+             languagePreference: newUserProfileData.languagePreference || 'hinglish', 
+           } as UserProfile);
+           if (newUserProfileData.selectedTheme) { // Apply default theme
+             setTheme(newUserProfileData.selectedTheme);
+           }
         }
-        // Set user online and configure onDisconnect
         await setOnlineStatus(currentUser.uid, currentUser.displayName || (existingProfile?.name || 'Anonymous'));
         goOfflineOnDisconnect(currentUser.uid);
 
       } else {
-        // If there was a previous user, mark them as offline explicitly
         if (user?.uid) {
           await setOfflineStatus(user.uid);
         }
@@ -88,7 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, [user?.uid]); // Add user.uid to dependency array for explicit offline setting
+  }, [user?.uid, setTheme]); // Added setTheme to dependencies
 
   const signInWithGoogle = async () => {
     setLoading(true); 
@@ -116,8 +124,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
-    if (user) { // Ensure user exists before trying to set offline
-      await setOfflineStatus(user.uid); // Explicitly set offline before sign out
+    if (user) { 
+      await setOfflineStatus(user.uid); 
     }
     setLoading(true); 
     try {
@@ -169,4 +177,3 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
-

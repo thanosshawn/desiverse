@@ -109,8 +109,8 @@ export default function CharacterSelectionPage() {
             />
           </div>
           <div className="flex flex-wrap gap-2 items-center">
-            <Filter className="h-5 w-5 text-primary mr-1 hidden md:inline-block" />
-            <span className="text-sm font-medium text-muted-foreground mr-2 hidden md:inline-block">Filter by Tags:</span>
+            <Filter className="h-5 w-5 text-primary mr-1 hidden xs:inline-block sm:inline-block" />
+            <span className="text-sm font-medium text-muted-foreground mr-2 hidden xs:inline-block sm:inline-block">Filter by Tags:</span>
             {allTags.map(tag => (
               <Button
                 key={tag}
@@ -129,7 +129,7 @@ export default function CharacterSelectionPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
             {[...Array(4)].map((_, i) => (
               <Card key={i} className="bg-card shadow-xl rounded-2xl overflow-hidden">
-                <Skeleton className="w-full h-60 md:h-72" />
+                <Skeleton className="w-full h-60 md:h-72 aspect-[3/4]" /> 
                 <CardContent className="p-5 text-center space-y-2">
                   <Skeleton className="h-7 w-3/4 mx-auto" />
                   <Skeleton className="h-4 w-full mx-auto" />
@@ -202,4 +202,3 @@ export default function CharacterSelectionPage() {
     </div>
   );
 }
-
