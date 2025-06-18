@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -19,6 +20,12 @@ const nextConfig: NextConfig = {
       { // For Google User Avatars
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      { // For placeholder Supabase URLs from seed data
+        protocol: 'https',
+        hostname: 'your-supabase-url.com',
         port: '',
         pathname: '/**',
       }
