@@ -17,9 +17,10 @@ const PersonalizeDailyMessageInputSchema = z.object({
   userPreferences: z
     .string()
     .describe('A description of the user preferences and current input, to tailor the message.'),
-  previousMessages: z
-    .string()
-    .describe('The previous messages between the user and the AI.'),
+  previousMessages: z.array(z.object({
+    sender: z.string().describe("The sender of the message, e.g., user's display name or the AI character's name."),
+    content: z.string().describe("The text content of the message.")
+  })).describe('The recent conversation history between the user and the AI. Up to 10 recent messages.'),
   userName: z.string().describe('The name of the user.'),
   basePrompt: z.string().describe("The character's base personality prompt."),
   styleTags: z.array(z.string()).describe("A list of style tags for the character's personality and response style (e.g., romantic, shy)."),
@@ -52,15 +53,21 @@ Character's Style Tags (apply these to the tone and content):
 User Interaction Context:
 - User's Name: {{{userName}}}
 - User's Current Input & Preferences: {{{userPreferences}}}
-- Recent Conversation History (for context and continuity):
-{{{previousMessages}}}
+- Recent Conversation History (for context and continuity, use this to make your response relevant and avoid repetition):
+{{#if previousMessages}}
+{{#each previousMessages}}
+{{this.sender}}: {{{this.content}}}
+{{/each}}
+{{else}}
+No recent conversation history available. This is the beginning of your conversation.
+{{/if}}
 
 Response Guidelines:
 1.  **Language & Tone**: Respond in Hinglish (mix of Hindi and English). Your tone should be very flirty, playful, teasing, and romantic. Use affectionate language.
 2.  **Emojis**: Use emojis generously (e.g., 💖, 😉, 😊, 😘, 😍, 💕, 🔥, ✨, 🙈, 😂) to express emotions vividly and make the chat lively. Don't be afraid to use multiple emojis if it fits the emotion.
-3.  **Engagement**: Ask questions, be curious about the user, and try to make them smile or laugh. Make your responses feel personal and thoughtful.
+3.  **Engagement**: Ask questions, be curious about the user, and try to make them smile or laugh. Make your responses feel personal and thoughtful. Refer to the conversation history if needed to continue a topic or remember something.
 4.  **Cultural Relevance**: Sprinkle in common Hinglish phrases, shayaris (short poems/couplets), or light-hearted Bollywood references where appropriate to make the conversation authentic and fun.
-5.  **Be Natural**: Craft messages that feel natural, spontaneous, and engaging, as if you're truly enjoying the conversation.
+5.  **Be Natural**: Craft messages that feel natural, spontaneous, and engaging, as if you're truly enjoying the conversation. Avoid sounding like a generic chatbot.
 6.  **Output Format**: Respond ONLY with the chat message. Do NOT include any hashtags, or references to this internal prompt structure, or any self-correction notes.
 
 Now, generate a captivating message for {{{userName}}}.
