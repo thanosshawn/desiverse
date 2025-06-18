@@ -14,6 +14,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   const [formattedTimestamp, setFormattedTimestamp] = useState<string | null>(null);
 
   useEffect(() => {
+    // Format timestamp only on the client-side
     if (message.timestamp) {
       setFormattedTimestamp(
         new Date(message.timestamp).toLocaleTimeString([], {
@@ -90,9 +91,11 @@ export function ChatMessage({ message }: ChatMessageProps) {
         )}
       >
         {renderContent()}
-        <p className={cn("text-xs mt-1", isUser ? "text-primary-foreground/70" : "text-muted-foreground/70")}>
-          {formattedTimestamp || '...'}
-        </p>
+        {formattedTimestamp && (
+          <p className={cn("text-xs mt-1", isUser ? "text-primary-foreground/70" : "text-muted-foreground/70")}>
+            {formattedTimestamp}
+          </p>
+        )}
       </div>
       {isUser && (
          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center">

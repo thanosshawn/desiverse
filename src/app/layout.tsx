@@ -3,8 +3,8 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'DesiVerse Bae',
-  description: 'Your virtual Desi companion for chat, voice, and video messages.',
+  title: 'DesiBae - Your Virtual Desi Companion',
+  description: 'Pyaar, dosti aur thoda flirting... all in Hinglish with your virtual Desi Bae!',
 };
 
 export default function RootLayout({
@@ -17,8 +17,7 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Belleza&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
         {children}

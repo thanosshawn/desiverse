@@ -4,32 +4,32 @@
 
 @layer base {
   :root {
-    --background: 60 56% 91%; /* Light Beige #F5F5DC */
-    --foreground: 20 10% 10%; /* Dark Gray for text on beige */
-    --card: 60 56% 91%;
-    --card-foreground: 20 10% 10%;
-    --popover: 60 56% 91%;
-    --popover-foreground: 20 10% 10%;
-    --primary: 36 100% 60%; /* Saffron #FF9933 */
-    --primary-foreground: 0 0% 100%; /* White */
-    --secondary: 30 80% 85%; /* Lighter Saffron for secondary elements */
-    --secondary-foreground: 36 100% 20%; /* Darker Saffron */
-    --muted: 60 20% 80%; /* Muted Beige */
-    --muted-foreground: 60 10% 40%; 
-    --accent: 180 100% 25%; /* Teal #008080 */
-    --accent-foreground: 0 0% 100%; /* White */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 36 30% 70%; /* Saffron-toned border */
-    --input: 60 30% 95%; /* Very light beige for input */
-    --ring: 36 100% 60%; /* Saffron for focus rings */
+    --background: hsl(30 100% 97%); /* Light Peach */
+    --foreground: hsl(20 15% 20%); /* Dark Gray for text */
+    --card: hsl(30 100% 97%);
+    --card-foreground: hsl(20 15% 20%);
+    --popover: hsl(30 100% 97%);
+    --popover-foreground: hsl(20 15% 20%);
+    --primary: hsl(330 76% 58%); /* Vibrant Indian Pink (Rani Pink like) */
+    --primary-foreground: hsl(0 0% 100%); /* White */
+    --secondary: hsl(30 100% 85%); /* Peach */
+    --secondary-foreground: hsl(30 70% 30%); /* Darker Peach/Brown */
+    --muted: hsl(30 60% 90%); /* Muted Peach/Pink */
+    --muted-foreground: hsl(30 20% 40%); 
+    --accent: hsl(45 100% 50%); /* Gold */
+    --accent-foreground: hsl(40 100% 10%); /* Dark Brown for text on Gold */
+    --destructive: hsl(0 70% 50%); /* Deep Red */
+    --destructive-foreground: hsl(0 0% 98%);
+    --border: hsl(330 30% 80%); /* Pink-toned border */
+    --input: hsl(30 50% 96%); /* Very light peach for input */
+    --ring: hsl(330 76% 58%); /* Pink for focus rings */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%; /* Default, can be overridden if sidebar used */
+    --sidebar-background: 0 0% 98%; 
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -40,25 +40,25 @@
   }
 
   .dark {
-    --background: 20 10% 10%; /* Dark Gray for dark mode background */
-    --foreground: 60 56% 91%; /* Light Beige for dark mode text */
-    --card: 20 10% 10%;
-    --card-foreground: 60 56% 91%;
-    --popover: 20 10% 10%;
-    --popover-foreground: 60 56% 91%;
-    --primary: 36 100% 60%; /* Saffron */
-    --primary-foreground: 20 10% 10%; /* Dark Gray for text on Saffron in dark mode */
-    --secondary: 36 100% 30%; /* Darker Saffron */
-    --secondary-foreground: 60 56% 91%; /* Light Beige */
-    --muted: 20 10% 20%; /* Darker Muted Gray */
-    --muted-foreground: 60 20% 70%;
-    --accent: 180 100% 35%; /* Brighter Teal for dark mode */
-    --accent-foreground: 0 0% 100%; /* White */
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 36 50% 40%; /* Saffron-toned border for dark mode */
-    --input: 20 10% 15%; /* Dark input background */
-    --ring: 36 100% 70%; /* Brighter Saffron for focus rings in dark mode */
+    --background: hsl(20 15% 10%); /* Dark background for dark mode */
+    --foreground: hsl(30 100% 90%); /* Light Peach for dark mode text */
+    --card: hsl(20 15% 10%);
+    --card-foreground: hsl(30 100% 90%);
+    --popover: hsl(20 15% 10%);
+    --popover-foreground: hsl(30 100% 90%);
+    --primary: hsl(330 76% 65%); /* Brighter Pink for dark mode */
+    --primary-foreground: hsl(20 15% 10%); 
+    --secondary: hsl(30 100% 75%); /* Brighter Peach */
+    --secondary-foreground: hsl(30 100% 90%); 
+    --muted: hsl(20 10% 20%); 
+    --muted-foreground: hsl(30 20% 70%);
+    --accent: hsl(45 100% 55%); /* Brighter Gold */
+    --accent-foreground: hsl(0 0% 100%); 
+    --destructive: hsl(0 70% 60%); /* Brighter Red */
+    --destructive-foreground: hsl(0 0% 98%);
+    --border: hsl(330 30% 50%); 
+    --input: hsl(20 10% 15%); 
+    --ring: hsl(330 76% 65%);
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
