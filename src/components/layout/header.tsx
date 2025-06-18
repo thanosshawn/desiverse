@@ -7,7 +7,8 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Send } from 'lucide-react'; // Added Send icon
+import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Send, Gem } from 'lucide-react';
+import { Badge } from '@/components/ui/badge'; // Import Badge
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,11 +52,13 @@ export function Header() {
       case 'dark':
         return <Moon className="h-5 w-5" />;
       case 'pink':
-        return <Sparkles className="h-5 w-5" />; 
+        return <Sparkles className="h-5 w-5" />;
       default:
         return <Palette className="h-5 w-5" />;
     }
   };
+
+  const isPremiumUser = userProfile?.subscriptionTier === 'premium' || userProfile?.subscriptionTier === 'spicy';
 
   return (
     <header className="bg-gradient-to-br from-pink-400 via-rose-400 via-fuchsia-300 to-orange-300 text-primary-foreground p-3 md:p-4 shadow-lg sticky top-0 z-50 h-16 md:h-18 flex items-center">
@@ -125,13 +128,20 @@ export function Header() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border bg-opacity-100 data-[state=open]:opacity-100" align="end" forceMount>
+                <DropdownMenuContent className="w-60 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border bg-opacity-100 data-[state=open]:opacity-100" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1 p-1">
-                      <p className="text-sm font-medium leading-none">
-                        {userProfile?.name || user.displayName || 'Desi User'}
-                      </p>
-                      <p className="text-xs leading-none text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium leading-none truncate">
+                          {userProfile?.name || user.displayName || 'Desi User'}
+                        </p>
+                        {isPremiumUser && (
+                          <Badge variant="default" className="px-1.5 py-0.5 text-xs bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-sm border-yellow-600">
+                            <Gem className="mr-1 h-3 w-3" />Premium
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs leading-none text-muted-foreground truncate">
                         {user.email || (user.isAnonymous ? 'Guest User' : 'No email')}
                       </p>
                     </div>
@@ -152,6 +162,13 @@ export function Header() {
                        <Settings className="mr-2 h-4 w-4 text-primary" /> Settings
                      </Link>
                   </DropdownMenuItem>
+                   {!isPremiumUser && (
+                    <DropdownMenuItem asChild className="cursor-pointer hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
+                      <Link href="/subscribe?feature=PremiumAccessHeader">
+                        <Gem className="mr-2 h-4 w-4 text-yellow-500" /> Upgrade to Premium
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator className="bg-border/50"/>
                   <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive focus:!text-destructive focus:!bg-destructive/10 rounded-md">
                     <LogOut className="mr-2 h-4 w-4" />
@@ -176,6 +193,12 @@ export function Header() {
                 <DropdownMenuItem onClick={signInAnonymously} className="cursor-pointer group py-2.5 px-3 hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
                   <UserCircle className="mr-2 h-4 w-4 text-primary group-hover:text-accent-foreground" /> Continue as Guest
                 </DropdownMenuItem>
+                 <DropdownMenuSeparator className="bg-border/50"/>
+                 <DropdownMenuItem asChild className="cursor-pointer hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
+                    <Link href="/subscribe?feature=GuestUpgradePrompt">
+                        <Gem className="mr-2 h-4 w-4 text-yellow-500" /> Explore Premium
+                    </Link>
+                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           )}
