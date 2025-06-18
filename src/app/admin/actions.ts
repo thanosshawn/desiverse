@@ -5,50 +5,44 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { addCharacter, getAdminCredentials } from '@/lib/firebase/rtdb';
 import type { CharacterMetadata } from '@/lib/types';
-import { characterCreationAdminFormSchema, type CharacterCreationAdminFormValues } from '@/lib/types';
+// Zod schema for validation is removed from this action
+import type { CharacterCreationAdminFormValues } from '@/lib/types';
 
 
 export interface CreateCharacterActionState {
   message: string;
   characterId?: string;
   success: boolean;
-  errors?: Partial<Record<keyof CharacterCreationAdminFormValues, string[]>> | null;
+  errors?: Partial<Record<keyof CharacterCreationAdminFormValues, string[]>> | null; // Kept for structure, but less used
 }
 
 export async function createCharacterAction(
   prevState: CreateCharacterActionState,
   formData: FormData
 ): Promise<CreateCharacterActionState> {
-  const rawFormData = Object.fromEntries(formData.entries());
+  
+  // Directly extract data from formData since Zod validation is removed for this form
+  const data: CharacterCreationAdminFormValues = {
+    name: formData.get('name') as string || 'Unnamed Character',
+    description: formData.get('description') as string || 'No description provided.',
+    personalitySnippet: formData.get('personalitySnippet') as string || 'A mysterious AI.',
+    avatarUrl: formData.get('avatarUrl') as string || 'https://placehold.co/400x400.png',
+    backgroundImageUrl: formData.get('backgroundImageUrl') as string || '',
+    basePrompt: formData.get('basePrompt') as string || 'You are a helpful AI.',
+    styleTags: formData.get('styleTags') as string || 'general',
+    defaultVoiceTone: formData.get('defaultVoiceTone') as string || 'neutral',
+    dataAiHint: formData.get('dataAiHint') as string || (formData.get('name') as string || 'AI').toLowerCase().split(' ')[0] || 'person',
+    messageBubbleStyle: formData.get('messageBubbleStyle') as string || '',
+    animatedEmojiResponse: formData.get('animatedEmojiResponse') as string || '',
+    audioGreetingUrl: formData.get('audioGreetingUrl') as string || '',
+    isPremium: formData.get('isPremium') === 'on' || false,
+  };
 
-  // Preprocess isPremium as Zod schema expects boolean but FormData gives string 'on' or undefined
-  if (formData.has('isPremium')) {
-    rawFormData.isPremium = formData.get('isPremium') === 'on';
-  } else {
-    rawFormData.isPremium = false; // Default if not present
+  // Basic check if name is provided, fallback if not (though autofill should handle this)
+  if (!data.name.trim()) {
+     data.name = `AI_Character_${uuidv4().substring(0,4)}`;
   }
 
-  // Use the shared schema for validation
-  const validatedFields = characterCreationAdminFormSchema.safeParse(rawFormData);
-
-  if (!validatedFields.success) {
-    const fieldErrors: Partial<Record<keyof CharacterCreationAdminFormValues, string[]>> = {};
-    for (const issue of validatedFields.error.issues) {
-        // issue.path is an array, for simple objects, path[0] is the field name
-        const path = issue.path[0] as keyof CharacterCreationAdminFormValues;
-        if (!fieldErrors[path]) {
-            fieldErrors[path] = [];
-        }
-        fieldErrors[path]?.push(issue.message); // Use the explicit message from the shared schema
-    }
-    return {
-      message: 'Validation failed. Please correct the errors indicated on the form fields below.', // Updated generic message
-      success: false,
-      errors: fieldErrors,
-    };
-  }
-
-  const data = validatedFields.data;
   const characterId = `${data.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${uuidv4().substring(0, 4)}`;
 
   const characterMetadata: Omit<CharacterMetadata, 'id' | 'createdAt'> & { createdAt?: number } = {
@@ -60,7 +54,7 @@ export async function createCharacterAction(
     basePrompt: data.basePrompt,
     styleTags: data.styleTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
     defaultVoiceTone: data.defaultVoiceTone,
-    dataAiHint: data.dataAiHint || data.name.toLowerCase().split(' ')[0] || 'person',
+    dataAiHint: data.dataAiHint,
     messageBubbleStyle: data.messageBubbleStyle || undefined,
     animatedEmojiResponse: data.animatedEmojiResponse || undefined,
     audioGreetingUrl: data.audioGreetingUrl || undefined,
@@ -73,7 +67,7 @@ export async function createCharacterAction(
       message: `Character "${data.name}" created successfully with ID: ${characterId}`,
       characterId,
       success: true,
-      errors: null,
+      errors: null, // Validation errors are no longer generated here
     };
   } catch (error) {
     console.error('Error creating character:', error);
@@ -81,7 +75,7 @@ export async function createCharacterAction(
     return {
       message: `Failed to create character: ${errorMessage}`,
       success: false,
-      errors: null,
+      errors: null, // No field-specific validation errors
     };
   }
 }
@@ -163,5 +157,3 @@ export async function loginAdminAction(
     };
   }
 }
-
-    
