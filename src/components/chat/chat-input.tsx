@@ -12,8 +12,9 @@ import Picker, { type EmojiClickData, Theme as EmojiTheme, Categories as EmojiCa
 import { useTheme } from 'next-themes';
 import { virtualGifts } from '@/lib/gifts'; 
 import * as Icons from 'lucide-react'; 
-import { useRouter } from 'next/navigation'; // Import useRouter
-import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { isFeatureLocked, getFeatureLockDetails } from '@/lib/premium'; // New imports
 
 interface ChatInputProps {
   onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request', gift?: VirtualGift) => void; 
@@ -35,12 +36,15 @@ export function ChatInput({
   const [showGiftPicker, setShowGiftPicker] = useState(false); 
   const { resolvedTheme } = useTheme();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const router = useRouter(); // Initialize useRouter
-  const { toast } = useToast(); // Initialize useToast
+  const router = useRouter();
+  const { toast } = useToast();
 
-  const isPremiumFeatureLocked = characterIsPremium && userSubscriptionTier === 'free';
-  const canAffordGifts = userSubscriptionTier === 'premium' || userSubscriptionTier === 'spicy';
-
+  // Centralized premium checks using helpers
+  const isVoiceChatLocked = isFeatureLocked(
+    'premium_voice_message',
+    userSubscriptionTier,
+    { characterIsPremium }
+  );
 
   const handleSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
@@ -53,15 +57,14 @@ export function ChatInput({
   };
   
   const handleSpecialRequest = (type: 'audio_request' | 'video_request') => {
-     if (isPremiumFeatureLocked && type === 'audio_request') {
-        toast({
-          title: 'Premium Feature Locked 💎',
-          description: `Voice messages with ${characterName} are a premium feature. Please upgrade your plan.`,
-          variant: 'default',
-        });
-        router.push(`/subscribe?feature=Voice Chat&characterName=${characterName}`);
+     if (type === 'audio_request' && isVoiceChatLocked) {
+        const details = getFeatureLockDetails('premium_voice_message', { characterName });
+        toast({ title: details.title, description: details.description, variant: 'default' });
+        router.push(`/subscribe?${details.subscribeQuery}`);
         return;
      }
+     // For video request, currently no premium lock applied here, can be added if needed.
+
      if (inputValue.trim() && !isLoading) {
       onSendMessage(inputValue.trim(), type);
       setInputValue('');
@@ -97,25 +100,29 @@ export function ChatInput({
   };
 
   const handleSendGift = (gift: VirtualGift) => {
-    if (gift.isPremium && userSubscriptionTier === 'free') {
-      toast({
-        title: 'Premium Gift! 🎁',
-        description: `Sending a ${gift.name} is a premium feature. Please upgrade to spoil ${characterName}!`,
-        variant: 'default',
-      });
-      router.push(`/subscribe?feature=Sending a ${gift.name}&itemName=${gift.id}`);
+    const isThisGiftLocked = isFeatureLocked(
+        'premium_gift', // Assumes all gifts are premium if user is free
+        userSubscriptionTier
+        // If gifts had individual premium flags: { giftIsPremium: gift.isPremium }
+    );
+
+    if (isThisGiftLocked) {
+      const details = getFeatureLockDetails('premium_gift', { characterName, itemName: gift.name });
+      toast({ title: details.title, description: details.description, variant: 'default' });
+      router.push(`/subscribe?${details.subscribeQuery}`);
       setShowGiftPicker(false);
       return;
     }
+
     onSendMessage(inputValue.trim(), 'text', gift); 
     setInputValue(''); 
     setShowGiftPicker(false); 
   };
 
-  const voiceButtonDisabled = isLoading || (isPremiumFeatureLocked && characterIsPremium);
-  const voiceButtonTitle = isPremiumFeatureLocked && characterIsPremium
-    ? `Unlock Premium Voice Chat with ${characterName}!`
+  const voiceButtonTitle = isVoiceChatLocked 
+    ? getFeatureLockDetails('premium_voice_message', { characterName }).title 
     : "Request voice message";
+  const voiceButtonDisabled = isLoading || isVoiceChatLocked; // Simpler disabled logic
 
   const renderGiftIcon = (iconName: keyof typeof Icons) => {
     const IconComponent = Icons[iconName] as LucideIcon;
@@ -128,7 +135,6 @@ export function ChatInput({
       className="p-3 md:p-4 border-t border-border/50 bg-card/70 backdrop-blur-sm flex items-end space-x-1 sm:space-x-2 sticky bottom-0"
       aria-label="Chat input form"
     >
-      {/* Emoji Picker Popover */}
       <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
         <PopoverTrigger asChild>
           <Button
@@ -165,7 +171,6 @@ export function ChatInput({
         </PopoverContent>
       </Popover>
 
-      {/* Gift Picker Popover */}
       <Popover open={showGiftPicker} onOpenChange={setShowGiftPicker}>
         <PopoverTrigger asChild>
            <Button 
@@ -190,31 +195,37 @@ export function ChatInput({
         >
           <div className="space-y-2">
             <p className="text-sm font-medium text-popover-foreground px-2 pt-1">Send a Virtual Gift to {characterName}</p>
-            {virtualGifts.map((gift) => (
-              <Button
-                key={gift.id}
-                variant="ghost"
-                className="w-full justify-start h-auto p-2 text-left !rounded-md hover:bg-accent/80 focus:bg-accent"
-                onClick={() => handleSendGift(gift)}
-                title={gift.isPremium && userSubscriptionTier === 'free' ? `Upgrade to send a ${gift.name}` : `Send ${gift.name}`}
-              >
-                {renderGiftIcon(gift.iconName)}
-                <div className="flex flex-col">
-                    <span className="text-sm font-medium text-popover-foreground">{gift.name}</span>
-                    <span className="text-xs text-muted-foreground">{gift.description}</span>
-                </div>
-                {gift.price && (
-                    <span className={`ml-auto text-xs font-semibold ${gift.isPremium && userSubscriptionTier === 'free' ? 'text-destructive' : 'text-primary'}`}>
-                        {gift.isPremium && userSubscriptionTier === 'free' ? 'Premium!' : `₹${gift.price}`}
-                    </span>
-                )}
-              </Button>
-            ))}
+            {virtualGifts.map((gift) => {
+                const isThisSpecificGiftLocked = isFeatureLocked('premium_gift', userSubscriptionTier); // Assuming all gifts are premium
+                return (
+                    <Button
+                        key={gift.id}
+                        variant="ghost"
+                        className="w-full justify-start h-auto p-2 text-left !rounded-md hover:bg-accent/80 focus:bg-accent"
+                        onClick={() => handleSendGift(gift)}
+                        title={isThisSpecificGiftLocked ? getFeatureLockDetails('premium_gift', { itemName: gift.name, characterName }).title : `Send ${gift.name}`}
+                    >
+                        {renderGiftIcon(gift.iconName)}
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium text-popover-foreground">{gift.name}</span>
+                            <span className="text-xs text-muted-foreground">{gift.description}</span>
+                        </div>
+                        {gift.price && (
+                            <span className={`ml-auto text-xs font-semibold ${isThisSpecificGiftLocked ? 'text-destructive' : 'text-primary'}`}>
+                                {isThisSpecificGiftLocked ? 'Premium!' : `₹${gift.price}`}
+                            </span>
+                        )}
+                    </Button>
+                );
+            })}
             {userSubscriptionTier === 'free' && (
                  <Button 
                     variant="default" 
                     className="w-full mt-2 !rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 text-white"
-                    onClick={() => router.push('/subscribe?feature=Premium Gifts')}
+                    onClick={() => {
+                        const details = getFeatureLockDetails('premium_gift', { characterName });
+                        router.push(`/subscribe?${details.subscribeQuery}`);
+                    }}
                 >
                     Unlock All Gifts & Go Premium! ✨
                 </Button>
@@ -223,7 +234,6 @@ export function ChatInput({
         </PopoverContent>
       </Popover>
       
-      {/* Paperclip (Attach file - still placeholder) */}
        <Button 
         type="button" 
         variant="ghost" 
@@ -259,12 +269,12 @@ export function ChatInput({
           variant="ghost" 
           size="icon" 
           onClick={() => handleSpecialRequest('audio_request')} 
-          disabled={voiceButtonDisabled && !(isPremiumFeatureLocked && characterIsPremium)} // Allow click to redirect if locked
+          disabled={voiceButtonDisabled}
           aria-label={voiceButtonTitle}
-          className={`rounded-full p-2.5 aspect-square ${isPremiumFeatureLocked && characterIsPremium ? 'text-amber-500 hover:text-amber-600 cursor-pointer' : voiceButtonDisabled ? 'text-muted-foreground/70 cursor-not-allowed' : 'text-primary hover:text-primary/80'}`}
+          className={`rounded-full p-2.5 aspect-square ${isVoiceChatLocked ? 'text-amber-500 hover:text-amber-600 cursor-pointer' : voiceButtonDisabled ? 'text-muted-foreground/70 cursor-not-allowed' : 'text-primary hover:text-primary/80'}`}
           title={voiceButtonTitle}
         >
-          {isPremiumFeatureLocked && characterIsPremium ? <Lock className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+          {isVoiceChatLocked ? <Lock className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
         </Button>
         <Button 
           type="submit" 

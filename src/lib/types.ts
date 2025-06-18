@@ -11,7 +11,7 @@ export interface VirtualGift {
   iconName: keyof typeof import('lucide-react'); // Name of the Lucide icon
   description: string; // Short description for the gift store
   aiReactionPrompt: string; // Specific prompt for AI to react to this gift
-  isPremium?: boolean; // Flag to indicate if the gift requires payment/subscription
+  isPremium: boolean; // Flag to indicate if the gift requires payment/subscription
   price?: number; // Optional price for future use
 }
 
@@ -27,7 +27,6 @@ export interface ChatMessageUI {
   videoSrc?: string; // data URI for video playback
   rtdbKey?: string; // To link back to RTDB object key
   sentGift?: VirtualGift; // If type is 'gift_sent', this holds the gift details
-  // receivedGift?: VirtualGift; // If type is 'gift_received', AI's message is the reaction
 }
 
 export interface UserProfile {
@@ -79,7 +78,7 @@ export interface MessageDocument {
   audioUrl?: string | null;
   videoUrl?: string | null;
   messageType: 'text' | 'audio' | 'video' | 'gift_sent'; // Added 'gift_sent'
-  sentGiftId?: string; // ID of the gift if messageType is 'gift_sent'
+  sentGiftId?: string | null; // ID of the gift if messageType is 'gift_sent'
   reactions?: Record<string, string[]>; 
   referencedMessageId?: string; 
 }
@@ -116,3 +115,9 @@ export interface StreakUpdateResult {
   streak: number;
   status: 'first_ever' | 'continued' | 'maintained_same_day' | 'reset';
 }
+
+// For premium feature checks
+export type PremiumFeature = 
+  | 'premium_character_chat' 
+  | 'premium_voice_message' 
+  | 'premium_gift';
