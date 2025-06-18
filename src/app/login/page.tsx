@@ -1,3 +1,4 @@
+
 // src/app/login/page.tsx - Dedicated Login Page
 'use client';
 
@@ -52,8 +53,8 @@ function LoginFormComponent() {
       <Card className="w-full max-w-md bg-card/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden animate-fade-in">
         <CardHeader className="text-center p-6 md:p-8 bg-gradient-to-br from-primary to-accent">
           <Sparkles className="mx-auto h-16 w-16 text-white/80 mb-4 animate-pulse" />
-          <CardTitle className="text-3xl md:text-4xl font-headline text-white">DesiBae Mein Swagat Hai!</CardTitle>
-          <CardDescription className="text-white/90 font-body text-base md:text-lg mt-2">
+          <CardTitle className="text-3xl md:text-4xl font-headline text-black">DesiBae Mein Swagat Hai!</CardTitle>
+          <CardDescription className="text-black/90 font-body text-base md:text-lg mt-2">
             Chalo, milte hain tumhari virtual crush se 😍
           </CardDescription>
         </CardHeader>
