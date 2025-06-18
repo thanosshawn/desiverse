@@ -1,3 +1,4 @@
+
 // src/app/admin/create-character/page.tsx
 'use client';
 
@@ -18,7 +19,7 @@ import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
-import { generateRandomCharacterDefaults } from '@/lib/admin/utils'; // New Import
+import { generateRandomCharacterDefaults } from '@/lib/admin/utils';
 
 const initialState: CreateCharacterActionState = {
   message: '',
@@ -153,11 +154,11 @@ export default function CreateCharacterPage() {
                     <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
                 </Button>
                 <Link href="/admin/manage-characters" passHref className="w-full sm:w-auto">
-                    <Button variant="outline" size="sm" className="!rounded-lg w-full">
+                    <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing characters">
                         <ListChecks className="mr-2 h-4 w-4" /> Manage
                     </Button>
                 </Link>
-                <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto" title="Logout from admin">
                     <LogOut className="mr-2 h-4 w-4" /> Logout
                 </Button>
             </div>
@@ -399,3 +400,5 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
+
+    
