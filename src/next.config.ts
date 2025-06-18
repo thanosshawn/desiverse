@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
         // IMPORTANT: Replace 'your-supabase-url.com' with your actual Supabase project reference + .supabase.co
         // e.g., if your project ref is 'xyzabc', the hostname is 'xyzabc.supabase.co'
         protocol: 'https',
-        hostname: 'your-supabase-url.com', // Updated to match the error message's reported hostname
+        hostname: 'your-supabase-url.com', // Ensures this placeholder is allowed
         port: '',
         pathname: '/storage/v1/object/public/**',
       }
