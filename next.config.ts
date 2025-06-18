@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'placehold.co',
+        hostname: 'bvbmmmdynvjqrajzlayw.supabase.co',
         port: '',
         pathname: '/**',
       },
@@ -28,9 +28,9 @@ const nextConfig: NextConfig = {
         // Replace 'your-project-ref.supabase.co' with your actual Supabase project reference + .supabase.co
         // e.g., if your project ref is 'abcdefg', the hostname is 'abcdefg.supabase.co'
         protocol: 'https',
-        hostname: 'your-project-ref.supabase.co', // IMPORTANT: Update this placeholder
+        hostname: 'bvbmmmdynvjqrajzlayw.supabase.co', // IMPORTANT: Update this placeholder
         port: '',
-        pathname: '/storage/v1/object/public/**',
+        pathname: '/character-assets/**',
       }
     ],
   },

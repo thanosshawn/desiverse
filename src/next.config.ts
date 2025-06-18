@@ -24,13 +24,20 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
       {
-        // For Supabase Storage URLs.
-        // IMPORTANT: Replace 'your-supabase-url.com' with your actual Supabase project reference + .supabase.co
-        // e.g., if your project ref is 'xyzabc', the hostname is 'xyzabc.supabase.co'
+        // For Supabase Storage URLs from seed data or if this placeholder is in use.
+        // The error specifically mentions "your-supabase-url.com".
         protocol: 'https',
-        hostname: 'your-supabase-url.com', // Ensures this placeholder is allowed
+        hostname: 'your-supabase-url.com',
         port: '',
-        pathname: '/storage/v1/object/public/**',
+        pathname: '/**', // Allows any path under this hostname
+      },
+      {
+        // For the original Supabase placeholder from initial config or actual Supabase URL if configured.
+        // Replace 'bvbmmmdynvjqrajzlayw.supabase.co' with your actual Supabase project reference + .supabase.co
+        protocol: 'https',
+        hostname: 'bvbmmmdynvjqrajzlayw.supabase.co',
+        port: '',
+        pathname: '/**', // Allows any path under this hostname
       }
     ],
   },
