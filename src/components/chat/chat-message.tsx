@@ -1,21 +1,22 @@
 // src/components/chat/chat-message.tsx
 'use client';
 
-import type { ChatMessageUI, VirtualGift } from '@/lib/types'; // Added VirtualGift
-import { cn } from '@/lib/utils';
-import { Bot, User, AlertTriangle, Loader2, Gift as GiftIconLucide } from 'lucide-react'; // Added GiftIconLucide
+import type { ChatMessageUI, VirtualGift } from '@/lib/types'; 
+import { cn, getInitials } from '@/lib/utils'; // Import getInitials
+import { Bot, User, AlertTriangle, Loader2, Gift as GiftIconLucide } from 'lucide-react'; 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; 
-import * as Icons from 'lucide-react'; // Import all for dynamic gift icons
+import * as Icons from 'lucide-react'; 
 
 interface ChatMessageProps {
   message: ChatMessageUI;
   characterBubbleStyle?: string;
   aiAvatarUrl: string; 
+  userDisplayName?: string; // Added prop
 }
 
-export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl }: ChatMessageProps) {
+export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDisplayName }: ChatMessageProps) {
   const isUser = message.sender === 'user';
   
   const [clientFormattedTimestamp, setClientFormattedTimestamp] = useState<string | null>(null);
@@ -34,11 +35,11 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl }: Chat
   const getBubbleStyle = () => {
     if (isUser) {
       if (message.type === 'gift_sent') {
-        return 'bg-amber-400 dark:bg-amber-500 text-black dark:text-white rounded-br-none shadow-lg'; // Special style for sent gifts
+        return 'bg-amber-400 dark:bg-amber-500 text-black dark:text-white rounded-br-none shadow-lg'; 
       }
       return 'bg-primary text-primary-foreground rounded-br-none';
     }
-    // For AI messages, including gift reactions (which are just text from AI)
+    
     if (characterBubbleStyle && characterBubbleStyle.includes('pink')) {
         return 'bg-gradient-to-br from-pink-500 to-rose-400 text-white rounded-bl-none shadow-md';
     }
@@ -61,7 +62,7 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl }: Chat
                 <p className="whitespace-pre-wrap italic">{message.content}</p>
             </div>
         );
-      // gift_received is essentially a text message from AI, styled as normal AI message
+      
       case 'gift_received': 
         return <p className="whitespace-pre-wrap">{message.content}</p>;
       case 'audio':
@@ -120,7 +121,7 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl }: Chat
         <Avatar className="flex-shrink-0 w-8 h-8 rounded-full shadow-sm self-end mb-1">
             <AvatarImage src={aiAvatarUrl} alt={message.characterName || 'AI'} />
             <AvatarFallback className="bg-pink-500/90 text-white text-xs">
-              {message.characterName ? message.characterName.substring(0,1).toUpperCase() : <Bot size={16}/>}
+              {message.characterName ? getInitials(message.characterName) : <Bot size={16}/>}
             </AvatarFallback>
         </Avatar>
       )}
@@ -137,10 +138,13 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl }: Chat
           </p>
         )}
       </div>
-       {isUser && message.type !== 'gift_sent' && ( // Don't show user avatar for gift_sent messages, as gift bubble is distinct
-         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-sm self-end mb-1">
-          <User size={18} />
-        </div>
+       {isUser && message.type !== 'gift_sent' && ( 
+         <Avatar className="flex-shrink-0 w-8 h-8 rounded-full shadow-sm self-end mb-1">
+            {/* <AvatarImage src={userAvatarUrl} alt={userDisplayName || 'User'} /> Future: if user can set avatar */}
+            <AvatarFallback className="bg-accent text-accent-foreground text-xs">
+              {userDisplayName ? getInitials(userDisplayName) : <User size={16}/>}
+            </AvatarFallback>
+        </Avatar>
       )}
     </div>
   );

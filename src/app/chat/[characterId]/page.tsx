@@ -6,7 +6,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
-import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult, UserChatStreakData, UserProfile, VirtualGift } from '@/lib/types'; // Added VirtualGift
+import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult, UserChatStreakData, UserProfile, VirtualGift } from '@/lib/types'; 
 import { handleUserMessageAction } from '../../actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -355,6 +355,8 @@ export default function ChatPage() {
       </div>
     );
   }
+  
+  const userDisplayName = userProfile?.name || user?.displayName || 'User';
 
   return (
     <div className="flex flex-col h-screen overflow-hidden"> 
@@ -390,10 +392,10 @@ export default function ChatPage() {
           characterMessageBubbleStyle={currentCharacterMeta.messageBubbleStyle}
           characterIsPremium={currentCharacterMeta.isPremium}
           userSubscriptionTier={userProfile?.subscriptionTier}
+          userDisplayName={userDisplayName}
         />
       </main>
       <div ref={messagesEndRef} />
     </div>
   );
 }
-

@@ -9,10 +9,11 @@ import React, { useEffect, useRef } from 'react';
 interface ChatMessagesProps {
   messages: ChatMessageType[];
   characterBubbleStyle?: string;
-  aiAvatarUrl: string; // Added prop for AI avatar
+  aiAvatarUrl: string; 
+  userDisplayName?: string; // Added prop
 }
 
-export function ChatMessages({ messages, characterBubbleStyle, aiAvatarUrl }: ChatMessagesProps) {
+export function ChatMessages({ messages, characterBubbleStyle, aiAvatarUrl, userDisplayName }: ChatMessagesProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -35,7 +36,8 @@ export function ChatMessages({ messages, characterBubbleStyle, aiAvatarUrl }: Ch
             key={msg.id} 
             message={msg} 
             characterBubbleStyle={characterBubbleStyle} 
-            aiAvatarUrl={aiAvatarUrl} // Pass down the AI avatar URL
+            aiAvatarUrl={aiAvatarUrl} 
+            userDisplayName={userDisplayName} // Pass down
           />
         ))}
       </div>

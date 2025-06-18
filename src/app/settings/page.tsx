@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useTheme } from 'next-themes';
+import { getInitials } from '@/lib/utils'; // Import getInitials
 
 
 const settingsFormSchema = z.object({
@@ -69,14 +70,6 @@ export default function SettingsPage() {
     }
   }, [userProfile, form, theme, setTheme]);
   
-  const getInitials = (name?: string | null) => {
-    if (!name) return 'U';
-    const names = name.split(' ');
-    if (names.length > 1) {
-      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
 
   const onSubmit = async (data: SettingsFormValues) => {
     if (!user) {
@@ -90,7 +83,7 @@ export default function SettingsPage() {
       if (data.avatarUrl !== (userProfile?.avatarUrl || '')) updateData.avatarUrl = data.avatarUrl || null;
       if (data.selectedTheme && data.selectedTheme !== userProfile?.selectedTheme) {
         updateData.selectedTheme = data.selectedTheme;
-        setTheme(data.selectedTheme); // Update theme using next-themes
+        setTheme(data.selectedTheme); 
       }
 
 
@@ -189,7 +182,7 @@ export default function SettingsPage() {
                              <Select 
                                 onValueChange={(value) => {
                                   field.onChange(value);
-                                  setTheme(value); // Also update next-themes immediately
+                                  setTheme(value); 
                                 }} 
                                 value={field.value}
                                 disabled={!mounted}

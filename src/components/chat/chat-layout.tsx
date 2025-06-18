@@ -17,6 +17,7 @@ interface ChatLayoutProps {
   characterMessageBubbleStyle?: string;
   characterIsPremium?: boolean;
   userSubscriptionTier?: UserProfile['subscriptionTier'];
+  userDisplayName?: string; // Added prop
 }
 
 export function ChatLayout({
@@ -29,6 +30,7 @@ export function ChatLayout({
   characterMessageBubbleStyle,
   characterIsPremium,
   userSubscriptionTier,
+  userDisplayName, // Destructure prop
 }: ChatLayoutProps) {
   
   const latestAiVideoSrcForAvatar = currentVideoMessageSrc;
@@ -42,7 +44,7 @@ export function ChatLayout({
           characterName={currentCharacterName}
           staticAvatarSrc={currentCharacterAvatar}
           videoSrc={latestAiVideoSrcForAvatar}
-          isLoadingAiResponse={isLoading} // Pass loading state
+          isLoadingAiResponse={isLoading} 
         />
         {/* You can add more character details or actions here for desktop */}
       </div>
@@ -53,6 +55,7 @@ export function ChatLayout({
             messages={messages} 
             characterBubbleStyle={characterMessageBubbleStyle}
             aiAvatarUrl={currentCharacterAvatar} 
+            userDisplayName={userDisplayName} // Pass down
         />
         <ChatInput 
             onSendMessage={onSendMessage} 

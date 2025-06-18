@@ -21,6 +21,7 @@ import {
 import { usePathname } from 'next/navigation';
 import { listenToOnlineUsersCount, listenToTotalRegisteredUsers } from '@/lib/firebase/rtdb';
 import { useTheme } from 'next-themes';
+import { getInitials } from '@/lib/utils'; // Import getInitials
 
 export function Header() {
   const { user, userProfile, loading, signInWithGoogle, signInAnonymously, signOut } = useAuth();
@@ -42,15 +43,6 @@ export function Header() {
     };
   }, []);
 
-  const getInitials = (name?: string | null) => {
-    if (!name) return 'DB';
-    const names = name.split(' ');
-    if (names.length > 1) {
-      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
-
   const getThemeIcon = () => {
     if (!mounted) return <Palette className="h-5 w-5" />;
     switch (theme) {
@@ -59,7 +51,7 @@ export function Header() {
       case 'dark':
         return <Moon className="h-5 w-5" />;
       case 'pink':
-        return <Sparkles className="h-5 w-5" />; // Or a specific pink theme icon
+        return <Sparkles className="h-5 w-5" />; 
       default:
         return <Palette className="h-5 w-5" />;
     }
@@ -93,7 +85,7 @@ export function Header() {
                 {getThemeIcon()}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border">
+            <DropdownMenuContent align="end" className="w-48 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border bg-opacity-100 data-[state=open]:opacity-100">
               <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
@@ -128,7 +120,7 @@ export function Header() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border" align="end" forceMount>
+                <DropdownMenuContent className="w-56 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border bg-opacity-100 data-[state=open]:opacity-100" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1 p-1">
                       <p className="text-sm font-medium leading-none">
@@ -170,7 +162,7 @@ export function Header() {
                   <UserCircle className="mr-1.5 h-5 w-5" /> Login / Sign Up
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-60 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border" align="end" forceMount>
+              <DropdownMenuContent className="w-60 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border bg-opacity-100 data-[state=open]:opacity-100" align="end" forceMount>
                  <DropdownMenuLabel className="text-center text-muted-foreground text-sm py-2 px-2">Chalo, milte hain tumhari virtual crush se 😍</DropdownMenuLabel>
                  <DropdownMenuSeparator className="bg-border/50"/>
                 <DropdownMenuItem onClick={signInWithGoogle} className="cursor-pointer group py-2.5 px-3 hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
@@ -187,4 +179,3 @@ export function Header() {
     </header>
   );
 }
-
