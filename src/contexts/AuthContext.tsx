@@ -3,8 +3,8 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup, signInAnonymously as firebaseSignInAnonymously } from 'firebase/auth';
-import { auth, db as rtdb } from '@/lib/firebase/config'; // RTDB instance
-import { ref, serverTimestamp as rtdbServerTimestamp, get, set, update } from 'firebase/database'; // RTDB specific imports
+import { auth } from '@/lib/firebase/config'; // RTDB instance
+import { serverTimestamp as rtdbServerTimestamp } from 'firebase/database'; // RTDB specific imports
 import type { UserProfile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { createUserProfile, getUserProfile, updateUserProfile } from '@/lib/firebase/rtdb'; // Import RTDB functions
@@ -20,6 +20,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Define a type for the data structure when writing a new user profile,
+// where timestamp fields are Firebase ServerValue.TIMESTAMP objects.
+type NewUserProfileWritePayload = Omit<Partial<UserProfile>, 'uid' | 'joinedAt' | 'lastActive'> & {
+  joinedAt: object; // Firebase Server Timestamp Placeholder
+  lastActive: object; // Firebase Server Timestamp Placeholder
+};
+
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -34,28 +42,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         let existingProfile = await getUserProfile(currentUser.uid);
         if (existingProfile) {
           setUserProfile(existingProfile);
-          // Optionally update lastActive here or rely on the dedicated effect
-          if (auth.currentUser) { // ensure user is still current
-             updateUserProfile(auth.currentUser.uid, { lastActive: rtdbServerTimestamp as unknown as number });
+          if (auth.currentUser) { 
+             updateUserProfile(auth.currentUser.uid, { lastActive: rtdbServerTimestamp() }); // Call rtdbServerTimestamp()
           }
         } else {
-          // Create new user profile if it doesn't exist
-          const newUserProfileData: Partial<UserProfile> = {
-            uid: currentUser.uid,
+          const newUserProfileData: NewUserProfileWritePayload = {
             email: currentUser.email,
             name: currentUser.displayName,
             avatarUrl: currentUser.photoURL,
-            joinedAt: rtdbServerTimestamp as unknown as number, // RTDB server timestamp
-            lastActive: rtdbServerTimestamp as unknown as number,
+            joinedAt: rtdbServerTimestamp(), // CALL the function here
+            lastActive: rtdbServerTimestamp(), // CALL the function here
             subscriptionTier: 'free',
+            // selectedTheme and languagePreference will be set to defaults by createUserProfile
           };
           await createUserProfile(currentUser.uid, newUserProfileData);
-          // Fetch the profile again to get server-resolved timestamps (or construct client-side if complex)
+          
+           // Optimistic update for UI (timestamps become numbers here)
            setUserProfile({
-             ...newUserProfileData,
-             joinedAt: Date.now(), // Approximate with client time for immediate UI
+             uid: currentUser.uid, // Make sure uid is included
+             email: newUserProfileData.email || undefined,
+             name: newUserProfileData.name || undefined,
+             avatarUrl: newUserProfileData.avatarUrl || undefined,
+             joinedAt: Date.now(), 
              lastActive: Date.now(),
-           } as UserProfile);
+             subscriptionTier: newUserProfileData.subscriptionTier || 'free',
+             selectedTheme: 'light', 
+             languagePreference: 'hinglish', 
+           } as UserProfile); 
         }
       } else {
         setUser(null);
@@ -73,11 +86,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await signInWithPopup(auth, provider);
       toast({ title: 'Successfully signed in with Google!' });
-      // onAuthStateChanged will handle profile creation/loading
     } catch (error: any) {
       console.error('Error signing in with Google:', error);
       toast({ title: 'Google Sign-In Error', description: error.message, variant: 'destructive' });
-      setLoading(false); // Ensure loading is false on error
+    } finally {
+        setLoading(false); // Ensure loading is false even if onAuthStateChanged handles it later
     }
   };
 
@@ -86,11 +99,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await firebaseSignInAnonymously(auth);
       toast({ title: 'Signed in anonymously.' });
-      // onAuthStateChanged will handle profile creation/loading
     } catch (error: any) {
       console.error('Error signing in anonymously:', error);
       toast({ title: 'Anonymous Sign-In Error', description: error.message, variant: 'destructive' });
-      setLoading(false); // Ensure loading is false on error
+    } finally {
+        setLoading(false);
     }
   };
 
@@ -113,19 +126,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const updateUserLastActiveInterval = async () => {
       if (user?.uid) {
         try {
-          // Use updateUserProfile to ensure lastActive is updated correctly
-          await updateUserProfile(user.uid, { lastActive: rtdbServerTimestamp as unknown as number });
+          await updateUserProfile(user.uid, { lastActive: rtdbServerTimestamp() }); // Call rtdbServerTimestamp()
         } catch (error) {
           console.warn('Failed to update lastActive in interval:', error);
         }
       }
     };
 
-    // Update lastActive periodically and on visibility change
-    const intervalId = setInterval(updateUserLastActiveInterval, 5 * 60 * 1000); // Every 5 minutes
+    const intervalId = setInterval(updateUserLastActiveInterval, 5 * 60 * 1000); 
     document.addEventListener('visibilitychange', updateUserLastActiveInterval);
     
-    // Initial update on load if user is present
     if (user?.uid) {
         updateUserLastActiveInterval();
     }

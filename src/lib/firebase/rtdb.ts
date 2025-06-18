@@ -17,28 +17,28 @@ import {
 import { db } from './config'; // RTDB instance
 import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials } from '@/lib/types';
 
-// Helper to get server timestamp value for RTDB
-const getServerTimestamp = () => rtdbServerTimestamp(); 
-
 // --- User Profile ---
-export async function createUserProfile(uid: string, data: Partial<UserProfile>): Promise<void> {
-  const userRef = ref(db, `users/${uid}`);
-  // Create a temporary object for writing that allows the server timestamp placeholder
-  const profileDataForWrite: Partial<UserProfile> & { joinedAt?: object; lastActive?: object } = {
-    uid,
-    name: data.name || "Desi User",
-    email: data.email || null,
-    avatarUrl: data.avatarUrl || null,
-    subscriptionTier: data.subscriptionTier || 'free',
-    selectedTheme: data.selectedTheme || 'light',
-    languagePreference: data.languagePreference || 'hinglish',
-    ...data, // Spread other provided data
-  };
 
-  // Set timestamps using the corrected helper or direct value
-  profileDataForWrite.joinedAt = data.joinedAt || getServerTimestamp();
-  profileDataForWrite.lastActive = data.lastActive || getServerTimestamp();
-  
+// Type for data structure when writing a new user profile to RTDB.
+// Timestamps are 'object' because they are Firebase ServerValue.TIMESTAMP placeholders.
+type NewUserProfileWritePayload = Omit<Partial<UserProfile>, 'uid' | 'joinedAt' | 'lastActive'> & {
+  joinedAt: object; // Firebase Server Timestamp Placeholder
+  lastActive: object; // Firebase Server Timestamp Placeholder
+};
+
+export async function createUserProfile(uid: string, data: NewUserProfileWritePayload): Promise<void> {
+  const userRef = ref(db, `users/${uid}`);
+  const profileDataForWrite = {
+    uid, // Use the passed uid
+    name: data.name ?? "Desi User",
+    email: data.email ?? null,
+    avatarUrl: data.avatarUrl ?? null,
+    subscriptionTier: data.subscriptionTier ?? 'free',
+    selectedTheme: data.selectedTheme ?? 'light', // Default if not in data
+    languagePreference: data.languagePreference ?? 'hinglish', // Default if not in data
+    joinedAt: data.joinedAt, // This IS the placeholder object from data
+    lastActive: data.lastActive, // This IS the placeholder object from data
+  };
   await set(userRef, profileDataForWrite);
 }
 
@@ -48,18 +48,26 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   return snapshot.exists() ? (snapshot.val() as UserProfile) : null;
 }
 
-export async function updateUserProfile(uid: string, data: Partial<UserProfile>): Promise<void> {
+// Type for data structure when updating a user profile.
+// lastActive can be a number (client-set timestamp) or an object (server timestamp placeholder).
+type UserProfileUpdateData = Omit<Partial<UserProfile>, 'lastActive'> & {
+  lastActive?: number | object;
+};
+
+export async function updateUserProfile(uid: string, data: UserProfileUpdateData): Promise<void> {
   const userRef = ref(db, `users/${uid}`);
-  const updateData: Partial<UserProfile> & { lastActive?: object } = { ...data };
-  if (data.lastActive === undefined) { // Check if lastActive specifically needs to be updated by server
-    updateData.lastActive = getServerTimestamp();
-  } else if (typeof data.lastActive === 'number') { // If a number is provided, use it
-     updateData.lastActive = data.lastActive;
-  } else { // If it's deliberately set to the placeholder or another object, allow it
-     updateData.lastActive = data.lastActive;
-  }
+  // Create a new object for the update operation to avoid mutating the input `data`
+  const updatePayload: { [key: string]: any } = { ...data };
+
+  // If lastActive is explicitly part of the data to update, ensure it's correctly formatted.
+  // If `data.lastActive` is already a server timestamp object or a number, it will be used as is.
+  // If `data.lastActive` was undefined, it won't be in `updatePayload` unless explicitly added like below.
+  // The AuthContext calls now ensure `lastActive` is `rtdbServerTimestamp()` if it's meant to be a server update.
   
-  await update(userRef, updateData);
+  // No specific transformation for lastActive is needed here if AuthContext correctly provides it.
+  // Firebase `update` handles partial updates correctly.
+
+  await update(userRef, updatePayload);
 }
 
 
@@ -121,11 +129,10 @@ export async function getAllCharacters(): Promise<CharacterMetadata[]> {
 
 export async function addCharacter(characterId: string, data: Omit<CharacterMetadata, 'id' | 'createdAt'> & { createdAt?: number }): Promise<void> {
   const characterRef = ref(db, `characters/${characterId}`);
-  // Prepare data for writing, allowing createdAt to be the server timestamp object
   const characterDataToWrite: Omit<CharacterMetadata, 'createdAt' | 'id'> & { createdAt: number | object, id: string } = {
      ...data, 
      id: characterId, 
-     createdAt: data.createdAt || getServerTimestamp(), 
+     createdAt: data.createdAt || rtdbServerTimestamp(), // Call rtdbServerTimestamp()
      personalitySnippet: data.personalitySnippet || data.description.substring(0,70) + "...",
      isPremium: data.isPremium || false,
      styleTags: data.styleTags || [],
@@ -141,10 +148,8 @@ export async function getOrCreateChatSession(userId: string, characterId: string
 
   if (snapshot.exists()) {
     const existingData = snapshot.val() as UserChatSessionMetadata;
-    await update(chatMetadataRef, { updatedAt: getServerTimestamp() });
-    // Return what was read, but update updatedAt for immediate client use if needed, or rely on next read.
-    // For consistency, it's better to reflect the server's action as much as possible.
-    return { ...existingData, updatedAt: Date.now() }; // Approximate for UI update
+    await update(chatMetadataRef, { updatedAt: rtdbServerTimestamp() }); // Call rtdbServerTimestamp()
+    return { ...existingData, updatedAt: Date.now() }; 
   } else {
     const characterMeta = await getCharacterMetadata(characterId);
     if (!characterMeta) {
@@ -155,10 +160,10 @@ export async function getOrCreateChatSession(userId: string, characterId: string
       characterId,
       characterName: characterMeta.name,
       characterAvatarUrl: characterMeta.avatarUrl,
-      createdAt: getServerTimestamp(),
-      updatedAt: getServerTimestamp(),
+      createdAt: rtdbServerTimestamp(), // Call rtdbServerTimestamp()
+      updatedAt: rtdbServerTimestamp(), // Call rtdbServerTimestamp()
       lastMessageText: `Chat started with ${characterMeta.name}`,
-      lastMessageTimestamp: getServerTimestamp(),
+      lastMessageTimestamp: rtdbServerTimestamp(), // Call rtdbServerTimestamp()
       isFavorite: false,
     };
     await set(chatMetadataRef, newChatSessionMetaDataForWrite);
@@ -167,13 +172,11 @@ export async function getOrCreateChatSession(userId: string, characterId: string
       sender: 'ai',
       text: `Namaste! Main hoon ${characterMeta.name}. ${characterMeta.personalitySnippet} Kaho, kya baat karni hai? 😉`,
       messageType: 'text',
-      // Let addMessageToChat handle its own timestamping if not provided
     });
     
-    const now = Date.now(); // For optimistic client-side update
+    const now = Date.now(); 
     return { 
       ...newChatSessionMetaDataForWrite, 
-      // Convert server value placeholders to optimistic client values for immediate use
       createdAt: now, 
       updatedAt: now, 
       lastMessageTimestamp: now 
@@ -207,7 +210,7 @@ export async function getUserChatSessions(userId: string): Promise<(UserChatSess
 export async function updateChatSessionMetadata(userId: string, characterId: string, data: Partial<UserChatSessionMetadata>): Promise<void> {
   const chatMetadataRef = ref(db, `users/${userId}/userChats/${characterId}/metadata`);
   const updateData : Partial<UserChatSessionMetadata> & {updatedAt?: object} = {...data};
-  updateData.updatedAt = getServerTimestamp();
+  updateData.updatedAt = rtdbServerTimestamp(); // Call rtdbServerTimestamp()
   await update(chatMetadataRef, updateData);
 }
 
@@ -216,23 +219,22 @@ export async function updateChatSessionMetadata(userId: string, characterId: str
 export async function addMessageToChat(
   userId: string,
   characterId: string, 
-  messageData: Omit<MessageDocument, 'timestamp'> & { timestamp?: number | object } // Allow object for server timestamp
+  messageData: Omit<MessageDocument, 'timestamp'> & { timestamp?: number | object } 
 ): Promise<string> {
   const messagesRef = ref(db, `users/${userId}/userChats/${characterId}/messages`);
   const newMessageRef = push(messagesRef); 
 
   const finalMessageData: MessageDocument = {
     ...messageData,
-    timestamp: typeof messageData.timestamp === 'number' ? messageData.timestamp : (messageData.timestamp || getServerTimestamp()),
-  } as MessageDocument; // Cast because TS might not infer object is valid for number after logic
+    timestamp: typeof messageData.timestamp === 'number' ? messageData.timestamp : (messageData.timestamp || rtdbServerTimestamp()), // Call rtdbServerTimestamp()
+  } as MessageDocument; 
   
   await set(newMessageRef, finalMessageData);
 
   const chatMetadataUpdates: Partial<UserChatSessionMetadata> & {lastMessageTimestamp?: object} = {
     lastMessageText: messageData.text.substring(0, 100),
-    lastMessageTimestamp: finalMessageData.timestamp, // This will be the placeholder object if server generated
+    lastMessageTimestamp: finalMessageData.timestamp, 
   };
-  // Let updateChatSessionMetadata handle its own updatedAt
   await updateChatSessionMetadata(userId, characterId, chatMetadataUpdates);
 
   return newMessageRef.key!;
