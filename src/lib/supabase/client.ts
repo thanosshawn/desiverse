@@ -35,6 +35,11 @@ export async function uploadCharacterAsset(
   const fileName = `${Math.random()}.${fileExt}`; // Simple random name to avoid conflicts
   const filePath = `${pathPrefix}/${fileName}`;
 
+  // IMPORTANT: If you receive a 403 "Unauthorized" error with "new row violates row-level security policy",
+  // you MUST configure Row Level Security (RLS) policies on your Supabase bucket.
+  // See the "Bucket Policies" section in your project's README.md for example SQL policies
+  // that grant the 'anon' role permission to insert into the 'storage.objects' table
+  // for the specified bucket and paths.
   const { data, error } = await supabase.storage
     .from(bucketName)
     .upload(filePath, file, {
