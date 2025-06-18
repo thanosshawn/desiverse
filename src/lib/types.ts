@@ -65,3 +65,15 @@ export interface MessageDocument {
 }
 
 export const DEFAULT_AVATAR_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+
+// Schema for the character creation form
+export interface CharacterCreationFormSchema {
+  name: string;
+  description: string;
+  avatarUrl: string;
+  backgroundImageUrl?: string;
+  basePrompt: string;
+  styleTags: string; // Comma-separated
+  defaultVoiceTone: string;
+  dataAiHint?: string;
+}
