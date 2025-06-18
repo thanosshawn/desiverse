@@ -3,7 +3,7 @@
 import type { ChatMessage as ChatMessageType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Bot, User, AlertTriangle, Loader2 } from 'lucide-react';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ChatMessageProps {
   message: ChatMessageType;
@@ -11,6 +11,18 @@ interface ChatMessageProps {
 
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.sender === 'user';
+  const [formattedTimestamp, setFormattedTimestamp] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (message.timestamp) {
+      setFormattedTimestamp(
+        new Date(message.timestamp).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      );
+    }
+  }, [message.timestamp]);
 
   const renderContent = () => {
     switch (message.type) {
@@ -79,7 +91,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       >
         {renderContent()}
         <p className={cn("text-xs mt-1", isUser ? "text-primary-foreground/70" : "text-muted-foreground/70")}>
-          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {formattedTimestamp || '...'}
         </p>
       </div>
       {isUser && (
