@@ -307,6 +307,21 @@ export async function updateUserChatStreak(userId: string, characterId: string):
   return { streak: currentStreakValue, status };
 }
 
+export function getStreakDataStream(
+  userId: string,
+  characterId: string,
+  callback: (streakData: UserChatStreakData | null) => void
+): Unsubscribe {
+  const streakRef = ref(db, `users/${userId}/userChats/${characterId}/streakData`);
+  const listener = onValue(streakRef, (snapshot) => {
+    callback(snapshot.exists() ? snapshot.val() as UserChatStreakData : null);
+  }, (error) => {
+    console.error("Error fetching streak data in real-time from RTDB: ", error);
+    callback(null);
+  });
+  return () => off(streakRef, 'value', listener);
+}
+
 
 // --- Admin Credentials (Prototype - INSECURE plain text) ---
 export async function getAdminCredentials(): Promise<AdminCredentials | null> {

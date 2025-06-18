@@ -1,11 +1,12 @@
+
 // src/app/chat/[characterId]/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
-import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult } from '@/lib/types';
+import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult, UserChatStreakData } from '@/lib/types';
 import { handleUserMessageAction } from '../../actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,11 +16,13 @@ import {
   getMessagesStream, 
   addMessageToChat,
   updateChatSessionMetadata,
-  updateUserChatStreak // Import the new streak function
+  updateUserChatStreak,
+  getStreakDataStream // Import the new streak stream function
 } from '@/lib/firebase/rtdb'; 
-import { Loader2, Star } from 'lucide-react';
+import { Loader2, Star, ArrowLeft } from 'lucide-react'; // Replaced SVG with Lucide
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
+import { BondMeter } from '@/components/chat/bond-meter'; // Import BondMeter
 
 if (typeof crypto === 'undefined' || !crypto.randomUUID) {
   global.crypto = global.crypto || {} as Crypto;
@@ -40,6 +43,8 @@ export default function ChatPage() {
   const [currentChatSessionMeta, setCurrentChatSessionMeta] = useState<UserChatSessionMetadata | null>(null);
   const [currentVideoSrc, setCurrentVideoSrc] = useState<string | undefined>(undefined);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [currentStreakData, setCurrentStreakData] = useState<UserChatStreakData | null>(null);
+
 
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -127,7 +132,7 @@ export default function ChatPage() {
   useEffect(() => {
     if (!user || !characterId || !currentChatSessionMeta) return;
 
-    const unsubscribe = getMessagesStream(
+    const unsubscribeMessages = getMessagesStream(
       user.uid,
       characterId, 
       (rtdbMessages) => {
@@ -148,7 +153,12 @@ export default function ChatPage() {
       50
     );
 
-    return () => unsubscribe();
+    const unsubscribeStreak = getStreakDataStream(user.uid, characterId, setCurrentStreakData);
+
+    return () => {
+      unsubscribeMessages();
+      unsubscribeStreak();
+    };
   }, [user, characterId, currentChatSessionMeta, currentCharacterMeta?.name, pageLoading]);
 
   const addOptimisticMessage = (message: Omit<ChatMessageUI, 'id' | 'timestamp' | 'rtdbKey'>): string => {
@@ -205,8 +215,6 @@ export default function ChatPage() {
             streakToastMessage = `Streak Reset! Back to Day ${streakResult.streak} 💪 Let's build it up!`;
             break;
           case 'maintained_same_day':
-            // Optionally, don't show a toast or show a more subtle one if chatting again on the same day.
-            // For now, no toast for same-day continuation to avoid too many notifications.
             break;
         }
         if (streakToastMessage) {
@@ -214,10 +222,8 @@ export default function ChatPage() {
         }
       } catch (streakError) {
         console.error("Error updating chat streak:", streakError);
-        // Not a critical error, so we don't block chat flow, but log it.
       }
       
-      // Prepare for AI response
       const optimisticAiLoadingId = addOptimisticMessage({
         sender: 'ai',
         type: 'loading',
@@ -294,6 +300,16 @@ export default function ChatPage() {
     }
   };
 
+  const bondPercentage = useMemo(() => {
+    if (!currentCharacterMeta || !currentStreakData) return 0;
+    const numMessages = messages.filter(m => m.type !== 'loading' && m.type !== 'error' && m.sender === 'user').length;
+    const streakValue = currentStreakData?.currentStreak || 0;
+
+    const messageScore = Math.min(numMessages / 50, 1) * 50; // Max 50 points for 50+ user messages
+    const streakScore = Math.min(streakValue / 7, 1) * 50;   // Max 50 points for a 7+ day streak
+    return messageScore + streakScore;
+  }, [messages, currentStreakData, currentCharacterMeta]);
+
 
   if (authLoading || pageLoading || !currentCharacterMeta || !currentChatSessionMeta) {
     const initialBackgroundStyle = currentCharacterMeta?.backgroundImageUrl
@@ -323,18 +339,24 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-screen overflow-hidden"> 
       <Header />
-      <div className="bg-card/80 backdrop-blur-sm shadow-md p-3 border-b border-border sticky top-16 md:top-18 z-40">
-        <div className="container mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
+      <div className="bg-card/80 backdrop-blur-sm shadow-md border-b border-border sticky top-16 md:top-18 z-40">
+        <div className="container mx-auto flex items-center justify-between px-3 py-2">
+            <div className="flex items-center gap-2">
                 <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-primary hover:bg-primary/10 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                    <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <h2 className="text-xl font-headline text-primary">{currentCharacterMeta.name}</h2>
+                <h2 className="text-lg font-headline text-primary truncate">{currentCharacterMeta.name}</h2>
             </div>
             <Button variant="ghost" size="icon" onClick={toggleFavoriteChat} className="text-primary hover:bg-primary/10 rounded-full" title={isFavorite ? "Unfavorite Chat" : "Favorite Chat"}>
                 <Star className={`h-6 w-6 transition-colors duration-200 ${isFavorite ? 'fill-accent text-accent' : 'text-muted-foreground'}`} />
             </Button>
         </div>
+         {currentCharacterMeta && (
+          <BondMeter
+            characterName={currentCharacterMeta.name}
+            bondPercentage={bondPercentage}
+          />
+        )}
       </div>
 
       <main className="flex-grow overflow-hidden">
@@ -352,3 +374,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
