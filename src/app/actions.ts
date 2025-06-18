@@ -6,6 +6,7 @@ import { generatePersonalizedVoiceMessage } from '@/ai/flows/generate-personaliz
 import { generateVideoReply } from '@/ai/flows/generate-video-replies';
 import type { CharacterMetadata } from '@/lib/types'; 
 import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
+import type { MessageDocument } from '@/lib/types';
 
 interface AIActionInputMessage { 
   id: string;
@@ -81,9 +82,6 @@ export async function handleUserMessageAction(
     if ((shouldGenerateVoice || aiTextResponse.length > 10) && !response.videoDataUri) {
       const voiceMessage = await generatePersonalizedVoiceMessage({
         messageText: aiTextResponse,
-        // Use a valid enum value for characterStyle.
-        // 'Riya' is one of the allowed values: "Riya", "Pooja", "Meera", "Anjali".
-        // characterMeta.defaultVoiceTone is a description, not a direct key for TTS.
         characterStyle: 'Riya', 
       });
       if (voiceMessage && voiceMessage.audioDataUri) {
@@ -102,3 +100,42 @@ export async function handleUserMessageAction(
   }
 }
 
+
+// This function is called by the client to process the AI response and add it to the chat
+export async function processAndAddAiResponse(
+  userId: string,
+  characterId: string,
+  aiResponse: AIResponse,
+  characterMeta: CharacterMetadata // Added for context if needed for error messages
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  if (aiResponse.error || !aiResponse.text) {
+    const errorMessage = aiResponse.error || "AI response error.";
+    // Potentially log this error more formally or add an error message to the chat
+    console.error("AI Response Error:", errorMessage);
+    // Add an error message to the chat UI if desired (similar to how ChatPage might handle it)
+    // This action doesn't directly update UI, but could return more info for UI to handle
+    return { success: false, error: errorMessage };
+  }
+
+  const aiMessageData: Omit<MessageDocument, 'timestamp'> = {
+    sender: 'ai',
+    text: aiResponse.text,
+    messageType: aiResponse.videoDataUri ? 'video' : aiResponse.audioDataUri ? 'audio' : 'text',
+    audioUrl: aiResponse.audioDataUri || null, // Ensure null instead of undefined
+    videoUrl: aiResponse.videoDataUri || null, // Ensure null instead of undefined
+  };
+
+  try {
+    // Assuming addMessageToChat is imported from '@/lib/firebase/rtdb'
+    // It needs to be adapted if this file is purely server-side and addMessageToChat is client-side or expects client context
+    // For now, let's assume it's callable here or this logic is part of a broader server action context.
+    // If addMessageToChat is from rtdb.ts, it's fine as it's server-compatible.
+    const { addMessageToChat } = await import('@/lib/firebase/rtdb');
+    const messageId = await addMessageToChat(userId, characterId, aiMessageData);
+    return { success: true, messageId };
+  } catch (error) {
+    console.error('Error adding AI message to chat:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to save AI message.';
+    return { success: false, error: errorMessage };
+  }
+}
