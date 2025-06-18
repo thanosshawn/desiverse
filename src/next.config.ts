@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'placehold.co',
+        hostname: 'placehold.co', // Added for admin character creation defaults
         port: '',
         pathname: '/**',
       },
@@ -25,19 +25,17 @@ const nextConfig: NextConfig = {
       },
       {
         // For Supabase Storage URLs from seed data or if this placeholder is in use.
-        // The error specifically mentions "your-supabase-url.com".
         protocol: 'https',
-        hostname: 'your-supabase-url.com',
+        hostname: 'your-supabase-url.com', // Keeping this if it's used for specific assets or a CNAME
         port: '',
-        pathname: '/**', // Allows any path under this hostname
+        pathname: '/**', 
       },
       {
-        // For the original Supabase placeholder from initial config or actual Supabase URL if configured.
-        // Replace 'bvbmmmdynvjqrajzlayw.supabase.co' with your actual Supabase project reference + .supabase.co
+        // Primary Supabase URL
         protocol: 'https',
-        hostname: 'bvbmmmdynvjqrajzlayw.supabase.co',
+        hostname: 'bvbmmmdynvjqrajzlayw.supabase.co', 
         port: '',
-        pathname: '/**', // Allows any path under this hostname
+        pathname: '/**', 
       }
     ],
   },

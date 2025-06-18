@@ -22,13 +22,14 @@ const firebaseConfig: FirebaseOptions = {
 if (
   !firebaseConfig.apiKey ||
   firebaseConfig.apiKey === placeholderApiKey ||
-  firebaseConfig.apiKey.length < 10 // Basic sanity check for typical API key length
+  firebaseConfig.apiKey.length < 10 // Basic sanity check
 ) {
   throw new Error(
-    `Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is not configured correctly in your .env.local file.
-    Please ensure it is set to your actual Firebase Web API Key.
-    Current value found: "${firebaseConfig.apiKey}"
-    You can find your API key in your Firebase project settings > General tab > Your apps.`
+    `Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is missing or invalid in your .env.local file.
+    1. Please ensure it's set to your actual Firebase Web API Key.
+    2. You can find this key in your Firebase project:
+       Project settings (gear icon) > General tab > Your apps > Web app > SDK setup and configuration > apiKey.
+    Current value detected: "${firebaseConfig.apiKey}"`
   );
 }
 
@@ -40,11 +41,12 @@ if (
   !(firebaseConfig.databaseURL.includes('.firebaseio.com') || firebaseConfig.databaseURL.includes('.firebasedatabase.app'))
 ) {
   throw new Error(
-    `Firebase Realtime Database URL (NEXT_PUBLIC_FIREBASE_DATABASE_URL) is not configured correctly in your .env.local file.
-    Please ensure it is set to your actual Firebase Realtime Database URL.
-    It should look like: https://<your-project-id>.firebaseio.com or https://<your-project-id>-default-rtdb.<region>.firebasedatabase.app.
-    Current value found: "${firebaseConfig.databaseURL}"
-    If other Firebase services fail, also check NEXT_PUBLIC_FIREBASE_API_KEY and other NEXT_PUBLIC_FIREBASE_ variables in your .env.local file.`
+    `Firebase Realtime Database URL (NEXT_PUBLIC_FIREBASE_DATABASE_URL) is missing or invalid in your .env.local file.
+    1. Please ensure it's set to your actual Firebase Realtime Database URL.
+    2. It should look like: https://<your-project-id>.firebaseio.com or https://<your-project-id>-default-rtdb.<region>.firebasedatabase.app.
+    3. You can find this URL in your Firebase project:
+       Realtime Database section > Data tab (it's the URL at the top, e.g., https://your-project-id-default-rtdb.firebaseio.com/).
+    Current value detected: "${firebaseConfig.databaseURL}"`
   );
 }
 

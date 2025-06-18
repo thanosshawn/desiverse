@@ -18,11 +18,14 @@ interface CharacterCardProps {
 }
 
 export function CharacterCard({ character, user, tagColors }: CharacterCardProps) {
+  const isValidAvatarUrl = character.avatarUrl && (character.avatarUrl.startsWith('http') || character.avatarUrl.startsWith('data:'));
+  const avatarSrc = isValidAvatarUrl ? character.avatarUrl : DEFAULT_AVATAR_DATA_URI;
+
   return (
     <Card key={character.id} className="bg-card shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.03] transition-transform duration-300 flex flex-col group hover:shadow-primary/30 animate-fade-in">
       <CardHeader className="p-0 relative w-full aspect-[3/4]">
         <Image
-          src={character.avatarUrl && (character.avatarUrl.startsWith('http') || character.avatarUrl.startsWith('data:')) ? character.avatarUrl : DEFAULT_AVATAR_DATA_URI}
+          src={avatarSrc}
           alt={character.name}
           fill
           className="object-cover group-hover:brightness-110 transition-all duration-300"

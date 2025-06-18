@@ -21,7 +21,7 @@ import {
 } from '@/lib/firebase/rtdb'; 
 import { Loader2 } from 'lucide-react'; 
 import { v4 as uuidv4 } from 'uuid';
-import { ChatPageHeader } from '@/components/chat/chat-page-header'; // New Import
+import { ChatPageHeader } from '@/components/chat/chat-page-header'; 
 
 if (typeof crypto === 'undefined' || !crypto.randomUUID) {
   global.crypto = global.crypto || {} as Crypto;
@@ -299,7 +299,7 @@ export default function ChatPage() {
     } finally {
       setIsLoadingMessage(false);
     }
-  }, [user, userProfile, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]);
+  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]); // Removed userProfile from dependencies as it's not directly used here
 
   const toggleFavoriteChat = async () => {
     if (!user || !characterId) return;
@@ -325,7 +325,7 @@ export default function ChatPage() {
 
     const messageScore = Math.min(numMessages / 50, 1) * 50; 
     const streakScore = Math.min(streakValue / 7, 1) * 50;   
-    return Math.max(0, Math.min(100, messageScore + streakScore));
+    return Math.max(0, Math.min(100, Math.round(messageScore + streakScore)));
   }, [messages, currentStreakData, currentCharacterMeta]);
 
 
@@ -339,7 +339,7 @@ export default function ChatPage() {
         backgroundAttachment: 'fixed',
       }
     : {
-        background: 'var(--background)',
+        background: 'var(--background)', // Uses CSS variable for background
     };
     return (
       <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={initialBackgroundStyle}>

@@ -2,8 +2,7 @@
 'use client';
 
 import React from 'react';
-import type { NextRouter } from 'next/router'; // Correct import if using pages router, or 'next/navigation' for app router
-import { useRouter as useNextRouter } from 'next/navigation'; // For App Router
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; // Correct type for App Router's router
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Star } from 'lucide-react';
 import { BondMeter } from '@/components/chat/bond-meter';
@@ -14,7 +13,7 @@ interface ChatPageHeaderProps {
   isFavorite: boolean;
   toggleFavoriteChat: () => void;
   bondPercentage: number;
-  router: ReturnType<typeof useNextRouter>; // Use the App Router's router type
+  router: AppRouterInstance; // Use the App Router's router type
 }
 
 export function ChatPageHeader({
