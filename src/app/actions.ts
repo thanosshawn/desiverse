@@ -4,7 +4,7 @@
 import { personalizeDailyMessage } from '@/ai/flows/personalize-daily-message';
 import { generatePersonalizedVoiceMessage } from '@/ai/flows/generate-personalized-voice-message';
 import { generateVideoReply } from '@/ai/flows/generate-video-replies';
-import type { CharacterMetadata, CharacterName } from '@/lib/types'; 
+import type { CharacterMetadata } from '@/lib/types'; 
 import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
 
 interface AIActionInputMessage { 
@@ -24,7 +24,7 @@ interface AIResponse {
 export async function handleUserMessageAction(
   userInput: string,
   chatHistory: AIActionInputMessage[], 
-  characterMeta: CharacterMetadata, // Updated to use full CharacterMetadata
+  characterMeta: CharacterMetadata, 
   userId: string, 
   chatId: string   
 ): Promise<AIResponse> {
@@ -33,8 +33,6 @@ export async function handleUserMessageAction(
       .map(msg => `${msg.sender === 'user' ? 'User' : characterMeta.name}: ${msg.content}`)
       .join('\n');
 
-    // Construct a more detailed user preferences string for the AI
-    // using new fields from CharacterMetadata
     const userPreferencesForAI = `User is interacting with ${characterMeta.name}.
     Character's persona: ${characterMeta.basePrompt}.
     Style tags: ${characterMeta.styleTags.join(', ')}.
@@ -43,11 +41,11 @@ export async function handleUserMessageAction(
     Current user input: ${userInput}`;
 
     const personalizedMessage = await personalizeDailyMessage({
-      userName: 'User', // Placeholder, can be dynamic if user profile is passed
-      userPreferences: userPreferencesForAI, // More detailed preferences
+      userName: 'User', 
+      userPreferences: userPreferencesForAI, 
       previousMessages: previousMessagesText,
-      basePrompt: characterMeta.basePrompt, // Pass basePrompt directly
-      styleTags: characterMeta.styleTags,   // Pass styleTags
+      basePrompt: characterMeta.basePrompt, 
+      styleTags: characterMeta.styleTags,   
     });
 
     if (!personalizedMessage || !personalizedMessage.message) {
@@ -61,8 +59,6 @@ export async function handleUserMessageAction(
     let shouldGenerateVoice = false;
     let shouldGenerateVideo = false;
 
-    // Determine if voice or video should be generated based on user input or AI decision logic
-    // This logic can be enhanced by an AI tool call in the future.
     if (lowerInput.includes('voice') || lowerInput.includes('sing') || lowerInput.includes('awaaz') || lowerInput.includes('gana')) {
         shouldGenerateVoice = true;
     }
@@ -70,12 +66,10 @@ export async function handleUserMessageAction(
         shouldGenerateVideo = true;
     }
 
-    // AI could decide to use video for expressiveness (future enhancement)
-    // For now, let's assume if the AI's response is long, or user explicitly asks for video
-    if (shouldGenerateVideo || (aiTextResponse.length > 150 && Math.random() < 0.2)) { // Example: 20% chance for long messages
+    if (shouldGenerateVideo || (aiTextResponse.length > 150 && Math.random() < 0.2)) { 
         const videoReply = await generateVideoReply({
             message: aiTextResponse,
-            avatarDataUri: characterMeta.avatarUrl || DEFAULT_AVATAR_DATA_URI, // Use Supabase URL
+            avatarDataUri: characterMeta.avatarUrl || DEFAULT_AVATAR_DATA_URI, 
         });
         if (videoReply && videoReply.videoDataUri) {
             response.videoDataUri = videoReply.videoDataUri;
@@ -84,14 +78,13 @@ export async function handleUserMessageAction(
         }
     }
     
-    // AI could decide to use voice (future enhancement)
-    // For now, if text is moderately long, user requests voice, or no video was generated
     if ((shouldGenerateVoice || aiTextResponse.length > 10) && !response.videoDataUri) {
       const voiceMessage = await generatePersonalizedVoiceMessage({
         messageText: aiTextResponse,
-        // Use defaultVoiceTone from CharacterMetadata; ensure it maps to valid enum or use a default.
-        // For now, casting as CharacterName, assuming direct mapping or future enum update.
-        characterStyle: (characterMeta.defaultVoiceTone as CharacterName) || 'Riya', 
+        // Use a valid enum value for characterStyle.
+        // 'Riya' is one of the allowed values: "Riya", "Pooja", "Meera", "Anjali".
+        // characterMeta.defaultVoiceTone is a description, not a direct key for TTS.
+        characterStyle: 'Riya', 
       });
       if (voiceMessage && voiceMessage.audioDataUri) {
         response.audioDataUri = voiceMessage.audioDataUri;
@@ -108,3 +101,4 @@ export async function handleUserMessageAction(
     return { error: errorMessage };
   }
 }
+
