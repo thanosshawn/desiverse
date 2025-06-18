@@ -1,3 +1,4 @@
+
 // src/app/actions.ts
 'use server';
 
@@ -57,12 +58,12 @@ export async function handleUserMessageAction(
     let response: AIResponse = { text: aiTextResponse };
 
     const lowerInput = userInput.toLowerCase();
-    let shouldGenerateVoice = false;
+    // let shouldGenerateVoice = false; // Audio generation disabled for now
     let shouldGenerateVideo = false;
 
-    if (lowerInput.includes('voice') || lowerInput.includes('sing') || lowerInput.includes('awaaz') || lowerInput.includes('gana')) {
-        shouldGenerateVoice = true;
-    }
+    // if (lowerInput.includes('voice') || lowerInput.includes('sing') || lowerInput.includes('awaaz') || lowerInput.includes('gana')) {
+    //     shouldGenerateVoice = true;
+    // }
     if (lowerInput.includes('video') || lowerInput.includes('dekhna') || lowerInput.includes('show me') || lowerInput.includes('dikhao')) {
         shouldGenerateVideo = true;
     }
@@ -79,17 +80,18 @@ export async function handleUserMessageAction(
         }
     }
     
-    if ((shouldGenerateVoice || aiTextResponse.length > 10) && !response.videoDataUri) {
-      const voiceMessage = await generatePersonalizedVoiceMessage({
-        messageText: aiTextResponse,
-        characterStyle: 'Riya', 
-      });
-      if (voiceMessage && voiceMessage.audioDataUri) {
-        response.audioDataUri = voiceMessage.audioDataUri;
-      } else {
-        console.warn('Voice generation failed, falling back to text.');
-      }
-    }
+    // Audio generation is disabled for now
+    // if ((shouldGenerateVoice || aiTextResponse.length > 10) && !response.videoDataUri) {
+    //   const voiceMessage = await generatePersonalizedVoiceMessage({
+    //     messageText: aiTextResponse,
+    //     characterStyle: 'Riya', 
+    //   });
+    //   if (voiceMessage && voiceMessage.audioDataUri) {
+    //     response.audioDataUri = voiceMessage.audioDataUri;
+    //   } else {
+    //     console.warn('Voice generation failed, falling back to text.');
+    //   }
+    // }
     
     return response;
 
@@ -139,3 +141,4 @@ export async function processAndAddAiResponse(
     return { success: false, error: errorMessage };
   }
 }
+
