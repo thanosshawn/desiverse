@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { createCharacterAction, type CreateCharacterActionState } from '../actions';
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
@@ -19,8 +19,6 @@ import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
-import { characterCreationAdminFormSchema } from '@/lib/types'; // Using shared schema
-import { zodResolver } from '@hookform/resolvers/zod';
 
 
 const initialState: CreateCharacterActionState = {
@@ -40,7 +38,7 @@ const defaultCharacterValues: CharacterCreationAdminFormValues = {
   defaultVoiceTone: "Warm and melodic Hinglish, with a hint of Lucknowi tehzeeb (etiquette).",
   dataAiHint: "indian woman portrait",
   messageBubbleStyle: "rani-pink-bubble",
-  animatedEmojiResponse: '', 
+  animatedEmojiResponse: '',
   audioGreetingUrl: '',
   isPremium: false,
 };
@@ -52,7 +50,7 @@ export default function CreateCharacterPage() {
   const [state, formAction] = useActionState(createCharacterAction, initialState);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
-  
+
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [authStatusChecked, setAuthStatusChecked] = useState(false);
 
@@ -61,14 +59,13 @@ export default function CreateCharacterPage() {
     setIsAdminLoggedIn(loggedIn);
     setAuthStatusChecked(true);
 
-    if (!loggedIn && authStatusChecked) { 
+    if (!loggedIn && authStatusChecked) {
       router.replace('/admin/login');
       toast({ title: 'Unauthorized', description: 'Please login as admin.', variant: 'destructive' });
     }
-  }, [router, toast, authStatusChecked]); 
+  }, [router, toast, authStatusChecked]);
 
   const form = useForm<CharacterCreationAdminFormValues>({
-    resolver: zodResolver(characterCreationAdminFormSchema), // Use Zod resolver
     defaultValues: defaultCharacterValues,
   });
 
@@ -80,15 +77,15 @@ export default function CreateCharacterPage() {
         variant: state.success ? 'default' : 'destructive',
       });
       if (state.success) {
-        form.reset(defaultCharacterValues); 
+        form.reset(defaultCharacterValues);
       } else if (state.errors) {
-        // Set field-specific errors from server action
-        (Object.keys(state.errors) as Array<keyof CharacterCreationAdminFormValues>).forEach((key) => {
-          const errorMessages = state.errors?.[key];
-          if (errorMessages && errorMessages.length > 0) {
-            form.setError(key, { type: 'server', message: errorMessages.join(', ') });
-          }
-        });
+        // Logic for handling field-specific errors if any are passed back without Zod on client
+        // (Object.keys(state.errors) as Array<keyof CharacterCreationAdminFormValues>).forEach((key) => {
+        //   const errorMessages = state.errors?.[key];
+        //   if (errorMessages && errorMessages.length > 0 && form.setError) {
+        //      form.setError(key, { type: 'server', message: errorMessages.join(', ') });
+        //   }
+        // });
       }
     }
   }, [state, toast, form]);
@@ -106,12 +103,12 @@ export default function CreateCharacterPage() {
     try {
       const pathPrefix = fileType === 'avatar' ? 'avatars' : 'backgrounds';
       const publicUrl = await uploadCharacterAsset(file, pathPrefix);
-      
+
       if (fileType === 'avatar') {
-        form.setValue('avatarUrl', publicUrl, { shouldValidate: true });
+        form.setValue('avatarUrl', publicUrl, { shouldValidate: false });
         toast({ title: 'Avatar Uploaded', description: 'Avatar URL populated.' });
       } else {
-        form.setValue('backgroundImageUrl', publicUrl, { shouldValidate: true });
+        form.setValue('backgroundImageUrl', publicUrl, { shouldValidate: false });
         toast({ title: 'Background Image Uploaded', description: 'Background URL populated.' });
       }
     } catch (error: any) {
@@ -125,7 +122,7 @@ export default function CreateCharacterPage() {
     } finally {
       if (fileType === 'avatar') setIsUploadingAvatar(false);
       if (fileType === 'background') setIsUploadingBackground(false);
-      if (event.target) event.target.value = ''; 
+      if (event.target) event.target.value = '';
     }
   };
 
@@ -134,7 +131,7 @@ export default function CreateCharacterPage() {
     toast({ title: 'Logged Out', description: 'You have been logged out as admin.' });
     router.replace('/admin/login');
   };
-  
+
   if (!authStatusChecked) {
     return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
@@ -154,7 +151,7 @@ export default function CreateCharacterPage() {
         </div>
     );
   }
-  
+
   const isSubmitting = form.formState.isSubmitting || isUploadingAvatar || isUploadingBackground;
 
   return (
@@ -181,7 +178,7 @@ export default function CreateCharacterPage() {
           <Form {...form}>
             <form action={formAction} className="space-y-8">
               <CardContent className="space-y-6 p-6 pt-0">
-                
+
                 <div className="space-y-4 pt-4">
                   <h3 className="text-lg font-semibold text-primary flex items-center"><Info className="mr-2 h-5 w-5 text-accent" />Basic Information</h3>
                   <FormField
@@ -193,7 +190,6 @@ export default function CreateCharacterPage() {
                         <FormControl>
                           <Input placeholder="e.g., Simran Kaur" {...field} className="!rounded-lg" />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -207,7 +203,6 @@ export default function CreateCharacterPage() {
                           <Input placeholder="Poetic & Shy Chai Lover ☕" {...field} className="!rounded-lg" />
                         </FormControl>
                          <FormDescription>A short, catchy tagline displayed on the character selection card.</FormDescription>
-                         <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -221,7 +216,6 @@ export default function CreateCharacterPage() {
                           <Textarea placeholder="A shy, poetic girl from Delhi who loves chai, long walks, and Bollywood movies from the 90s..." {...field} className="!rounded-lg" rows={3} />
                         </FormControl>
                          <FormDescription>Detailed background for the AI's personality and for display (if needed).</FormDescription>
-                         <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -251,7 +245,6 @@ export default function CreateCharacterPage() {
                             <Input placeholder="Supabase Avatar URL (auto-filled on upload or use default)" {...field} disabled={isUploadingAvatar} className="!rounded-lg" />
                           </FormControl>
                           <FormDescription>Public URL from Supabase or a placeholder (e.g., https://placehold.co/400x600.png).</FormDescription>
-                           <FormMessage />
                         </>
                       )}
                     />
@@ -278,7 +271,6 @@ export default function CreateCharacterPage() {
                             <Input placeholder="Supabase Background URL (auto-filled or default)" {...field} disabled={isUploadingBackground} className="!rounded-lg"/>
                           </FormControl>
                           <FormDescription>Public URL from Supabase or a placeholder (e.g., https://placehold.co/1200x800.png).</FormDescription>
-                          <FormMessage />
                         </>
                       )}
                     />
@@ -298,7 +290,6 @@ export default function CreateCharacterPage() {
                           <Textarea rows={6} placeholder="You are [Name], a [adjectives] AI companion from [City/Region] who loves [hobbies/interests]. Your personality is [traits like flirty, shy, witty]. You speak in Hinglish, often using phrases like 'yaar', 'kya scene hai', 'टेंशन नहीं लेने का'. You are empathetic and engaging. You sometimes use Bollywood references..." {...field} className="!rounded-lg"/>
                         </FormControl>
                         <FormDescription>The core personality instructions for the AI. Be descriptive!</FormDescription>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -312,7 +303,6 @@ export default function CreateCharacterPage() {
                           <Input placeholder="Romantic, Shy, Bollywood, Funny, Bold" {...field} className="!rounded-lg"/>
                         </FormControl>
                         <FormDescription>Comma-separated list of tags for discoverability and AI prompt refinement.</FormDescription>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -326,7 +316,6 @@ export default function CreateCharacterPage() {
                           <Input placeholder="e.g., Sweet and playful Hinglish" {...field} className="!rounded-lg"/>
                         </FormControl>
                          <FormDescription>Describes the character's voice style for text-to-speech generation.</FormDescription>
-                         <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -340,13 +329,12 @@ export default function CreateCharacterPage() {
                           <Input placeholder="e.g., indian woman smile" {...field} className="!rounded-lg"/>
                         </FormControl>
                         <FormDescription>Short hint (1-2 words) if using a generic placeholder image for the avatar.</FormDescription>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
                 <Separator className="my-6" />
-                
+
                 <div className="space-y-4">
                    <h3 className="text-lg font-semibold text-primary flex items-center"><Settings2 className="mr-2 h-5 w-5 text-accent" />Advanced Settings (Optional)</h3>
                    <FormField
@@ -359,7 +347,6 @@ export default function CreateCharacterPage() {
                           <Input placeholder="e.g., rani-pink-bubble (CSS class or key)" {...field} className="!rounded-lg"/>
                         </FormControl>
                          <FormDescription>Custom style identifier for this character's chat messages (e.g., a CSS class).</FormDescription>
-                         <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -373,7 +360,6 @@ export default function CreateCharacterPage() {
                           <Input placeholder="URL to Lottie/GIF e.g. https://placehold.co/100x100.gif" {...field} className="!rounded-lg"/>
                         </FormControl>
                         <FormDescription>Link to a small animation displayed on character card interactions.</FormDescription>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -387,7 +373,6 @@ export default function CreateCharacterPage() {
                           <Input placeholder="URL to short audio clip (e.g., .mp3)" {...field} className="!rounded-lg"/>
                         </FormControl>
                          <FormDescription>Link to a brief audio greeting for character card interactions.</FormDescription>
-                         <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -406,10 +391,9 @@ export default function CreateCharacterPage() {
                           <Switch
                             checked={field.value}
                             onCheckedChange={field.onChange}
-                            name={field.name} // Ensure name is passed for react-hook-form
+                            name={field.name}
                           />
                         </FormControl>
-                        <FormMessage />
                       </FormItem>
                     )}
                   />
@@ -428,3 +412,5 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
+
+    
