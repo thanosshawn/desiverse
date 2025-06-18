@@ -1,7 +1,7 @@
 // src/components/chat/chat-layout.tsx
 'use client';
 
-import type { ChatMessageUI, CharacterName } from '@/lib/types';
+import type { ChatMessageUI, CharacterName, UserProfile } from '@/lib/types';
 import { ChatAvatar } from './chat-avatar';
 import { ChatMessages } from './chat-messages';
 import { ChatInput } from './chat-input';
@@ -15,6 +15,8 @@ interface ChatLayoutProps {
   currentCharacterAvatar: string; 
   currentVideoMessageSrc?: string;
   characterMessageBubbleStyle?: string;
+  characterIsPremium?: boolean;
+  userSubscriptionTier?: UserProfile['subscriptionTier'];
 }
 
 export function ChatLayout({
@@ -25,6 +27,8 @@ export function ChatLayout({
   currentCharacterAvatar,
   currentVideoMessageSrc,
   characterMessageBubbleStyle,
+  characterIsPremium,
+  userSubscriptionTier,
 }: ChatLayoutProps) {
   
   const latestAiVideoSrcForAvatar = currentVideoMessageSrc;
@@ -50,7 +54,13 @@ export function ChatLayout({
             characterBubbleStyle={characterMessageBubbleStyle}
             aiAvatarUrl={currentCharacterAvatar} 
         />
-        <ChatInput onSendMessage={onSendMessage} isLoading={isLoading} characterName={currentCharacterName} />
+        <ChatInput 
+            onSendMessage={onSendMessage} 
+            isLoading={isLoading} 
+            characterName={currentCharacterName}
+            characterIsPremium={characterIsPremium}
+            userSubscriptionTier={userSubscriptionTier}
+        />
       </div>
     </div>
   );

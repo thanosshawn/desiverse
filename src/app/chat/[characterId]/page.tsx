@@ -6,7 +6,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
-import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult, UserChatStreakData } from '@/lib/types';
+import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult, UserChatStreakData, UserProfile } from '@/lib/types';
 import { handleUserMessageAction } from '../../actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,7 +30,7 @@ if (typeof crypto === 'undefined' || !crypto.randomUUID) {
 }
 
 export default function ChatPage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, userProfile, loading: authLoading } = useAuth();
   const router = useRouter();
   const params = useParams();
   const characterId = params.characterId as string;
@@ -281,7 +281,7 @@ export default function ChatPage() {
     } finally {
       setIsLoadingMessage(false);
     }
-  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]);
+  }, [user, userProfile, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]); // Added userProfile
 
   const toggleFavoriteChat = async () => {
     if (!user || !characterId) return;
@@ -368,6 +368,8 @@ export default function ChatPage() {
           currentCharacterAvatar={currentCharacterMeta.avatarUrl} 
           currentVideoMessageSrc={currentVideoSrc}
           characterMessageBubbleStyle={currentCharacterMeta.messageBubbleStyle}
+          characterIsPremium={currentCharacterMeta.isPremium}
+          userSubscriptionTier={userProfile?.subscriptionTier}
         />
       </main>
       <div ref={messagesEndRef} />

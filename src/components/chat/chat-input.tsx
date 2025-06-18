@@ -4,9 +4,9 @@
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SendHorizonal, Mic, Paperclip, SmilePlus } from 'lucide-react';
+import { SendHorizonal, Mic, Paperclip, SmilePlus, Lock } from 'lucide-react';
 import React, { useState, useRef } from 'react';
-import type { CharacterName } from '@/lib/types';
+import type { CharacterName, UserProfile } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import Picker, { type EmojiClickData, Theme as EmojiTheme, Categories as EmojiCategory } from 'emoji-picker-react';
 import { useTheme } from 'next-themes'; // To adapt emoji picker theme
@@ -15,13 +15,23 @@ interface ChatInputProps {
   onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request') => void;
   isLoading: boolean;
   characterName?: CharacterName;
+  characterIsPremium?: boolean;
+  userSubscriptionTier?: UserProfile['subscriptionTier'];
 }
 
-export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae" }: ChatInputProps) {
+export function ChatInput({ 
+  onSendMessage, 
+  isLoading, 
+  characterName = "your Bae",
+  characterIsPremium,
+  userSubscriptionTier,
+}: ChatInputProps) {
   const [inputValue, setInputValue] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { resolvedTheme } = useTheme();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const isPremiumFeatureLocked = characterIsPremium && userSubscriptionTier === 'free';
 
   const handleSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
@@ -33,6 +43,11 @@ export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae"
   };
   
   const handleSpecialRequest = (type: 'audio_request' | 'video_request') => {
+     if (isPremiumFeatureLocked && type === 'audio_request') {
+        // Optionally, show a toast or modal to upgrade
+        console.log("Audio request is a premium feature.");
+        return;
+     }
      if (inputValue.trim() && !isLoading) {
       onSendMessage(inputValue.trim(), type);
       setInputValue('');
@@ -66,6 +81,11 @@ export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae"
       }, 0);
     }
   };
+
+  const voiceButtonDisabled = isLoading || isPremiumFeatureLocked;
+  const voiceButtonTitle = isPremiumFeatureLocked 
+    ? "Voice messages are a Premium feature. Upgrade to unlock!" 
+    : "Request voice message";
 
   return (
     <form
@@ -155,12 +175,12 @@ export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae"
           variant="ghost" 
           size="icon" 
           onClick={() => handleSpecialRequest('audio_request')} 
-          disabled={isLoading}
+          disabled={voiceButtonDisabled}
           aria-label="Request voice message"
-          className="text-primary hover:text-primary/80 rounded-full p-2.5 aspect-square"
-          title="Request voice message"
+          className={`rounded-full p-2.5 aspect-square ${isPremiumFeatureLocked ? 'text-muted-foreground/70 cursor-not-allowed' : 'text-primary hover:text-primary/80'}`}
+          title={voiceButtonTitle}
         >
-          <Mic className="h-5 w-5" />
+          {isPremiumFeatureLocked ? <Lock className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
         </Button>
         <Button 
           type="submit" 
