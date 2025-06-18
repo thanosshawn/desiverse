@@ -18,7 +18,7 @@ import { db } from './config'; // RTDB instance
 import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials } from '@/lib/types';
 
 // Helper to get server timestamp value for RTDB
-const getServerTimestamp = () => rtdbServerTimestamp(); // Corrected: Call the function
+const getServerTimestamp = () => rtdbServerTimestamp(); 
 
 // --- User Profile ---
 export async function createUserProfile(uid: string, data: Partial<UserProfile>): Promise<void> {
@@ -125,7 +125,7 @@ export async function addCharacter(characterId: string, data: Omit<CharacterMeta
   const characterDataToWrite: Omit<CharacterMetadata, 'createdAt' | 'id'> & { createdAt: number | object, id: string } = {
      ...data, 
      id: characterId, 
-     createdAt: data.createdAt || getServerTimestamp(), // Use corrected helper
+     createdAt: data.createdAt || getServerTimestamp(), 
      personalitySnippet: data.personalitySnippet || data.description.substring(0,70) + "...",
      isPremium: data.isPremium || false,
      styleTags: data.styleTags || [],
@@ -290,19 +290,4 @@ export async function seedAdminCredentialsIfNeeded(): Promise<void> {
     }
   }
 }
-
-
-// --- Seed Data ---
-export async function seedInitialCharacters() {
-  const charactersRef = ref(db, 'characters');
-  try {
-    await set(charactersRef, null); 
-    console.log("Characters node in RTDB has been cleared.");
-    
-  } catch (error) {
-    console.error("Error seeding/clearing characters in RTDB: ", error);
-  }
-}
-
-
     
