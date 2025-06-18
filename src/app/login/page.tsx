@@ -2,7 +2,7 @@
 // src/app/login/page.tsx - Dedicated Login Page
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, Suspense, use } from 'react'; // Added use
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -14,11 +14,12 @@ import Link from 'next/link';
 function LoginFormComponent() {
   const { toast } = useToast();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParamsFromHook = useSearchParams();
+  const actualSearchParams = use(searchParamsFromHook); // Unwrap searchParams
   const { user, loading: authLoading, signInWithGoogle, signInAnonymously } = useAuth();
   const [isProviderLoading, setIsProviderLoading] = useState(false);
 
-  const redirectPath = searchParams.get('redirect') || '/';
+  const redirectPath = actualSearchParams.get('redirect') || '/';
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -52,7 +53,7 @@ function LoginFormComponent() {
     <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-pink-100 via-rose-50 to-yellow-50 p-4">
       <Card className="w-full max-w-md bg-card/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden animate-fade-in">
         <CardHeader className="text-center p-6 md:p-8 bg-gradient-to-br from-primary to-accent">
-          <Sparkles className="mx-auto h-16 w-16 text-white/80 mb-4 animate-pulse" />
+          <Sparkles className="mx-auto h-16 w-16 text-black/80 mb-4 animate-pulse" />
           <CardTitle className="text-3xl md:text-4xl font-headline text-black">DesiBae Mein Swagat Hai!</CardTitle>
           <CardDescription className="text-black/90 font-body text-base md:text-lg mt-2">
             Chalo, milte hain tumhari virtual crush se 😍
@@ -103,3 +104,4 @@ export default function LoginPage() {
     </Suspense>
   );
 }
+

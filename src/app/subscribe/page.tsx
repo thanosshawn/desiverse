@@ -2,7 +2,7 @@
 // src/app/subscribe/page.tsx
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, use } from 'react'; // Added use
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/layout/header';
@@ -13,13 +13,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
 function SubscribeContent() {
-  const searchParams = useSearchParams();
+  const searchParamsFromHook = useSearchParams();
+  const actualSearchParams = use(searchParamsFromHook); // Unwrap searchParams
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
-  const feature = searchParams.get('feature') || 'Premium Access';
-  const itemName = searchParams.get('itemName');
-  const characterName = searchParams.get('characterName');
+  const feature = actualSearchParams.get('feature') || 'Premium Access';
+  const itemName = actualSearchParams.get('itemName');
+  const characterName = actualSearchParams.get('characterName');
 
   let title = `Unlock ${feature}! ✨`;
   let description = `You're trying to access a premium feature. Upgrade to DesiBae Premium to enjoy this and much more!`;
@@ -49,7 +50,7 @@ function SubscribeContent() {
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 md:py-12 flex items-center justify-center">
         <Card className="w-full max-w-lg bg-card/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden transform transition-all animate-fade-in">
-          <CardHeader className="text-center p-6 md:p-8 bg-gradient-to-br from-primary to-pink-500">
+          <CardHeader className="text-center p-6 md:p-8 bg-gradient-to-br from-primary to-accent">
             <Gem className="mx-auto h-16 w-16 text-black/80 mb-4 animate-pulse" />
             <CardTitle className="text-3xl md:text-4xl font-headline text-black">{title}</CardTitle>
             <CardDescription className="text-black/90 font-body text-base md:text-lg mt-2">
@@ -91,3 +92,4 @@ export default function SubscribePage() {
     </Suspense>
   );
 }
+
