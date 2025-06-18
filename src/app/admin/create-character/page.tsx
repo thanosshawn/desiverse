@@ -1,8 +1,7 @@
 // src/app/admin/create-character/page.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useFormState } from 'react-dom';
+import React, { useEffect, useState, useActionState } from 'react'; // Changed import
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -46,7 +45,7 @@ const initialState: CreateCharacterActionState = {
 export default function CreateCharacterPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const [state, formAction] = useFormState(createCharacterAction, initialState);
+  const [state, formAction] = useActionState(createCharacterAction, initialState); // Changed to useActionState
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
