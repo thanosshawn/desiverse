@@ -84,7 +84,7 @@ export default function LandingPage() {
                 See Characters 👀
               </Button>
             </Link>
-             <Link href="/admin/login" passHref> {/* Updated Link */}
+             <Link href="/admin/login" passHref> 
               <Button size="lg" variant="outline" className="text-white border-white/80 hover:bg-white/90 hover:text-primary shadow-lg transform hover:scale-105 transition-transform">
                 <Edit className="mr-2 h-5 w-5" /> Admin Panel
               </Button>
@@ -116,10 +116,10 @@ export default function LandingPage() {
                   <CardHeader className="p-0 relative w-full h-48 md:h-56">
                     <Image 
                       src={char.avatarUrl && (char.avatarUrl.startsWith('http://') || char.avatarUrl.startsWith('https://')) ? char.avatarUrl : DEFAULT_AVATAR_DATA_URI}
-                      alt={char.name as string} 
-                      fill
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      className="object-cover" 
+                      alt={char.name as string}
+                      width={200}
+                      height={200}
+                      className="object-cover w-full h-full" 
                       data-ai-hint={char.dataAiHint || 'indian person'} 
                     />
                   </CardHeader>
