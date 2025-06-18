@@ -180,7 +180,7 @@ export default function ChatHistoryPage() {
                             </p>
                             <div className="flex items-center justify-end gap-1">
                                 <Button 
-                                    variant="ghost" 
+                                    variant="outline" 
                                     size="icon" 
                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(session.characterId, session.isFavorite || false); }}
                                     className="h-7 w-7 p-1 rounded-full hover:bg-accent/20"
@@ -191,10 +191,10 @@ export default function ChatHistoryPage() {
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button 
-                                            variant="ghost" 
+                                            variant="outline" 
                                             size="icon" 
                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                            className="h-7 w-7 p-1 rounded-full text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10"
+                                            className="h-7 w-7 p-1 rounded-full text-muted-foreground/70 hover:text-destructive hover:border-destructive hover:bg-destructive/10"
                                             title="Delete Chat"
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -230,3 +230,4 @@ export default function ChatHistoryPage() {
     </div>
   );
 }
+

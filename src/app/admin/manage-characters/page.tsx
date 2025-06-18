@@ -169,16 +169,16 @@ export default function ManageCharactersPage() {
                       </TableCell>
                       <TableCell className="text-right space-x-1">
                         <Link href={`/chat/${char.id}`} passHref target="_blank">
-                           <Button variant="ghost" size="icon" title="View Character (Live)" className="hover:text-primary">
+                           <Button variant="outline" size="icon" title="View Character (Live)" className="hover:text-primary">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="icon" title="Edit Character (Not Implemented)" className="hover:text-primary">
+                        <Button variant="outline" size="icon" title="Edit Character (Not Implemented)" className="hover:text-primary">
                           <Edit className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" title="Delete Character" className="hover:text-destructive">
+                            <Button variant="outline" size="icon" title="Delete Character" className="hover:text-destructive hover:border-destructive">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
@@ -213,3 +213,4 @@ export default function ManageCharactersPage() {
     </div>
   );
 }
+
