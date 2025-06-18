@@ -141,7 +141,7 @@ export default function ChatHistoryPage() {
               placeholder="Search chats by name or message..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 !rounded-lg text-base"
+              className="w-full pl-10 !rounded-lg text-sm md:text-base"
             />
           </div>
         </div>

@@ -138,7 +138,7 @@ export default function SettingsPage() {
                     <FormItem>
                       <FormLabel className="text-base">Display Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="Your awesome name" {...field} className="!rounded-lg text-base p-3" />
+                        <Input placeholder="Your awesome name" {...field} className="!rounded-lg text-sm md:text-base p-3" />
                       </FormControl>
                       <FormDescription>This is how your Baes will see you.</FormDescription>
                       <FormMessage />
@@ -152,7 +152,7 @@ export default function SettingsPage() {
                     <FormItem>
                       <FormLabel className="text-base">Avatar URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://example.com/your-avatar.png" {...field} className="!rounded-lg text-base p-3" />
+                        <Input placeholder="https://example.com/your-avatar.png" {...field} className="!rounded-lg text-sm md:text-base p-3" />
                       </FormControl>
                        <FormDescription>Link to your public avatar image.</FormDescription>
                       <FormMessage />
@@ -165,7 +165,7 @@ export default function SettingsPage() {
                     <FormItem>
                         <FormLabel className="text-base">Theme (Coming Soon)</FormLabel>
                          <Select defaultValue={userProfile?.selectedTheme || 'light'} disabled>
-                            <SelectTrigger className="w-full !rounded-lg text-base p-3">
+                            <SelectTrigger className="w-full !rounded-lg text-sm md:text-base p-3">
                                 <SelectValue placeholder="Select app theme" />
                             </SelectTrigger>
                             <SelectContent className="rounded-lg">
@@ -185,7 +185,7 @@ export default function SettingsPage() {
                      <FormItem>
                         <FormLabel className="text-base">App Language (Coming Soon)</FormLabel>
                          <Select defaultValue={userProfile?.languagePreference || 'hinglish'} disabled>
-                            <SelectTrigger className="w-full !rounded-lg text-base p-3">
+                            <SelectTrigger className="w-full !rounded-lg text-sm md:text-base p-3">
                                 <SelectValue placeholder="Select language" />
                             </SelectTrigger>
                             <SelectContent className="rounded-lg">

@@ -105,7 +105,7 @@ export default function CharacterSelectionPage() {
               placeholder="Search by name or personality..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full !rounded-lg text-base"
+              className="w-full !rounded-lg text-sm md:text-base"
             />
           </div>
           <div className="flex flex-wrap gap-2 items-center">
