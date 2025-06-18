@@ -81,44 +81,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signInWithGoogle = async () => {
-    setLoading(true);
+    setLoading(true); // Indicate that a sign-in process has started
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      toast({ title: 'Successfully signed in with Google!' });
+      // If successful, onAuthStateChanged will handle the rest.
+      toast({ title: 'Checking your Google account...' });
     } catch (error: any) {
       console.error('Error signing in with Google:', error);
       toast({ title: 'Google Sign-In Error', description: error.message, variant: 'destructive' });
-    } finally {
-        setLoading(false); // Ensure loading is false even if onAuthStateChanged handles it later
+      setLoading(false); // Reset loading state *only if an error occurs* during the popup initiation.
     }
   };
 
   const signInAnonymously = async () => {
-    setLoading(true);
+    setLoading(true); // Indicate an anonymous sign-in process has started
     try {
       await firebaseSignInAnonymously(auth);
-      toast({ title: 'Signed in anonymously.' });
+      // onAuthStateChanged will handle the rest.
+      toast({ title: 'Signing you in anonymously...' });
     } catch (error: any) {
       console.error('Error signing in anonymously:', error);
       toast({ title: 'Anonymous Sign-In Error', description: error.message, variant: 'destructive' });
-    } finally {
-        setLoading(false);
+      setLoading(false); // Reset loading state *only if an error occurs*.
     }
   };
 
   const signOut = async () => {
-    setLoading(true);
+    setLoading(true); // Indicate a sign-out process has started
     try {
       await firebaseSignOut(auth);
-      setUser(null);
-      setUserProfile(null);
-      toast({ title: 'Signed out successfully.' });
+      // onAuthStateChanged will detect the sign-out and update user, userProfile, and loading state.
+      toast({ title: 'Signing you out...' });
     } catch (error: any) {
       console.error('Error signing out:', error);
       toast({ title: 'Sign-Out Error', description: error.message, variant: 'destructive' });
-    } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state *only if an error occurs* during sign-out.
     }
   };
   
