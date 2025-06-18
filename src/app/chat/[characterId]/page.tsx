@@ -152,15 +152,12 @@ export default function ChatPage() {
             videoSrc: doc.videoUrl || undefined,
           };
           if (doc.messageType === 'gift_sent' && doc.sentGiftId) {
-            // In a real scenario, you might fetch gift details from a gift list based on sentGiftId
-            // For now, creating a placeholder or assuming text field contains enough info.
-            // This part may need refinement if full gift objects are stored/retrieved.
             baseMessage.sentGift = {
                 id: doc.sentGiftId,
-                name: doc.text.includes("sent a") ? doc.text.split("sent a ")[1].split(" to")[0] : "a gift", // crude extraction
-                iconName: 'Gift', // Default icon
+                name: doc.text.includes("sent a") ? doc.text.split("sent a ")[1].split(" to")[0] : "a gift", 
+                iconName: 'Gift', 
                 description: "A lovely gift",
-                aiReactionPrompt: "" // Not directly available here, handled by AI
+                aiReactionPrompt: "" 
             };
           }
           return baseMessage;
@@ -228,9 +225,9 @@ export default function ChatPage() {
     try {
       const userMessageData: Omit<MessageDocument, 'timestamp'> = {
         sender: 'user',
-        text: userMessageText, // This text now includes gift info if a gift was sent
+        text: userMessageText,
         messageType: messageTypeForRtdb,
-        sentGiftId: sentGiftIdForRtdb,
+        sentGiftId: sentGiftIdForRtdb || null,
       };
       await addMessageToChat(user.uid, characterId, userMessageData);
 
@@ -254,7 +251,7 @@ export default function ChatPage() {
       });
 
       const aiResponse = await handleUserMessageAction(
-        userInput, // Original user text input
+        userInput, 
         messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({
             id: m.rtdbKey || m.id, 
             sender: m.sender,
@@ -264,7 +261,7 @@ export default function ChatPage() {
         currentCharacterMeta, 
         user.uid,
         characterId,
-        gift?.aiReactionPrompt // Pass gift reaction prompt
+        gift?.aiReactionPrompt 
       );
       
       removeOptimisticMessage(optimisticAiLoadingId);
