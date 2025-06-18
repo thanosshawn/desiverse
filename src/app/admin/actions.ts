@@ -42,7 +42,7 @@ export async function createCharacterAction(
         fieldErrors[path]?.push(issue.message); // Use the explicit message from the shared schema
     }
     return {
-      message: 'Validation failed. Please check the form for errors highlighted below.', // Updated generic message
+      message: 'Validation failed. Please correct the errors indicated on the form fields below.', // Updated generic message
       success: false,
       errors: fieldErrors,
     };

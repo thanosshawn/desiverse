@@ -83,8 +83,9 @@ export default function CreateCharacterPage() {
     // Set form errors if returned by the server action
     if (state.errors) {
         (Object.keys(state.errors) as Array<keyof CharacterCreationAdminFormValues>).forEach((key) => {
-            if (state.errors && state.errors[key] && state.errors[key]?.[0]) {
-                 form.setError(key, { type: 'server', message: state.errors[key]?.[0] });
+            const fieldErrorArray = state.errors?.[key];
+            if (fieldErrorArray && fieldErrorArray.length > 0 && fieldErrorArray[0]) {
+                 form.setError(key, { type: 'server', message: fieldErrorArray[0] });
             }
         });
     }
@@ -383,6 +384,7 @@ export default function CreateCharacterPage() {
                           name={field.name} // Ensure name is passed for FormData
                         />
                       </FormControl>
+                      <FormMessage /> {/* Added missing FormMessage here */}
                     </FormItem>
                   )}
                 />
@@ -400,5 +402,3 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
-
-    
