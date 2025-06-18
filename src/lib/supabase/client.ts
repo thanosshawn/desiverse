@@ -1,3 +1,4 @@
+
 // src/lib/supabase/client.ts
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
@@ -42,26 +43,37 @@ export async function uploadCharacterAsset(
     });
 
   if (error) {
-    console.error('Error uploading file to Supabase:', error);
-    throw new Error(`Supabase storage error: ${error.message}`);
+    // Enhanced error logging
+    console.error('Raw Supabase upload error object:', JSON.stringify(error, null, 2));
+    
+    let detailedErrorMessage = 'Unknown Supabase storage error occurred.';
+    if (error.message) {
+      detailedErrorMessage = error.message;
+    } else if (typeof error === 'object' && error !== null) {
+      // Attempt to serialize the error object if it's not a standard Error instance
+      try {
+        const errorString = JSON.stringify(error);
+        if (errorString !== '{}') { // Avoid just showing an empty object
+          detailedErrorMessage = errorString;
+        }
+      } catch (e) {
+        // Fallback if stringification fails
+        detailedErrorMessage = 'Supabase returned a non-serializable error object.';
+      }
+    } else if (typeof error === 'string') {
+      detailedErrorMessage = error;
+    }
+
+    console.error('Error uploading file to Supabase. Details:', detailedErrorMessage);
+    throw new Error(`Supabase storage error: ${detailedErrorMessage}`);
   }
 
   if (!data || !data.path) {
     throw new Error('Supabase upload did not return a path.');
   }
 
-  // Construct the public URL
-  // Note: This assumes your bucket is public and follows the standard URL structure.
-  // Supabase client's `getPublicUrl` is often preferred but can be slightly more complex to set up initially.
-  // For a public bucket, constructing the URL directly is common.
   const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucketName}/${data.path}`;
   
-  // Alternative using Supabase's getPublicUrl method:
-  // const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(data.path);
-  // if (!urlData || !urlData.publicUrl) {
-  //   throw new Error('Failed to get public URL for uploaded file from Supabase.');
-  // }
-  // const publicUrl = urlData.publicUrl;
-
   return publicUrl;
 }
+
