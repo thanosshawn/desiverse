@@ -1,3 +1,4 @@
+
 // src/app/subscribe/page.tsx
 'use client';
 
@@ -49,9 +50,9 @@ function SubscribeContent() {
       <main className="flex-grow container mx-auto px-4 py-8 md:py-12 flex items-center justify-center">
         <Card className="w-full max-w-lg bg-card/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden transform transition-all animate-fade-in">
           <CardHeader className="text-center p-6 md:p-8 bg-gradient-to-br from-primary to-pink-500">
-            <Gem className="mx-auto h-16 w-16 text-white/80 mb-4 animate-pulse" />
-            <CardTitle className="text-3xl md:text-4xl font-headline text-white">{title}</CardTitle>
-            <CardDescription className="text-white/90 font-body text-base md:text-lg mt-2">
+            <Gem className="mx-auto h-16 w-16 text-black/80 mb-4 animate-pulse" />
+            <CardTitle className="text-3xl md:text-4xl font-headline text-black">{title}</CardTitle>
+            <CardDescription className="text-black/90 font-body text-base md:text-lg mt-2">
               {description}
             </CardDescription>
           </CardHeader>
