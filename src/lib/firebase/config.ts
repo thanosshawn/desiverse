@@ -5,16 +5,16 @@ import { getAuth } from 'firebase/auth';
 import { getDatabase } from 'firebase/database'; // Import Realtime Database
 import { getStorage } from 'firebase/storage';
 
-const placeholderApiKey = "YOUR_API_KEY";
-const placeholderDatabaseUrl = "YOUR_DATABASE_URL";
+const placeholderApiKey = "YOUR_API_KEY"; // Used for explicit check
+const placeholderDatabaseUrl = "YOUR_DATABASE_URL"; // Used for explicit check
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || placeholderApiKey,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "YOUR_AUTH_DOMAIN",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "YOUR_PROJECT_ID",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "YOUR_STORAGE_BUCKET",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "YOUR_MESSAGING_SENDER_ID",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "YOUR_APP_ID",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL || placeholderDatabaseUrl,
 };
 
@@ -56,4 +56,3 @@ const db = getDatabase(app); // Initialize Realtime Database
 const storage = getStorage(app);
 
 export { app, auth, db, storage, firebaseConfig }; // Export db (RTDB instance)
-
