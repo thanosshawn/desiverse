@@ -238,28 +238,13 @@ export async function seedAdminCredentialsIfNeeded(): Promise<void> {
 
 // --- Seed Data ---
 export async function seedInitialCharacters() {
-  const charactersDataToSeed: Record<string, CharacterMetadata> = {}; // Empty object to seed no characters
-
   const charactersRef = ref(db, 'characters');
   try {
-    const snapshot = await get(charactersRef);
-    // Only seed if the characters node is empty or doesn't exist.
-    // Or if you want to ensure it's empty if it previously had data, you could explicitly set it to null/empty object.
-    if (!snapshot.exists() || Object.keys(snapshot.val() || {}).length === 0) { 
-      if (Object.keys(charactersDataToSeed).length > 0) { // Only attempt to set if there's actually data to seed
-        await set(charactersRef, charactersDataToSeed);
-        console.log("Initial characters seeded successfully to RTDB!");
-      } else {
-        console.log("No initial characters to seed. Characters list will be empty unless added via admin.");
-        // If you want to ENSURE the characters node is empty if it had old data:
-        // await set(charactersRef, null); 
-        // console.log("Characters node in RTDB ensured to be empty.");
-      }
-    } else {
-      console.log("Characters already exist in RTDB or no initial characters defined for seeding. Seed data process skipped/completed.");
-    }
+    // This will remove all existing characters under the 'characters' node
+    // by setting its value to null.
+    await set(charactersRef, null);
+    console.log("Characters node in RTDB has been cleared. No characters will be present until added via admin or other means.");
   } catch (error) {
-    console.error("Error during character seeding process in RTDB: ", error);
+    console.error("Error clearing characters in RTDB: ", error);
   }
 }
-
