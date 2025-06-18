@@ -2,7 +2,7 @@
 // src/app/chat/[characterId]/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, use } from 'react'; // Added use
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
@@ -20,20 +20,19 @@ import {
   getStreakDataStream 
 } from '@/lib/firebase/rtdb'; 
 import { Loader2 } from 'lucide-react'; 
-// Removed: import { v4 as uuidv4 } from 'uuid';
 import { ChatPageHeader } from '@/components/chat/chat-page-header'; 
-
-// Removed crypto.randomUUID polyfill:
-// if (typeof crypto === 'undefined' || !crypto.randomUUID) {
-//   global.crypto = global.crypto || {} as Crypto;
-//   (global.crypto as any).randomUUID = uuidv4;
-// }
 
 export default function ChatPage() {
   const { user, userProfile, loading: authLoading } = useAuth();
   const router = useRouter();
-  const params = useParams();
-  const characterId = params.characterId as string;
+  
+  // Unwrap params using React.use() to handle Next.js Proxy object
+  const paramsFromHook = useParams();
+  // Type assertion for actualParams might be needed if TypeScript complains about `use` with `useParams` return type.
+  // However, Next.js docs suggest this pattern for its specific Proxy objects.
+  const actualParams = use(paramsFromHook as any); 
+  const characterId = actualParams.characterId as string;
+
 
   const [messages, setMessages] = useState<ChatMessageUI[]>([]);
   const [isLoadingMessage, setIsLoadingMessage] = useState(false);
