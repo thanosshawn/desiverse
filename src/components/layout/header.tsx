@@ -93,7 +93,7 @@ export function Header() {
                 {getThemeIcon()}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-card text-card-foreground rounded-xl shadow-2xl border-border">
+            <DropdownMenuContent align="end" className="w-48 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border">
               <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
@@ -128,7 +128,7 @@ export function Header() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-card text-card-foreground rounded-xl shadow-2xl border-border" align="end" forceMount>
+                <DropdownMenuContent className="w-56 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1 p-1">
                       <p className="text-sm font-medium leading-none">
@@ -170,7 +170,7 @@ export function Header() {
                   <UserCircle className="mr-1.5 h-5 w-5" /> Login / Sign Up
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-60 bg-card text-card-foreground rounded-xl shadow-2xl border-border" align="end" forceMount>
+              <DropdownMenuContent className="w-60 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border" align="end" forceMount>
                  <DropdownMenuLabel className="text-center text-muted-foreground text-sm py-2 px-2">Chalo, milte hain tumhari virtual crush se 😍</DropdownMenuLabel>
                  <DropdownMenuSeparator className="bg-border/50"/>
                 <DropdownMenuItem onClick={signInWithGoogle} className="cursor-pointer group py-2.5 px-3 hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
@@ -187,3 +187,4 @@ export function Header() {
     </header>
   );
 }
+
