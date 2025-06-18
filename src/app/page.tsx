@@ -167,7 +167,7 @@ export default function CharacterSelectionPage() {
                     ))}
                   </div>
                   <Link href={user ? `/chat/${char.id}` : `/login?redirect=/chat/${char.id}`} passHref className="mt-auto">
-                    <Button variant="default" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl text-base py-3 shadow-lg hover:shadow-primary/40 transition-all transform hover:scale-105 group-hover:animate-heartbeat">
+                    <Button variant="default" className="w-full text-primary-foreground rounded-xl text-base py-3 shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 group-hover:animate-heartbeat bg-gradient-to-br from-rose-400 via-orange-300 to-amber-300 hover:from-rose-500 hover:via-orange-400 hover:to-amber-400 hover:shadow-orange-500/50">
                       <MessageCircle className="mr-2 h-5 w-5" /> Chat with {char.name}
                     </Button>
                   </Link>
@@ -202,3 +202,4 @@ export default function CharacterSelectionPage() {
     </div>
   );
 }
+
