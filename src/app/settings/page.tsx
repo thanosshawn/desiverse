@@ -29,8 +29,6 @@ import {
 const settingsFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.').max(50, 'Name must be 50 characters or less.').optional(),
   avatarUrl: z.string().url('Please enter a valid URL for your avatar.').optional().or(z.literal('')),
-  // languagePreference: z.enum(['hinglish', 'english']).optional(),
-  // selectedTheme: z.enum(['light', 'dark', 'pink', 'purple', 'bollywood']).optional(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
@@ -45,8 +43,6 @@ export default function SettingsPage() {
     defaultValues: {
       name: '',
       avatarUrl: '',
-      // languagePreference: 'hinglish',
-      // selectedTheme: 'light',
     },
   });
 
@@ -55,8 +51,6 @@ export default function SettingsPage() {
       form.reset({
         name: userProfile.name || '',
         avatarUrl: userProfile.avatarUrl || '',
-        // languagePreference: userProfile.languagePreference || 'hinglish',
-        // selectedTheme: userProfile.selectedTheme || 'light',
       });
     }
   }, [userProfile, form]);
@@ -79,9 +73,7 @@ export default function SettingsPage() {
     try {
       const updateData: Partial<SettingsFormValues> = {};
       if (data.name && data.name !== userProfile?.name) updateData.name = data.name;
-      if (data.avatarUrl !== userProfile?.avatarUrl) updateData.avatarUrl = data.avatarUrl; // Allow empty string to clear
-      // if (data.languagePreference && data.languagePreference !== userProfile?.languagePreference) updateData.languagePreference = data.languagePreference;
-      // if (data.selectedTheme && data.selectedTheme !== userProfile?.selectedTheme) updateData.selectedTheme = data.selectedTheme;
+      if (data.avatarUrl !== userProfile?.avatarUrl) updateData.avatarUrl = data.avatarUrl; 
 
 
       if (Object.keys(updateData).length > 0) {
@@ -109,7 +101,6 @@ export default function SettingsPage() {
   }
 
   if (!user) {
-     // Or redirect to login
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
@@ -124,7 +115,7 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
         <Card className="max-w-2xl mx-auto bg-card/90 backdrop-blur-lg shadow-2xl rounded-2xl">
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-headline text-primary">Settings</CardTitle>
@@ -138,9 +129,6 @@ export default function SettingsPage() {
                         <AvatarImage src={form.watch('avatarUrl') || userProfile?.avatarUrl || user.photoURL || undefined} alt={form.watch('name') || userProfile?.name || user.displayName || 'User'} />
                         <AvatarFallback className="text-3xl bg-pink-100 text-pink-600">{getInitials(form.watch('name') || userProfile?.name || user.displayName)}</AvatarFallback>
                     </Avatar>
-                    {/* For future direct avatar upload
-                    <Button type="button" variant="outline" size="sm">Change Avatar</Button>
-                    */}
                 </div>
 
                 <FormField
@@ -209,7 +197,6 @@ export default function SettingsPage() {
                     </FormItem>
                 </div>
                 
-                {/* Placeholder for Notifications and Privacy sections */}
                 <div className="space-y-4 pt-4 border-t border-border/50">
                     <h3 className="text-lg font-headline text-primary/90 flex items-center"><Bell className="mr-2 h-5 w-5"/> Notifications (Coming Soon)</h3>
                      <div className="flex items-center space-x-2">

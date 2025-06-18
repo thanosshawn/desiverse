@@ -10,7 +10,7 @@ import { Filter, Heart, Loader2, MessageCircle, Sparkles, Star, Edit } from 'luc
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState, useMemo } from 'react';
 import { type CharacterMetadata, DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
-import { getAllCharacters } from '@/lib/firebase/rtdb'; // Removed seedInitialCharacters import
+import { getAllCharacters } from '@/lib/firebase/rtdb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +23,6 @@ const tagColors: Record<string, string> = {
   "Bold": "bg-red-500 hover:bg-red-600",
   "Bollywood": "bg-orange-500 hover:bg-orange-600",
   "Flirty": "bg-rose-500 hover:bg-rose-600",
-  // Add more tag-color mappings as needed
 };
 
 export default function CharacterSelectionPage() {
@@ -34,10 +33,9 @@ export default function CharacterSelectionPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
-    async function fetchCharacters() { // Renamed function
+    async function fetchCharacters() {
       try {
         setLoadingCharacters(true);
-        // Removed: await seedInitialCharacters(); // This was clearing characters
         const fetchedCharacters = await getAllCharacters();
         setCharacters(fetchedCharacters);
       } catch (error) {
@@ -47,7 +45,7 @@ export default function CharacterSelectionPage() {
         setLoadingCharacters(false);
       }
     }
-    if (!authLoading) { // Only fetch if auth is not loading
+    if (!authLoading) {
         fetchCharacters();
     }
   }, [authLoading]);
@@ -89,7 +87,7 @@ export default function CharacterSelectionPage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50 text-foreground">
       <Header />
 
-      <section className="container mx-auto px-4 py-8 flex-grow">
+      <section className="container mx-auto px-4 pt-20 md:pt-22 pb-8 flex-grow">
         <div className="text-center mb-10">
           <h2 className="text-4xl md:text-5xl font-bold font-headline mb-3 text-primary animate-fade-in">
             Kaun Banegi Aapki Virtual Crush? <Sparkles className="inline-block text-accent h-10 w-10" />
@@ -100,7 +98,7 @@ export default function CharacterSelectionPage() {
         </div>
 
         {/* Filters and Search */}
-        <div className="mb-8 p-4 bg-card/80 backdrop-blur-sm rounded-xl shadow-lg space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
+        <div className="mb-8 p-4 bg-card/80 backdrop-blur-sm rounded-xl shadow-lg space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4 sticky top-16 md:top-18 z-30">
           <div className="flex-grow">
             <Input
               type="text"

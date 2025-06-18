@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { loginAdminAction, type LoginAdminActionState } from '../actions';
-import { seedAdminCredentialsIfNeeded } from '@/lib/firebase/rtdb'; // To seed credentials
+import { seedAdminCredentialsIfNeeded } from '@/lib/firebase/rtdb'; 
 import { Loader2 } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 
@@ -44,8 +44,6 @@ export default function AdminLoginPage() {
   });
 
   useEffect(() => {
-    // Attempt to seed admin credentials if they don't exist.
-    // This is for prototype convenience. In production, this would be a one-time setup.
     const seedCreds = async () => {
       try {
         await seedAdminCredentialsIfNeeded();
@@ -84,7 +82,6 @@ export default function AdminLoginPage() {
     formData.append('username', data.username);
     formData.append('password', data.password);
 
-    // We'll call server action directly. useFormState is another option.
     const result = await loginAdminAction(initialState, formData);
     setFormState(result);
     setIsLoading(false);
@@ -93,7 +90,7 @@ export default function AdminLoginPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
         <Header/>
-        <main className="flex-grow container mx-auto px-4 py-8 flex items-center justify-center">
+        <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8 flex items-center justify-center">
             <Card className="w-full max-w-md">
             <CardHeader>
                 <CardTitle className="text-2xl font-headline">Admin Login</CardTitle>

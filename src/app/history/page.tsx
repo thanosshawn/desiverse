@@ -52,7 +52,6 @@ export default function ChatHistoryPage() {
     if (!authLoading && user) {
       fetchChatSessions();
     } else if (!authLoading && !user) {
-      // Handle case where user is not logged in, e.g., redirect or show message
       setLoadingSessions(false);
     }
   }, [user, authLoading]);
@@ -67,7 +66,6 @@ export default function ChatHistoryPage() {
     const newIsFavorite = !currentIsFavorite;
     try {
       await updateChatSessionMetadata(user.uid, characterId, { isFavorite: newIsFavorite });
-      // Optimistically update UI and re-fetch for sorted list
       setChatSessions(prev => 
         prev.map(s => s.characterId === characterId ? {...s, isFavorite: newIsFavorite} : s)
             .sort((a, b) => {
@@ -87,19 +85,13 @@ export default function ChatHistoryPage() {
 
   const handleDeleteChat = async (characterId: string) => {
     if(!user) return;
-    // This is a placeholder for actual delete logic which might involve deleting messages and metadata.
-    // For now, we'll just remove it from the UI and log.
-    // In a real app, you'd call a server action or RTDB function to delete.
     console.log(`Placeholder: Delete chat with ${characterId}`);
-    // Optimistically remove from UI
     setChatSessions(prev => prev.filter(s => s.characterId !== characterId));
     toast({
       title: "Chat Deleted (Visually)",
       description: `Chat with ${chatSessions.find(s=>s.characterId === characterId)?.characterName} removed from list. Full delete not yet implemented.`,
       variant: "default"
     });
-    // TODO: Implement actual delete in rtdb.ts and call it here.
-    // e.g., await deleteChatSession(user.uid, characterId);
   };
 
 
@@ -133,13 +125,13 @@ export default function ChatHistoryPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
-      <main className="flex-grow container mx-auto px-2 sm:px-4 py-6 md:py-8">
+      <main className="flex-grow container mx-auto px-2 sm:px-4 pt-20 md:pt-22 pb-6 md:pb-8">
         <div className="mb-6 md:mb-8 text-center">
             <h1 className="text-3xl md:text-4xl font-headline text-primary mb-2">Chat History</h1>
             <p className="text-muted-foreground font-body">Relive your favorite moments with your Desi Baes!</p>
         </div>
         
-        <div className="mb-6 sticky top-[calc(theme(spacing.16)+1px)] md:top-[calc(theme(spacing.18)+1px)] z-30 bg-background/80 backdrop-blur-md p-3 rounded-xl shadow-sm">
+        <div className="mb-6 sticky top-16 md:top-18 z-30 bg-background/80 backdrop-blur-md p-3 rounded-xl shadow-sm">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input

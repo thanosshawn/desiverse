@@ -14,7 +14,7 @@ import {
   getOrCreateChatSession, 
   getMessagesStream, 
   addMessageToChat,
-  updateChatSessionMetadata // New function
+  updateChatSessionMetadata
 } from '@/lib/firebase/rtdb'; 
 import { Loader2, Star } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
@@ -48,20 +48,7 @@ export default function ChatPage() {
   };
 
   useEffect(scrollToBottom, [messages]);
-
-  const backgroundStyle = currentCharacterMeta?.backgroundImageUrl
-    ? { 
-        backgroundImage: `linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url(${currentCharacterMeta.backgroundImageUrl})`, // Added white overlay for text readability
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed', // Keep background fixed
-      }
-    : {
-        background: 'var(--background)', // Fallback to global background
-    };
   
-  // Apply background to body for full page effect
   useEffect(() => {
     if (currentCharacterMeta?.backgroundImageUrl) {
       document.body.style.backgroundImage = `linear-gradient(rgba(var(--background-rgb),0.7), rgba(var(--background-rgb),0.7)), url(${currentCharacterMeta.backgroundImageUrl})`;
@@ -70,17 +57,25 @@ export default function ChatPage() {
       document.body.style.backgroundRepeat = 'no-repeat';
       document.body.style.backgroundAttachment = 'fixed';
     } else {
-      document.body.style.backgroundImage = ''; // Reset if no image
+      document.body.style.backgroundImage = ''; 
     }
-    // Get root style for background HSL values
+    
     const rootStyle = getComputedStyle(document.documentElement);
-    const bgHsl = rootStyle.getPropertyValue('--background').match(/\d+/g);
-    if (bgHsl) {
-      document.documentElement.style.setProperty('--background-rgb', `${bgHsl[0]}, ${bgHsl[1]}%, ${bgHsl[2]}%`);
+    const bgHslRaw = rootStyle.getPropertyValue('--background').trim();
+    const bgHslMatch = bgHslRaw.match(/hsl\(([^)]+)\)/);
+
+    if (bgHslMatch && bgHslMatch[1]) {
+        const [h, s, l] = bgHslMatch[1].split(/[\s,]+/).map(v => v.trim());
+        document.documentElement.style.setProperty('--background-rgb', `${h}, ${s}, ${l}`);
+    } else {
+        // Fallback if parsing fails, e.g. if --background is a hex or rgb()
+        // This part may need adjustment based on actual --background format if not HSL
+         console.warn("Could not parse HSL from --background. Background overlay may not work as expected.");
+         document.documentElement.style.setProperty('--background-rgb', `330, 50%, 98%`); // Default to light mode's background
     }
 
 
-    return () => { // Cleanup on unmount
+    return () => { 
       document.body.style.backgroundImage = '';
       document.body.style.backgroundSize = '';
       document.body.style.backgroundPosition = '';
@@ -265,15 +260,26 @@ export default function ChatPage() {
       });
     } catch (error) {
       console.error("Error updating favorite status:", error);
-      setIsFavorite(!newFavoriteStatus); // Revert on error
+      setIsFavorite(!newFavoriteStatus); 
       toast({ title: 'Error', description: 'Could not update favorite status.', variant: 'destructive' });
     }
   };
 
 
   if (authLoading || pageLoading || !currentCharacterMeta || !currentChatSessionMeta) {
+    const initialBackgroundStyle = currentCharacterMeta?.backgroundImageUrl
+    ? { 
+        backgroundImage: `linear-gradient(rgba(var(--background-rgb),0.7), rgba(var(--background-rgb),0.7)), url(${currentCharacterMeta.backgroundImageUrl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+      }
+    : {
+        background: 'var(--background)',
+    };
     return (
-      <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={pageLoading ? {} : backgroundStyle}>
+      <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={initialBackgroundStyle}>
         <Header />
         <div className="flex-grow flex flex-col items-center justify-center text-center p-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -286,11 +292,9 @@ export default function ChatPage() {
   }
 
   return (
-    // Main container takes full height
-    <div className="flex flex-col h-screen overflow-hidden" style={backgroundStyle}> 
+    <div className="flex flex-col h-screen overflow-hidden"> 
       <Header />
-      {/* Chat Header specific to this page */}
-      <div className="bg-card/80 backdrop-blur-sm shadow-md p-3 border-b border-border sticky top-[calc(theme(spacing.16)+1px)] md:top-[calc(theme(spacing.18)+1px)] z-40">
+      <div className="bg-card/80 backdrop-blur-sm shadow-md p-3 border-b border-border sticky top-16 md:top-18 z-40">
         <div className="container mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
                 <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-primary hover:bg-primary/10 rounded-full">
@@ -304,8 +308,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* ChatLayout now takes remaining height and handles its own scrolling */}
-      <main className="flex-grow overflow-hidden"> {/* This main tag allows ChatLayout to be the scrolling container */}
+      <main className="flex-grow overflow-hidden">
         <ChatLayout
           messages={messages}
           onSendMessage={handleSendMessage}
@@ -316,7 +319,7 @@ export default function ChatPage() {
           characterMessageBubbleStyle={currentCharacterMeta.messageBubbleStyle}
         />
       </main>
-      <div ref={messagesEndRef} /> {/* For scrolling to bottom */}
+      <div ref={messagesEndRef} />
     </div>
   );
 }

@@ -38,20 +38,18 @@ export default function ManageCharactersPage() {
   const [authStatusChecked, setAuthStatusChecked] = useState(false);
 
   useEffect(() => {
-    // This effect runs only on the client
     const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
     setIsAdminLoggedIn(loggedIn);
-    setAuthStatusChecked(true); // Mark that we've checked localStorage
+    setAuthStatusChecked(true); 
 
-    if (!loggedIn) {
-      // This part of the effect will also only run client-side
+    if (!loggedIn && authStatusChecked) {
       router.replace('/admin/login');
       toast({ title: 'Unauthorized', description: 'Please login as admin.', variant: 'destructive' });
     }
-  }, [router, toast]);
+  }, [router, toast, authStatusChecked]);
 
   useEffect(() => {
-    if (isAdminLoggedIn && authStatusChecked) { // Fetch characters only if logged in and auth status is checked
+    if (isAdminLoggedIn && authStatusChecked) { 
       const fetchCharacters = async () => {
         setIsLoading(true);
         try {
@@ -66,7 +64,7 @@ export default function ManageCharactersPage() {
       };
       fetchCharacters();
     } else if (authStatusChecked && !isAdminLoggedIn) {
-        setIsLoading(false); // Not logged in, so stop loading state
+        setIsLoading(false); 
     }
   }, [isAdminLoggedIn, authStatusChecked, toast]);
 
@@ -77,7 +75,6 @@ export default function ManageCharactersPage() {
   };
 
   const handleDeleteCharacter = async (characterId: string, characterName: string) => {
-    // Placeholder for actual delete logic
     toast({
       title: `Delete Action (Not Implemented)`,
       description: `If implemented, this would delete ${characterName}. This is a placeholder.`,
@@ -87,7 +84,6 @@ export default function ManageCharactersPage() {
   };
   
   if (!authStatusChecked) {
-    // Render a consistent loading state for both server and initial client render
     return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
             <Header />
@@ -98,8 +94,6 @@ export default function ManageCharactersPage() {
   }
 
   if (!isAdminLoggedIn) {
-     // This will be rendered client-side if not logged in, after authStatusChecked is true.
-     // The useEffect will handle the redirection.
     return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
              <Header />
@@ -109,11 +103,10 @@ export default function ManageCharactersPage() {
     );
   }
 
-  // Main content, rendered only if authStatusChecked is true AND isAdminLoggedIn is true
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
         <Card className="max-w-4xl mx-auto bg-card/90 backdrop-blur-lg shadow-xl rounded-2xl">
           <CardHeader className="flex flex-row justify-between items-center">
             <div>

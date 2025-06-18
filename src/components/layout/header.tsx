@@ -31,7 +31,7 @@ export function Header() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-primary via-pink-500 to-rose-600 text-primary-foreground p-3 md:p-4 shadow-lg sticky top-0 z-50">
+    <header className="bg-gradient-to-r from-primary via-pink-500 to-rose-600 text-primary-foreground p-3 md:p-4 shadow-lg sticky top-0 z-50 h-16 md:h-18 flex items-center">
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" passHref>
           <div className="flex items-center gap-2 cursor-pointer">
@@ -49,10 +49,6 @@ export function Header() {
                   <History className="h-5 w-5" />
                 </Button>
               </Link>
-              {/* Placeholder for future daily love note / premium features */}
-              {/* <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10" title="Daily Spark">
-                <HeartCrack className="h-5 w-5" />
-              </Button> */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary">
