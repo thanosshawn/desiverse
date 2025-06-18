@@ -187,28 +187,28 @@ export function ChatInput({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-            className="w-72 p-2 border-border shadow-xl mb-2 rounded-xl" // bg-popover removed as it's handled by base
+            className="w-80 p-2 border-border shadow-xl mb-2 rounded-xl"
             side="top" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onCloseAutoFocus={(e) => e.preventDefault()}
         >
           <div className="space-y-2">
-            <p className="text-sm font-medium text-neutral-800 px-2 pt-1">Send a Virtual Gift to {characterName}</p>
+            <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 px-2 pt-1">Send a Virtual Gift to {characterName}</p>
             {virtualGifts.map((gift) => {
                 const isThisSpecificGiftLocked = isFeatureLocked('premium_gift', userSubscriptionTier); // Assuming all gifts are premium
                 return (
                     <Button
                         key={gift.id}
                         variant="ghost"
-                        className="w-full justify-start h-auto p-2 text-left !rounded-md hover:bg-neutral-100 hover:text-neutral-900 focus:bg-neutral-100 focus:text-neutral-900 text-neutral-700"
+                        className="w-full justify-start h-auto p-2 text-left !rounded-md text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 focus:bg-neutral-100 focus:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 dark:focus:bg-neutral-800 dark:focus:text-neutral-100"
                         onClick={() => handleSendGift(gift)}
                         title={isThisSpecificGiftLocked ? getFeatureLockDetails('premium_gift', { itemName: gift.name, characterName }).title : `Send ${gift.name}`}
                     >
                         {renderGiftIcon(gift.iconName)}
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">{gift.name}</span>
-                          <span className="text-xs text-muted-foreground">{gift.description}</span>
+                        <div className="flex flex-col flex-grow min-w-0 mr-2">
+                            <span className="text-sm font-medium block whitespace-normal">{gift.name}</span>
+                            <span className="text-xs text-muted-foreground block whitespace-normal">{gift.description}</span>
                         </div>
                         {gift.price && (
                             <span className={`ml-auto text-xs font-semibold ${isThisSpecificGiftLocked ? 'text-destructive' : 'text-primary'}`}>
