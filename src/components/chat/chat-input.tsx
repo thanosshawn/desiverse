@@ -41,7 +41,6 @@ export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae"
       className="p-3 md:p-4 border-t border-border/50 bg-card/70 backdrop-blur-sm flex items-end space-x-2 sticky bottom-0"
       aria-label="Chat input form"
     >
-      {/* Optional: Emoji picker button */}
       <Button 
         type="button" 
         variant="ghost" 
@@ -53,7 +52,6 @@ export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae"
       >
         <SmilePlus className="h-5 w-5" />
       </Button>
-      {/* Optional: Attachment button */}
        <Button 
         type="button" 
         variant="ghost" 
@@ -94,18 +92,6 @@ export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae"
         >
           <Mic className="h-5 w-5" />
         </Button>
-        {/* <Button 
-          type="button" 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => handleSpecialRequest('video_request')} 
-          disabled={isLoading}
-          aria-label="Request video message"
-          className="text-primary hover:text-primary/80 rounded-full p-2.5 aspect-square"
-          title="Request video message"
-        >
-          <Video className="h-5 w-5" />
-        </Button> */}
         <Button 
           type="submit" 
           variant="default" 

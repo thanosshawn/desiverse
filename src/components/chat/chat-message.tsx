@@ -15,16 +15,6 @@ interface ChatMessageProps {
 export function ChatMessage({ message, characterBubbleStyle }: ChatMessageProps) {
   const isUser = message.sender === 'user';
   
-  const formattedTimestamp = useMemo(() => {
-    if (message.timestamp) { 
-      return message.timestamp.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    }
-    return null;
-  }, [message.timestamp]);
-
   const [clientFormattedTimestamp, setClientFormattedTimestamp] = useState<string | null>(null);
   
   useEffect(() => {
@@ -38,18 +28,17 @@ export function ChatMessage({ message, characterBubbleStyle }: ChatMessageProps)
     }
   }, [message.timestamp]);
 
-  // Example custom styles, can be expanded
   const getBubbleStyle = () => {
     if (isUser) {
       return 'bg-primary text-primary-foreground rounded-br-none';
     }
-    switch (characterBubbleStyle) {
-      case 'pink-gradient':
-        return 'bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-bl-none';
-      // Add more cases for different character styles
-      default:
-        return 'bg-card text-card-foreground rounded-bl-none shadow-md';
+    // Example: if characterBubbleStyle is 'rani-pink-bubble'
+    if (characterBubbleStyle && characterBubbleStyle.includes('pink')) {
+        return 'bg-gradient-to-br from-pink-500 to-rose-400 text-white rounded-bl-none shadow-md';
     }
+    // Add more specific styles based on characterBubbleStyle if needed
+    // default:
+    return 'bg-card text-card-foreground rounded-bl-none shadow-md';
   };
 
 
@@ -110,9 +99,8 @@ export function ChatMessage({ message, characterBubbleStyle }: ChatMessageProps)
       )}
     >
       {!isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/80 text-primary-foreground flex items-center justify-center shadow-sm self-end mb-1">
-          {/* Character avatar or icon. Using Bot icon as placeholder */}
-          <Bot size={18} />
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-pink-500/90 text-white flex items-center justify-center shadow-sm self-end mb-1">
+          <Heart size={18} className="fill-white"/>
         </div>
       )}
       <div
@@ -129,7 +117,7 @@ export function ChatMessage({ message, characterBubbleStyle }: ChatMessageProps)
         )}
       </div>
        {isUser && (
-         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/80 text-accent-foreground flex items-center justify-center shadow-sm self-end mb-1">
+         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-sm self-end mb-1">
           <User size={18} />
         </div>
       )}

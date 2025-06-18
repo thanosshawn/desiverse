@@ -117,7 +117,7 @@ export default function SettingsPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
         <Card className="max-w-2xl mx-auto bg-card/90 backdrop-blur-lg shadow-2xl rounded-2xl">
-          <CardHeader className="text-center">
+          <CardHeader className="text-center p-6">
             <CardTitle className="text-3xl font-headline text-primary">Settings</CardTitle>
             <CardDescription className="font-body">Apni profile aur app preferences yahaan manage karo.</CardDescription>
           </CardHeader>
@@ -168,7 +168,7 @@ export default function SettingsPage() {
                             <SelectTrigger className="w-full !rounded-lg text-base p-3">
                                 <SelectValue placeholder="Select app theme" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="rounded-lg">
                                 <SelectItem value="light">Light (Default)</SelectItem>
                                 <SelectItem value="dark">Dark Soul</SelectItem>
                                 <SelectItem value="pink">Gulabi Mode</SelectItem>
@@ -188,7 +188,7 @@ export default function SettingsPage() {
                             <SelectTrigger className="w-full !rounded-lg text-base p-3">
                                 <SelectValue placeholder="Select language" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="rounded-lg">
                                 <SelectItem value="hinglish">Hinglish (Recommended)</SelectItem>
                                 <SelectItem value="english">English</SelectItem>
                             </SelectContent>
@@ -199,18 +199,18 @@ export default function SettingsPage() {
                 
                 <div className="space-y-4 pt-4 border-t border-border/50">
                     <h3 className="text-lg font-headline text-primary/90 flex items-center"><Bell className="mr-2 h-5 w-5"/> Notifications (Coming Soon)</h3>
-                     <div className="flex items-center space-x-2">
-                        <Switch id="notifications-switch" disabled />
+                     <div className="flex items-center space-x-2 p-3 border border-input rounded-lg bg-muted/50">
+                        <Switch id="notifications-switch" disabled className="opacity-50"/>
                         <Label htmlFor="notifications-switch" className="text-muted-foreground">Receive push notifications</Label>
                     </div>
                 </div>
 
                 <div className="space-y-4 pt-4 border-t border-border/50">
                     <h3 className="text-lg font-headline text-primary/90 flex items-center"><ShieldCheck className="mr-2 h-5 w-5"/> Account Actions</h3>
-                    <Button type="button" variant="outline" onClick={signOut} className="w-full !rounded-lg">
+                    <Button type="button" variant="outline" onClick={signOut} className="w-full !rounded-xl">
                         Sign Out
                     </Button>
-                     <Button type="button" variant="destructive" className="w-full !rounded-lg" disabled>
+                     <Button type="button" variant="destructive" className="w-full !rounded-xl opacity-50 cursor-not-allowed" disabled>
                         Delete Account (Coming Soon)
                     </Button>
                 </div>

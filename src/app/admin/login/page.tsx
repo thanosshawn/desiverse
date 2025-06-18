@@ -1,7 +1,7 @@
 // src/app/admin/login/page.tsx
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -29,7 +29,7 @@ const initialState: LoginAdminActionState = {
   errors: null,
 };
 
-export default function AdminLoginPage() {
+function LoginFormComponent() {
   const { toast } = useToast();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -86,55 +86,71 @@ export default function AdminLoginPage() {
     setFormState(result);
     setIsLoading(false);
   };
+  
+  return (
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
+      <Header/>
+      <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8 flex items-center justify-center">
+        <Card className="w-full max-w-md bg-card/90 backdrop-blur-lg shadow-xl rounded-2xl">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-headline text-primary">Admin Login</CardTitle>
+            <CardDescription>Enter admin credentials to access character management.</CardDescription>
+          </CardHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <CardContent className="space-y-4 p-6">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input placeholder="admin" {...field} className="!rounded-lg"/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="admin" {...field} className="!rounded-lg"/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+              <CardFooter className="p-6">
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 !rounded-xl text-lg py-3" disabled={isLoading}>
+                  {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Login'}
+                </Button>
+              </CardFooter>
+            </form>
+          </Form>
+        </Card>
+      </main>
+    </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  const SuspenseFallback = (
+    <div className="flex flex-col min-h-screen bg-background items-center justify-center">
+      <Header />
+      <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
+      <p className="text-lg mt-2 text-muted-foreground">Loading admin login...</p>
+    </div>
+  );
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-        <Header/>
-        <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8 flex items-center justify-center">
-            <Card className="w-full max-w-md">
-            <CardHeader>
-                <CardTitle className="text-2xl font-headline">Admin Login</CardTitle>
-                <CardDescription>Enter admin credentials to access character management.</CardDescription>
-            </CardHeader>
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <CardContent className="space-y-4">
-                    <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                            <Input placeholder="admin" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                    <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                            <Input type="password" placeholder="admin" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
-                </CardContent>
-                <CardFooter>
-                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={isLoading}>
-                    {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : 'Login'}
-                    </Button>
-                </CardFooter>
-                </form>
-            </Form>
-            </Card>
-        </main>
-    </div>
+    <Suspense fallback={SuspenseFallback}>
+      <LoginFormComponent />
+    </Suspense>
   );
 }

@@ -61,7 +61,7 @@ export default function ChatPage() {
     }
     
     const rootStyle = getComputedStyle(document.documentElement);
-    let bgRgb = '330, 50%, 98%'; // Default light mode
+    let bgRgb = '330 50% 98%'; // Default light mode
     const bgHslRaw = rootStyle.getPropertyValue('--background').trim();
     const bgHslMatch = bgHslRaw.match(/hsl\(([^)]+)\)/);
 
@@ -223,8 +223,8 @@ export default function ChatPage() {
           sender: 'ai',
           text: aiResponse.text,
           messageType: aiResponse.videoDataUri ? 'video' : aiResponse.audioDataUri ? 'audio' : 'text',
-          audioUrl: aiResponse.audioDataUri || null, // Ensure null if undefined
-          videoUrl: aiResponse.videoDataUri || null, // Ensure null if undefined
+          audioUrl: aiResponse.audioDataUri || null,
+          videoUrl: aiResponse.videoDataUri || null,
         };
         await addMessageToChat(user.uid, characterId, aiMessageData);
         
@@ -322,4 +322,3 @@ export default function ChatPage() {
     </div>
   );
 }
-

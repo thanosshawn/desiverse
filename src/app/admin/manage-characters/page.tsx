@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
 import { getAllCharacters } from '@/lib/firebase/rtdb';
 import type { CharacterMetadata } from '@/lib/types';
 import { Header } from '@/components/layout/header';
@@ -108,18 +107,18 @@ export default function ManageCharactersPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
         <Card className="max-w-4xl mx-auto bg-card/90 backdrop-blur-lg shadow-xl rounded-2xl">
-          <CardHeader className="flex flex-row justify-between items-center">
+          <CardHeader className="flex flex-row justify-between items-center p-6">
             <div>
               <CardTitle className="text-2xl font-headline text-primary">Manage AI Characters</CardTitle>
               <CardDescription>View, edit, or delete existing characters.</CardDescription>
             </div>
             <div className="space-x-2">
                <Link href="/admin/create-character" passHref>
-                <Button variant="outline" size="sm" className="rounded-lg">
+                <Button variant="outline" size="sm" className="!rounded-lg">
                   <PlusCircle className="mr-2 h-4 w-4" /> Create New
                 </Button>
               </Link>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="rounded-lg">
+              <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg">
                 <LogOut className="mr-2 h-4 w-4" /> Logout
               </Button>
             </div>
@@ -133,7 +132,7 @@ export default function ManageCharactersPage() {
               <div className="text-center py-10">
                 <p className="text-muted-foreground">No characters found. Create one to get started!</p>
                  <Link href="/admin/create-character" className="mt-4 inline-block">
-                    <Button><PlusCircle className="mr-2 h-4 w-4" />Create Character</Button>
+                    <Button className="!rounded-xl"><PlusCircle className="mr-2 h-4 w-4" />Create Character</Button>
                  </Link>
               </div>
             ) : (
@@ -169,20 +168,20 @@ export default function ManageCharactersPage() {
                       </TableCell>
                       <TableCell className="text-right space-x-1">
                         <Link href={`/chat/${char.id}`} passHref target="_blank">
-                           <Button variant="outline" size="icon" title="View Character (Live)" className="hover:text-primary">
+                           <Button variant="outline" size="icon" title="View Character (Live)" className="hover:text-primary rounded-md">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Button variant="outline" size="icon" title="Edit Character (Not Implemented)" className="hover:text-primary">
+                        <Button variant="outline" size="icon" title="Edit Character (Not Implemented)" className="hover:text-primary rounded-md">
                           <Edit className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="icon" title="Delete Character" className="hover:text-destructive hover:border-destructive">
+                            <Button variant="outline" size="icon" title="Delete Character" className="hover:text-destructive hover:border-destructive rounded-md">
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent>
+                          <AlertDialogContent className="rounded-xl">
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                               <AlertDialogDescription>
@@ -191,10 +190,10 @@ export default function ManageCharactersPage() {
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogCancel className="!rounded-lg">Cancel</AlertDialogCancel>
                               <AlertDialogAction 
                                 onClick={() => handleDeleteCharacter(char.id, char.name)}
-                                className="bg-destructive hover:bg-destructive/90"
+                                className="bg-destructive hover:bg-destructive/90 !rounded-lg"
                               >
                                 Delete
                               </AlertDialogAction>
@@ -213,4 +212,3 @@ export default function ManageCharactersPage() {
     </div>
   );
 }
-

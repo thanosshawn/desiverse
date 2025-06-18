@@ -1,4 +1,3 @@
-
 // src/app/page.tsx - Character Selection Page
 'use client';
 import Image from 'next/image';
@@ -23,6 +22,8 @@ const tagColors: Record<string, string> = {
   "Bold": "bg-red-500 hover:bg-red-600",
   "Bollywood": "bg-orange-500 hover:bg-orange-600",
   "Flirty": "bg-rose-500 hover:bg-rose-600",
+  "Witty": "bg-teal-500 hover:bg-teal-600",
+  "Cultured": "bg-indigo-500 hover:bg-indigo-600",
 };
 
 export default function CharacterSelectionPage() {
@@ -97,7 +98,6 @@ export default function CharacterSelectionPage() {
           </p>
         </div>
 
-        {/* Filters and Search */}
         <div className="mb-8 p-4 bg-card/80 backdrop-blur-sm rounded-xl shadow-lg space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4 sticky top-16 md:top-18 z-30">
           <div className="flex-grow">
             <Input
@@ -163,7 +163,7 @@ export default function CharacterSelectionPage() {
                   <CardDescription className="text-sm text-muted-foreground mb-3 flex-grow min-h-[3em] line-clamp-2">{char.personalitySnippet}</CardDescription>
                   <div className="flex flex-wrap gap-1.5 justify-center mb-4">
                     {char.styleTags.slice(0,3).map(tag => (
-                        <Badge key={tag} variant="secondary" className={`text-xs px-2 py-0.5 rounded-md ${tagColors[tag]?.replace('bg-', 'bg-opacity-20 border border-').replace('hover:','text-') || 'bg-secondary/70 text-secondary-foreground'}`}>{tag}</Badge>
+                        <Badge key={tag} variant="secondary" className={`text-xs px-2 py-0.5 rounded-md ${tagColors[tag]?.replace('bg-', 'bg-opacity-20 border border-').replace('hover:','text-').replace('500','400') || 'bg-secondary/70 text-secondary-foreground'}`}>{tag}</Badge>
                     ))}
                   </div>
                   <Link href={user ? `/chat/${char.id}` : `/login?redirect=/chat/${char.id}`} passHref className="mt-auto">
@@ -182,15 +182,14 @@ export default function CharacterSelectionPage() {
               {searchTerm || selectedTags.length > 0 ? "Try adjusting your search or filters. Shayad aapki perfect match thodi alag hai!" : "No characters available right now. Hum jald hi naye AI Baes add karenge!"}
             </p>
             { (searchTerm || selectedTags.length > 0) &&
-                <Button onClick={() => { setSearchTerm(''); setSelectedTags([]); }} variant="outline">Clear Filters</Button>
+                <Button onClick={() => { setSearchTerm(''); setSelectedTags([]); }} variant="outline" className="rounded-lg">Clear Filters</Button>
             }
           </div>
         )}
 
-        {/* Admin Link (optional, can be conditional) */}
         <div className="mt-16 text-center">
             <Link href="/admin/login" passHref>
-              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-primary">
+              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-primary rounded-lg">
                 <Edit className="mr-2 h-4 w-4" /> Admin Panel
               </Button>
             </Link>

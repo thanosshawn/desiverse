@@ -54,7 +54,7 @@ export default function ChatHistoryPage() {
     } else if (!authLoading && !user) {
       setLoadingSessions(false);
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, toast]); // Added toast to dependencies
 
   const filteredSessions = chatSessions.filter(session =>
     session.characterName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -86,9 +86,11 @@ export default function ChatHistoryPage() {
   const handleDeleteChat = async (characterId: string) => {
     if(!user) return;
     console.log(`Placeholder: Delete chat with ${characterId}`);
+    // Note: Full deletion from RTDB is not implemented here, this is visual only for now.
+    // To implement full deletion, a new function in rtdb.ts would be needed.
     setChatSessions(prev => prev.filter(s => s.characterId !== characterId));
     toast({
-      title: "Chat Deleted (Visually)",
+      title: "Chat Removed (Visually)",
       description: `Chat with ${chatSessions.find(s=>s.characterId === characterId)?.characterName} removed from list. Full delete not yet implemented.`,
       variant: "default"
     });
@@ -114,7 +116,7 @@ export default function ChatHistoryPage() {
           <h2 className="text-2xl font-headline text-primary mb-4">Login Required</h2>
           <p className="text-muted-foreground mb-6">Please login to see your chat history.</p>
           <Link href="/login?redirect=/history">
-            <Button>Login</Button>
+            <Button className="!rounded-xl">Login</Button>
           </Link>
         </div>
       </div>
@@ -127,8 +129,8 @@ export default function ChatHistoryPage() {
       <Header />
       <main className="flex-grow container mx-auto px-2 sm:px-4 pt-20 md:pt-22 pb-6 md:pb-8">
         <div className="mb-6 md:mb-8 text-center">
-            <h1 className="text-3xl md:text-4xl font-headline text-primary mb-2">Chat History</h1>
-            <p className="text-muted-foreground font-body">Relive your favorite moments with your Desi Baes!</p>
+            <h1 className="text-3xl md:text-4xl font-headline text-primary mb-2 animate-fade-in">Chat History</h1>
+            <p className="text-muted-foreground font-body animate-slide-in-from-bottom">Relive your favorite moments with your Desi Baes!</p>
         </div>
         
         <div className="mb-6 sticky top-16 md:top-18 z-30 bg-background/80 backdrop-blur-md p-3 rounded-xl shadow-sm">
@@ -145,14 +147,14 @@ export default function ChatHistoryPage() {
         </div>
 
         {filteredSessions.length === 0 && !loadingSessions && (
-          <div className="text-center py-12">
+          <div className="text-center py-12 animate-fade-in">
             <MessageSquareText className="mx-auto h-16 w-16 text-primary/30 mb-4" />
             <h3 className="text-xl font-headline text-primary mb-2">No Chats Found</h3>
             <p className="text-muted-foreground font-body">
               {searchTerm ? "Try a different search term." : "Looks like your chat history is empty. Start a new chat!"}
             </p>
             <Link href="/" className="mt-6">
-              <Button variant="default" className="mt-4">Find a Bae</Button>
+              <Button variant="default" className="mt-4 !rounded-xl">Find a Bae</Button>
             </Link>
           </div>
         )}
@@ -161,14 +163,14 @@ export default function ChatHistoryPage() {
           {filteredSessions.map(session => (
             <Card 
                 key={session.characterId} 
-                className={`bg-card shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-primary/20 ${session.isFavorite ? 'border-2 border-accent' : 'border-transparent'}`}
+                className={`bg-card shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-primary/20 ${session.isFavorite ? 'border-2 border-accent' : 'border-transparent'} animate-slide-in-from-bottom`}
             >
               <CardContent className="p-0">
                 <Link href={`/chat/${session.characterId}`} className="block hover:bg-card/50 transition-colors">
                     <div className="flex items-center gap-3 md:gap-4 p-3 md:p-4">
-                        <Avatar className="h-12 w-12 md:h-14 md:w-14 border-2 border-primary/30">
-                            <AvatarImage src={session.characterAvatarUrl} alt={session.characterName} />
-                            <AvatarFallback className="bg-pink-100 text-pink-600">{session.characterName.substring(0,1)}</AvatarFallback>
+                        <Avatar className="h-12 w-12 md:h-14 md:w-14 border-2 border-primary/30 rounded-lg">
+                            <AvatarImage src={session.characterAvatarUrl} alt={session.characterName} className="rounded-md"/>
+                            <AvatarFallback className="bg-pink-100 text-pink-600 rounded-lg">{session.characterName.substring(0,1)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-grow overflow-hidden">
                             <h3 className="text-base md:text-lg font-headline text-primary truncate">{session.characterName}</h3>
@@ -200,7 +202,7 @@ export default function ChatHistoryPage() {
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
                                     </AlertDialogTrigger>
-                                    <AlertDialogContent>
+                                    <AlertDialogContent className="rounded-xl">
                                         <AlertDialogHeader>
                                         <AlertDialogTitle>Are you sure you want to delete this chat?</AlertDialogTitle>
                                         <AlertDialogDescription>
@@ -208,10 +210,10 @@ export default function ChatHistoryPage() {
                                         </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogCancel className="!rounded-lg">Cancel</AlertDialogCancel>
                                         <AlertDialogAction 
                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteChat(session.characterId); }}
-                                            className="bg-destructive hover:bg-destructive/90"
+                                            className="bg-destructive hover:bg-destructive/90 !rounded-lg"
                                         >
                                             Delete Chat
                                         </AlertDialogAction>
@@ -230,4 +232,3 @@ export default function ChatHistoryPage() {
     </div>
   );
 }
-

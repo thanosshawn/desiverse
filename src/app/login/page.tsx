@@ -2,9 +2,6 @@
 'use client';
 
 import React, { useEffect, useState, Suspense } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -12,12 +9,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, LogIn, UserCircle, Sparkles, Heart } from 'lucide-react';
 import Link from 'next/link';
-
-const loginFormSchema = z.object({
-  // No fields needed as we use provider buttons
-});
-
-type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 function LoginFormComponent() {
   const { toast } = useToast();
@@ -97,7 +88,6 @@ function LoginFormComponent() {
 }
 
 export default function LoginPage() {
-  // Fallback UI for Suspense, can be the same as the authLoading state
   const SuspenseFallback = (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary via-pink-400 to-rose-500 items-center justify-center p-4 text-center">
       <Loader2 className="h-16 w-16 animate-spin text-white mb-6" />

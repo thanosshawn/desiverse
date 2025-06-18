@@ -45,7 +45,7 @@ export function Header() {
           ) : user ? (
             <>
               <Link href="/history" passHref>
-                <Button variant="ghost" size="icon" className={`hover:bg-primary-foreground/10 ${pathname === '/history' ? 'bg-primary-foreground/20' : ''}`} title="Chat History">
+                <Button variant="ghost" size="icon" className={`hover:bg-primary-foreground/10 ${pathname === '/history' ? 'bg-primary-foreground/20' : ''} rounded-full`} title="Chat History">
                   <History className="h-5 w-5" />
                 </Button>
               </Link>
