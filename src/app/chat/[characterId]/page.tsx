@@ -27,6 +27,7 @@ export default function ChatPage() {
   const router = useRouter();
 
   const paramsFromHook = useParams();
+  // const actualParams = use(paramsFromHook as any); // Reverted: Caused "unsupported type" error
   const characterId = paramsFromHook.characterId as string;
 
 
@@ -184,6 +185,8 @@ export default function ChatPage() {
   const removeOptimisticMessage = (optimisticId: string) => {
      setMessages(prev => prev.filter(msg => msg.id !== optimisticId));
   };
+  
+  const userDisplayName = userProfile?.name || user?.displayName || 'User';
 
   const handleSendMessage = useCallback(async (userInput: string, requestType?: 'text' | 'audio_request' | 'video_request', gift?: VirtualGift) => {
     if (!user || !currentCharacterMeta || !currentChatSessionMeta) {
@@ -255,6 +258,7 @@ export default function ChatPage() {
         currentCharacterMeta,
         user.uid,
         characterId,
+        userDisplayName, // Pass the actual user's display name
         gift?.aiReactionPrompt
       );
 
@@ -295,7 +299,7 @@ export default function ChatPage() {
     } finally {
       setIsLoadingMessage(false);
     }
-  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]);
+  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast, userDisplayName]);
 
   const toggleFavoriteChat = async () => {
     if (!user || !characterId) return;
@@ -350,7 +354,6 @@ export default function ChatPage() {
     );
   }
 
-  const userDisplayName = userProfile?.name || user?.displayName || 'User';
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
@@ -380,3 +383,4 @@ export default function ChatPage() {
     </div>
   );
 }
+

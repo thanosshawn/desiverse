@@ -26,14 +26,15 @@ export async function handleUserMessageAction(
   characterMeta: CharacterMetadata, 
   userId: string, 
   chatId: string,
-  giftReactionPrompt?: string // New optional parameter for gift reactions
+  userDisplayName: string, // New parameter for the user's display name
+  giftReactionPrompt?: string // Optional parameter for gift reactions
 ): Promise<AIResponse> {
   try {
     const previousMessagesText = chatHistory
-      .map(msg => `${msg.sender === 'user' ? 'User' : characterMeta.name}: ${msg.content}`)
+      .map(msg => `${msg.sender === 'user' ? userDisplayName : characterMeta.name}: ${msg.content}`) // Use userDisplayName for user messages
       .join('\n');
 
-    let userPreferencesForAI = `User is interacting with ${characterMeta.name}.
+    let userPreferencesForAI = `User is interacting with ${characterMeta.name}. User's name is ${userDisplayName}.
     Character's persona: ${characterMeta.basePrompt}.
     Style tags: ${characterMeta.styleTags.join(', ')}.
     Default voice tone: ${characterMeta.defaultVoiceTone}.
@@ -41,13 +42,13 @@ export async function handleUserMessageAction(
 
     if (giftReactionPrompt) {
       // Prepend gift reaction context if a gift was sent
-      userPreferencesForAI = `${giftReactionPrompt}\n\nAfter reacting to the gift, consider the following user input (if any): ${userInput}\n\n${userPreferencesForAI}`;
+      userPreferencesForAI = `${giftReactionPrompt}\n\nAfter reacting to the gift, consider the following user input (if any) from ${userDisplayName}: ${userInput}\n\n${userPreferencesForAI}`;
     } else {
-      userPreferencesForAI = `${userPreferencesForAI}\n\nCurrent user input: ${userInput}`;
+      userPreferencesForAI = `${userPreferencesForAI}\n\nCurrent user input from ${userDisplayName}: ${userInput}`;
     }
     
     const personalizedMessage = await personalizeDailyMessage({
-      userName: 'User', 
+      userName: userDisplayName, // Pass the actual user's display name
       userPreferences: userPreferencesForAI, 
       previousMessages: previousMessagesText,
       basePrompt: characterMeta.basePrompt, 
