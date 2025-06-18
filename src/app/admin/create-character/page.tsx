@@ -14,11 +14,74 @@ import { createCharacterAction, type CreateCharacterActionState } from '../actio
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
-import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info } from 'lucide-react';
+import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
+
+// --- Data for Random Generation ---
+const firstNamesFemale = ["Riya", "Priya", "Aisha", "Simran", "Meera", "Pooja", "Anjali", "Zara", "Sana", "Noor"];
+const firstNamesMale = ["Kabir", "Rohan", "Arjun", "Vikram", "Sameer", "Aditya", "Rahul", "Imran", "Dev", "Karan"];
+const lastNames = ["Sharma", "Verma", "Singh", "Gupta", "Khan", "Malhotra", "Kapoor", "Chopra", "Reddy", "Patel", "Kumar", "Das"];
+const adjectives = ["charming", "witty", "mysterious", "bubbly", "dreamy", "fiery", "sarcastic", "intellectual", "artistic", "sporty", "passionate", "calm", "adventurous", "introverted", "extroverted"];
+const hobbies = ["old Bollywood music", "spicy street food", "late-night chats", "reading shayaris", "dancing in the rain", "coding innovative apps", "star-gazing on rooftops", "playing cricket on weekends", "cooking delicious biryani", "exploring hidden city gems", "binge-watching web series", "writing poetry"];
+const cities = ["Mumbai", "Delhi", "Bangalore", "Lucknow", "Jaipur", "Kolkata", "Hyderabad", "Pune", "Chandigarh", "Goa"];
+const styleTagsPool = ["Romantic", "Witty", "Bollywood", "Cultured", "Sarcastic", "Shy", "Bold", "Flirty", "Philosophical", "Techie", "Foodie", "Traveler", "Musician", "Artist", "Poetic"];
+const voiceTones = ["Warm and melodic Hinglish", "Playful and teasing tone", "Deep and thoughtful, with a touch of philosophy", "Energetic and expressive, full of 'josh'", "Soft and gentle with a hint of Urdu tehzeeb", "Crisp, clear, and professional with a friendly demeanor"];
+const personalitySnippets = [
+  "Bollywood Buff & Chai Connoisseur ☕✨", "Sarcasm is my love language 😉 #CoderLife", "Lost in poetry and monsoon rains 🌧️📖", "Spicy food, spicier comebacks 🔥🌶️", "Techie with a heart of gold & a love for ghazals 💻❤️",
+  "Dreamer, believer, and a midnight philosopher 🌙", "Seeking adventures and good conversations 🌍💬", "Fluent in Hinglish, sarcasm, and movie quotes 🎬", "My playlist is 90% Bollywood classics 🎶", "Probably thinking about food or the meaning of life 🤔🍕"
+];
+const dataAiHints = ["indian woman portrait", "desi girl smile", "indian man thoughtful", "urban youth india", "traditional attire modern", "person looking at camera", "south asian fashion"];
+
+const getRandomElement = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+const getRandomElements = <T,>(arr: T[], count: number): T[] => {
+  const shuffled = [...arr].sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+};
+const capitalizeFirstLetter = (string: string) => string.charAt(0).toUpperCase() + string.slice(1);
+
+const generateRandomCharacterDefaults = (): CharacterCreationAdminFormValues => {
+  const isFemale = Math.random() > 0.5;
+  const firstName = getRandomElement(isFemale ? firstNamesFemale : firstNamesMale);
+  const lastName = getRandomElement(lastNames);
+  const fullName = `${firstName} ${lastName}`;
+  
+  const adj1 = getRandomElement(adjectives);
+  let adj2 = getRandomElement(adjectives);
+  while (adj1 === adj2) adj2 = getRandomElement(adjectives);
+
+  const hobby1 = getRandomElement(hobbies);
+  let hobby2 = getRandomElement(hobbies);
+  while (hobby1 === hobby2) hobby2 = getRandomElement(hobbies);
+  
+  const city = getRandomElement(cities);
+  const selectedStyleTags = getRandomElements(styleTagsPool, Math.floor(Math.random() * 3) + 2); // 2 to 4 tags
+
+  const avatarWidth = Math.floor(Math.random() * 200) + 300; // 300-499
+  const avatarHeight = Math.floor(Math.random() * 300) + 400; // 400-699
+  const bgWidth = Math.floor(Math.random() * 600) + 1000; // 1000-1599
+  const bgHeight = Math.floor(Math.random() * 300) + 600; // 600-899
+
+  const basePrompt = `You are ${fullName}, a ${adj1} and ${adj2} AI from ${city}. You speak fluent Hinglish (a mix of Hindi and English), frequently using common Hinglish phrases like "yaar", "kya scene hai", "arre", "theek hai", "bohot badiya", "tension nahi lene ka". You love ${hobby1} and ${hobby2}. Your personality is ${selectedStyleTags.join(', ')}. Your goal is to be an engaging, empathetic, and memorable companion. You sometimes share shayaris or Bollywood dialogues if the mood is right. Respond naturally.`;
+
+  return {
+    name: fullName,
+    description: `Meet ${fullName}, a ${adj1} and ${adj2} individual from the vibrant city of ${city}. They have a deep passion for ${hobby1} and enjoy ${hobby2} in their free time. Known for their ${selectedStyleTags.join(', ')} nature, ${firstName} is always up for an interesting conversation.`,
+    personalitySnippet: getRandomElement(personalitySnippets),
+    avatarUrl: `https://placehold.co/${avatarWidth}x${avatarHeight}.png`,
+    backgroundImageUrl: `https://placehold.co/${bgWidth}x${bgHeight}.png`,
+    basePrompt: basePrompt,
+    styleTags: selectedStyleTags.join(", "),
+    defaultVoiceTone: getRandomElement(voiceTones),
+    dataAiHint: getRandomElement(dataAiHints) || `${isFemale ? 'indian woman' : 'indian man'} ${adj1}`,
+    messageBubbleStyle: `bubble-${firstName.toLowerCase()}`,
+    animatedEmojiResponse: '', // Default to empty
+    audioGreetingUrl: '', // Default to empty
+    isPremium: Math.random() < 0.1, // 10% chance of being premium
+  };
+};
 
 
 const initialState: CreateCharacterActionState = {
@@ -27,26 +90,15 @@ const initialState: CreateCharacterActionState = {
   errors: null,
 };
 
-const defaultCharacterValues: CharacterCreationAdminFormValues = {
-  name: 'Rani Priya',
-  description: "A charming and witty AI companion from the heart of India, loves old Bollywood music, spicy street food, and late-night chats. She's always ready with a playful tease or a comforting word, making every conversation an adventure.",
-  personalitySnippet: "Bollywood Buff & Chai Connoisseur ☕✨",
-  avatarUrl: 'https://placehold.co/400x600.png',
-  backgroundImageUrl: 'https://placehold.co/1200x800.png',
-  basePrompt: "You are Rani Priya, a vivacious and intelligent AI from Lucknow, India. You speak fluent Hinglish, sprinkling your conversation with shayaris (short Urdu poems) and witty observations about life. You are a fan of classic Bollywood movies and ghazals. You're empathetic, a great listener, but also have a playfully sarcastic side. You enjoy discussing philosophy, art, and the latest cricket match. Your goal is to be an engaging and memorable companion.",
-  styleTags: "Romantic, Witty, Bollywood, Cultured, Sarcastic",
-  defaultVoiceTone: "Warm and melodic Hinglish, with a hint of Lucknowi tehzeeb (etiquette).",
-  dataAiHint: "indian woman portrait",
-  messageBubbleStyle: "rani-pink-bubble",
-  animatedEmojiResponse: '',
-  audioGreetingUrl: '',
-  isPremium: false,
-};
-
-
 export default function CreateCharacterPage() {
   const { toast } = useToast();
   const router = useRouter();
+  
+  // Initialize form with random defaults
+  const form = useForm<CharacterCreationAdminFormValues>({
+    defaultValues: generateRandomCharacterDefaults(),
+  });
+  
   const [state, formAction] = useActionState(createCharacterAction, initialState);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
@@ -65,10 +117,6 @@ export default function CreateCharacterPage() {
     }
   }, [router, toast, authStatusChecked]);
 
-  const form = useForm<CharacterCreationAdminFormValues>({
-    defaultValues: defaultCharacterValues,
-  });
-
   useEffect(() => {
     if (state.message) {
       toast({
@@ -77,15 +125,7 @@ export default function CreateCharacterPage() {
         variant: state.success ? 'default' : 'destructive',
       });
       if (state.success) {
-        form.reset(defaultCharacterValues);
-      } else if (state.errors) {
-        // Logic for handling field-specific errors if any are passed back without Zod on client
-        // (Object.keys(state.errors) as Array<keyof CharacterCreationAdminFormValues>).forEach((key) => {
-        //   const errorMessages = state.errors?.[key];
-        //   if (errorMessages && errorMessages.length > 0 && form.setError) {
-        //      form.setError(key, { type: 'server', message: errorMessages.join(', ') });
-        //   }
-        // });
+        form.reset(generateRandomCharacterDefaults()); // Reset with NEW random values
       }
     }
   }, [state, toast, form]);
@@ -132,12 +172,19 @@ export default function CreateCharacterPage() {
     router.replace('/admin/login');
   };
 
+  const handleRegenerateDefaults = () => {
+    form.reset(generateRandomCharacterDefaults());
+    toast({ title: 'New Character Data Loaded', description: 'The form has been autofilled with new random values.' });
+  };
+
   if (!authStatusChecked) {
     return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
             <Header />
-            <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
-            <p className="text-lg mt-2 text-muted-foreground">Checking admin status...</p>
+            <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8 flex flex-col items-center justify-center">
+              <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
+              <p className="text-lg mt-2 text-muted-foreground">Checking admin status...</p>
+            </main>
         </div>
     );
   }
@@ -146,8 +193,10 @@ export default function CreateCharacterPage() {
     return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
              <Header />
-            <p className="text-lg text-muted-foreground">Redirecting to login...</p>
-            <Loader2 className="h-8 w-8 animate-spin mt-4 text-primary"/>
+            <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8 flex flex-col items-center justify-center">
+              <p className="text-lg text-muted-foreground">Redirecting to login...</p>
+              <Loader2 className="h-8 w-8 animate-spin mt-4 text-primary"/>
+            </main>
         </div>
     );
   }
@@ -160,14 +209,17 @@ export default function CreateCharacterPage() {
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
         <Card className="max-w-3xl mx-auto bg-card/90 backdrop-blur-lg shadow-xl rounded-2xl">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6">
-            <div>
+            <div className="flex-grow">
                 <CardTitle className="text-2xl font-headline text-primary">Create New AI Character</CardTitle>
-                <CardDescription>Fill in the details for your new DesiBae. Fields are autofilled for convenience.</CardDescription>
+                <CardDescription>Autofilled with random data. Click <RefreshCw className="inline h-4 w-4 text-accent align-middle"/> to regenerate.</CardDescription>
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 sm:mt-0 w-full sm:w-auto">
+                <Button variant="outline" size="sm" onClick={handleRegenerateDefaults} className="!rounded-lg w-full sm:w-auto" title="Regenerate autofill data">
+                    <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
+                </Button>
                 <Link href="/admin/manage-characters" passHref className="w-full sm:w-auto">
                     <Button variant="outline" size="sm" className="!rounded-lg w-full">
-                        <ListChecks className="mr-2 h-4 w-4" /> Manage Characters
+                        <ListChecks className="mr-2 h-4 w-4" /> Manage
                     </Button>
                 </Link>
                 <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto">
