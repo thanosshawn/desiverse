@@ -20,13 +20,14 @@ import {
   getStreakDataStream 
 } from '@/lib/firebase/rtdb'; 
 import { Loader2 } from 'lucide-react'; 
-import { v4 as uuidv4 } from 'uuid';
+// Removed: import { v4 as uuidv4 } from 'uuid';
 import { ChatPageHeader } from '@/components/chat/chat-page-header'; 
 
-if (typeof crypto === 'undefined' || !crypto.randomUUID) {
-  global.crypto = global.crypto || {} as Crypto;
-  (global.crypto as any).randomUUID = uuidv4;
-}
+// Removed crypto.randomUUID polyfill:
+// if (typeof crypto === 'undefined' || !crypto.randomUUID) {
+//   global.crypto = global.crypto || {} as Crypto;
+//   (global.crypto as any).randomUUID = uuidv4;
+// }
 
 export default function ChatPage() {
   const { user, userProfile, loading: authLoading } = useAuth();
@@ -299,7 +300,7 @@ export default function ChatPage() {
     } finally {
       setIsLoadingMessage(false);
     }
-  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]); // Removed userProfile from dependencies as it's not directly used here
+  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]); 
 
   const toggleFavoriteChat = async () => {
     if (!user || !characterId) return;
@@ -339,7 +340,7 @@ export default function ChatPage() {
         backgroundAttachment: 'fixed',
       }
     : {
-        background: 'var(--background)', // Uses CSS variable for background
+        background: 'var(--background)', 
     };
     return (
       <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={initialBackgroundStyle}>
@@ -384,3 +385,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
