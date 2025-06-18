@@ -4,96 +4,93 @@
 
 @layer base {
   :root {
-    --background: hsl(0 60% 97%); /* Very light pinkish-white */
-    --foreground: hsl(0 10% 15%); /* Dark, slightly desaturated red-brown for text */
+    /* Light Mode - Gulabi Pink, Haldi Yellow, Mehndi Green inspired */
+    --background: hsl(330 50% 98%); /* Very light pink */
+    --foreground: hsl(330 30% 25%); /* Dark desaturated pink for text */
     
-    --card: hsl(0 60% 97%); /* Card to match background */
-    --card-foreground: hsl(0 10% 15%); /* Match foreground */
+    --card: hsl(330 60% 96%); 
+    --card-foreground: hsl(330 30% 25%);
     
-    --popover: hsl(0 60% 97%); /* Popover to match background */
-    --popover-foreground: hsl(0 10% 15%); /* Match foreground */
+    --popover: hsl(330 60% 96%);
+    --popover-foreground: hsl(330 30% 25%);
     
-    --primary: hsl(0 72% 51%); /* Strong Red */
-    --primary-foreground: hsl(0 0% 100%); /* White for text on Red */
+    --primary: hsl(335 85% 60%); /* Gulabi Pink */
+    --primary-foreground: hsl(0 0% 100%); 
     
-    --secondary: hsl(0 75% 88%); /* Light Red/Pink for secondary elements */
-    --secondary-foreground: hsl(0 60% 30%); /* Darker Red for text on secondary */
+    --secondary: hsl(90 55% 75%); /* Light Mehndi Green */
+    --secondary-foreground: hsl(90 40% 30%); 
     
-    --muted: hsl(0 30% 92%); /* Light greyish pink */
-    --muted-foreground: hsl(0 10% 40%); /* Medium greyish red-brown muted text */
+    --muted: hsl(330 40% 94%); 
+    --muted-foreground: hsl(330 20% 50%);
     
-    --accent: hsl(35 90% 55%); /* Orange-Gold as accent */
-    --accent-foreground: hsl(0 0% 100%); /* White for text on Orange-Gold */
+    --accent: hsl(45 100% 60%); /* Haldi Yellow */
+    --accent-foreground: hsl(45 90% 25%); 
     
-    --destructive: hsl(0 80% 60%); /* Slightly brighter red for destructive actions */
+    --destructive: hsl(0 80% 60%); 
     --destructive-foreground: hsl(0 0% 100%);
     
-    --border: hsl(0 40% 85%); /* Light reddish border */
-    --input: hsl(0 50% 95%); /* Very light pink for input background */
-    --ring: hsl(0 72% 51%); /* Strong Red for focus rings */
+    --border: hsl(330 40% 90%);
+    --input: hsl(330 50% 95%);
+    --ring: hsl(335 85% 65%); /* Gulabi Pink for focus */
     
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    --chart-1: 335 80% 65%; /* Variations for charts if needed */
+    --chart-2: 45 90% 65%;
+    --chart-3: 90 50% 60%;
+    --chart-4: 210 70% 60%; /* A contrasting blue if needed */
+    --chart-5: 270 70% 65%; /* A contrasting purple if needed */
+    
+    --radius: 0.8rem; /* Increased for softer, bubble-like UI */
 
-    /* Sidebar colors - adjusted for red theme */
-    --sidebar-background: hsl(0 30% 98%); /* Lighter reddish sidebar */
-    --sidebar-foreground: hsl(0 10% 20%);
-    --sidebar-primary: hsl(0 72% 51%); /* Red */
+    /* Sidebar colors - themed */
+    --sidebar-background: hsl(330 45% 97%);
+    --sidebar-foreground: hsl(330 25% 30%);
+    --sidebar-primary: hsl(335 80% 62%);
     --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(0 60% 94%); /* Light pinkish accent for sidebar */
-    --sidebar-accent-foreground: hsl(0 72% 45%); /* Darker red for accent text */
-    --sidebar-border: hsl(0 40% 88%);
-    --sidebar-ring: hsl(0 72% 51%);
+    --sidebar-accent: hsl(330 50% 93%);
+    --sidebar-accent-foreground: hsl(335 75% 55%);
+    --sidebar-border: hsl(330 40% 88%);
+    --sidebar-ring: hsl(335 80% 62%);
   }
 
   .dark {
-    --background: hsl(0 12% 10%); /* Very dark, slightly desaturated red-charcoal */
-    --foreground: hsl(0 20% 92%); /* Light grey, almost white */
+    /* Dark Mode - Deeper, vibrant tones */
+    --background: hsl(330 20% 12%); /* Dark, slightly pinkish charcoal */
+    --foreground: hsl(330 30% 90%); 
     
-    --card: hsl(0 12% 10%);
-    --card-foreground: hsl(0 20% 92%);
+    --card: hsl(330 20% 15%);
+    --card-foreground: hsl(330 30% 90%);
     
-    --popover: hsl(0 12% 10%);
-    --popover-foreground: hsl(0 20% 92%);
+    --popover: hsl(330 20% 15%);
+    --popover-foreground: hsl(330 30% 90%);
     
-    --primary: hsl(0 75% 60%); /* Vibrant Red, slightly brighter for dark mode */
-    --primary-foreground: hsl(0 0% 100%); 
+    --primary: hsl(335 80% 68%); /* Brighter Gulabi Pink */
+    --primary-foreground: hsl(330 20% 10%); 
     
-    --secondary: hsl(0 60% 30%); /* Muted, darker red */
-    --secondary-foreground: hsl(0 30% 85%); 
+    --secondary: hsl(90 40% 40%); /* Deeper Mehndi Green */
+    --secondary-foreground: hsl(90 60% 85%); 
     
-    --muted: hsl(0 10% 18%); /* Dark greyish red */
-    --muted-foreground: hsl(0 15% 65%); 
+    --muted: hsl(330 15% 20%);
+    --muted-foreground: hsl(330 20% 65%); 
     
-    --accent: hsl(35 95% 65%); /* Brighter Orange-Gold for dark mode */
-    --accent-foreground: hsl(0 0% 0%); /* Black for text on bright orange-gold */
+    --accent: hsl(45 95% 68%); /* Brighter Haldi Yellow */
+    --accent-foreground: hsl(45 80% 15%); 
     
-    --destructive: hsl(0 70% 55%); 
+    --destructive: hsl(0 70% 60%); 
     --destructive-foreground: hsl(0 0% 100%);
     
-    --border: hsl(0 15% 25%); 
-    --input: hsl(0 10% 15%); 
-    --ring: hsl(0 75% 60%);
+    --border: hsl(330 15% 25%); 
+    --input: hsl(330 18% 18%); 
+    --ring: hsl(335 80% 68%);
 
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-
-    /* Sidebar colors for dark mode - adjusted for red theme */
-    --sidebar-background: hsl(0 8% 8%); /* Darker red-tinted sidebar */
-    --sidebar-foreground: hsl(0 15% 88%);
-    --sidebar-primary: hsl(0 75% 55%); /* Reddish primary for sidebar elements */
-    --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(0 10% 12%);
-    --sidebar-accent-foreground: hsl(0 20% 90%);
-    --sidebar-border: hsl(0 10% 20%);
-    --sidebar-ring: hsl(0 75% 60%);
+    /* Sidebar colors for dark mode - themed */
+    --sidebar-background: hsl(330 18% 10%);
+    --sidebar-foreground: hsl(330 25% 88%);
+    --sidebar-primary: hsl(335 75% 65%);
+    --sidebar-primary-foreground: hsl(330 15% 8%);
+    --sidebar-accent: hsl(330 15% 14%);
+    --sidebar-accent-foreground: hsl(335 60% 80%);
+    --sidebar-border: hsl(330 15% 22%);
+    --sidebar-ring: hsl(335 75% 65%);
   }
 }
 

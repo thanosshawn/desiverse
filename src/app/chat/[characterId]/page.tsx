@@ -13,10 +13,12 @@ import {
   getCharacterMetadata, 
   getOrCreateChatSession, 
   getMessagesStream, 
-  addMessageToChat 
+  addMessageToChat,
+  updateChatSessionMetadata // New function
 } from '@/lib/firebase/rtdb'; 
-import { Loader2 } from 'lucide-react';
+import { Loader2, Star } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { Button } from '@/components/ui/button';
 
 if (typeof crypto === 'undefined' || !crypto.randomUUID) {
   global.crypto = global.crypto || {} as Crypto;
@@ -36,6 +38,7 @@ export default function ChatPage() {
   const [currentCharacterMeta, setCurrentCharacterMeta] = useState<CharacterMetadata | null>(null);
   const [currentChatSessionMeta, setCurrentChatSessionMeta] = useState<UserChatSessionMetadata | null>(null);
   const [currentVideoSrc, setCurrentVideoSrc] = useState<string | undefined>(undefined);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -46,22 +49,53 @@ export default function ChatPage() {
 
   useEffect(scrollToBottom, [messages]);
 
-  // Dynamic background style based on character metadata
   const backgroundStyle = currentCharacterMeta?.backgroundImageUrl
     ? { 
-        backgroundImage: `url(${currentCharacterMeta.backgroundImageUrl})`,
+        backgroundImage: `linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url(${currentCharacterMeta.backgroundImageUrl})`, // Added white overlay for text readability
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed', // Keep background fixed
       }
-    : {};
+    : {
+        background: 'var(--background)', // Fallback to global background
+    };
+  
+  // Apply background to body for full page effect
+  useEffect(() => {
+    if (currentCharacterMeta?.backgroundImageUrl) {
+      document.body.style.backgroundImage = `linear-gradient(rgba(var(--background-rgb),0.7), rgba(var(--background-rgb),0.7)), url(${currentCharacterMeta.backgroundImageUrl})`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+      document.body.style.backgroundAttachment = 'fixed';
+    } else {
+      document.body.style.backgroundImage = ''; // Reset if no image
+    }
+    // Get root style for background HSL values
+    const rootStyle = getComputedStyle(document.documentElement);
+    const bgHsl = rootStyle.getPropertyValue('--background').match(/\d+/g);
+    if (bgHsl) {
+      document.documentElement.style.setProperty('--background-rgb', `${bgHsl[0]}, ${bgHsl[1]}%, ${bgHsl[2]}%`);
+    }
+
+
+    return () => { // Cleanup on unmount
+      document.body.style.backgroundImage = '';
+      document.body.style.backgroundSize = '';
+      document.body.style.backgroundPosition = '';
+      document.body.style.backgroundRepeat = '';
+      document.body.style.backgroundAttachment = '';
+    };
+  }, [currentCharacterMeta?.backgroundImageUrl]);
+
 
   useEffect(() => {
     if (authLoading) return;
 
     if (!user) {
-      toast({ title: 'Authentication Required', description: 'Please log in to chat.', variant: 'destructive' });
-      router.push('/');
+      toast({ title: 'Dil Ke Connections', description: 'Login karke apni bae se baat karo!', variant: 'default' });
+      router.push(`/login?redirect=/chat/${characterId}`);
       return;
     }
 
@@ -84,6 +118,7 @@ export default function ChatPage() {
 
         const chatSessionMeta = await getOrCreateChatSession(user.uid, characterId);
         setCurrentChatSessionMeta(chatSessionMeta);
+        setIsFavorite(chatSessionMeta.isFavorite || false);
       } catch (error: any) {
         console.error("Error initializing chat:", error);
         toast({ title: 'Error Initializing Chat', description: error.message, variant: 'destructive' });
@@ -162,11 +197,10 @@ export default function ChatPage() {
       const optimisticAiLoadingId = addOptimisticMessage({
         sender: 'ai',
         type: 'loading',
-        content: `${currentCharacterMeta.name} is typing...`,
+        content: `${currentCharacterMeta.name} is typing… kuch romantic hi hoga 💖`,
         characterName: currentCharacterMeta.name as CharacterName,
       });
 
-      // Pass the full currentCharacterMeta to the action
       const aiResponse = await handleUserMessageAction(
         userInput,
         messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({
@@ -175,7 +209,7 @@ export default function ChatPage() {
             content: m.content, 
             timestamp: m.timestamp.getTime(), 
         })).slice(-10), 
-        currentCharacterMeta, // Pass full metadata
+        currentCharacterMeta, 
         user.uid,
         characterId 
       );
@@ -219,32 +253,70 @@ export default function ChatPage() {
     }
   }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]);
 
+  const toggleFavoriteChat = async () => {
+    if (!user || !characterId) return;
+    const newFavoriteStatus = !isFavorite;
+    setIsFavorite(newFavoriteStatus);
+    try {
+      await updateChatSessionMetadata(user.uid, characterId, { isFavorite: newFavoriteStatus });
+      toast({
+        title: newFavoriteStatus ? 'Favorite Chat ⭐' : 'Unfavorited Chat',
+        description: `${currentCharacterMeta?.name} ${newFavoriteStatus ? 'is now a favorite!' : 'is no longer a favorite.'}`,
+      });
+    } catch (error) {
+      console.error("Error updating favorite status:", error);
+      setIsFavorite(!newFavoriteStatus); // Revert on error
+      toast({ title: 'Error', description: 'Could not update favorite status.', variant: 'destructive' });
+    }
+  };
+
+
   if (authLoading || pageLoading || !currentCharacterMeta || !currentChatSessionMeta) {
     return (
-      <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={backgroundStyle}>
+      <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={pageLoading ? {} : backgroundStyle}>
         <Header />
-        <div className="flex-grow flex items-center justify-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="ml-4 text-lg text-muted-foreground bg-background/80 p-2 rounded-md">Loading your chat with {currentCharacterMeta?.name || characterId || 'your Bae'}...</p>
+        <div className="flex-grow flex flex-col items-center justify-center text-center p-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-lg text-muted-foreground bg-card/80 p-3 rounded-lg shadow-md">
+            Thoda intezaar... Aapki chat {currentCharacterMeta?.name || characterId || 'aapki Bae'} ke saath load ho rahi hai! 💖
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground" style={backgroundStyle}>
+    // Main container takes full height
+    <div className="flex flex-col h-screen overflow-hidden" style={backgroundStyle}> 
       <Header />
-      <main className="flex-grow overflow-hidden">
+      {/* Chat Header specific to this page */}
+      <div className="bg-card/80 backdrop-blur-sm shadow-md p-3 border-b border-border sticky top-[calc(theme(spacing.16)+1px)] md:top-[calc(theme(spacing.18)+1px)] z-40">
+        <div className="container mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+                <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-primary hover:bg-primary/10 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+                </Button>
+                <h2 className="text-xl font-headline text-primary">{currentCharacterMeta.name}</h2>
+            </div>
+            <Button variant="ghost" size="icon" onClick={toggleFavoriteChat} className="text-primary hover:bg-primary/10 rounded-full" title={isFavorite ? "Unfavorite Chat" : "Favorite Chat"}>
+                <Star className={`h-6 w-6 transition-colors duration-200 ${isFavorite ? 'fill-accent text-accent' : 'text-muted-foreground'}`} />
+            </Button>
+        </div>
+      </div>
+
+      {/* ChatLayout now takes remaining height and handles its own scrolling */}
+      <main className="flex-grow overflow-hidden"> {/* This main tag allows ChatLayout to be the scrolling container */}
         <ChatLayout
           messages={messages}
           onSendMessage={handleSendMessage}
           isLoading={isLoadingMessage}
           currentCharacterName={currentCharacterMeta.name as CharacterName}
-          currentCharacterAvatar={currentCharacterMeta.avatarUrl} // This will be the Supabase URL
+          currentCharacterAvatar={currentCharacterMeta.avatarUrl} 
           currentVideoMessageSrc={currentVideoSrc}
+          characterMessageBubbleStyle={currentCharacterMeta.messageBubbleStyle}
         />
       </main>
-      <div ref={messagesEndRef} />
+      <div ref={messagesEndRef} /> {/* For scrolling to bottom */}
     </div>
   );
 }

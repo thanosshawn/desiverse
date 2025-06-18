@@ -23,19 +23,27 @@ export interface UserProfile {
   joinedAt: number; // RTDB timestamp (ms since epoch)
   lastActive: number; // RTDB timestamp (ms since epoch)
   subscriptionTier: 'free' | 'premium' | 'spicy';
+  // New settings fields
+  selectedTheme?: 'light' | 'dark' | 'pink' | 'purple' | 'bollywood'; // Example themes
+  languagePreference?: 'hinglish' | 'english';
 }
 
 export interface CharacterMetadata {
   id: string; // characterId, e.g., "simran_001" (key in RTDB)
   name: CharacterName;
   description: string; // e.g., "A shy, poetic girl from Delhi who loves chai."
+  personalitySnippet: string; // Short, catchy snippet for character card
   avatarUrl: string; // URL from Supabase (e.g., /avatars/simran.png)
   backgroundImageUrl?: string; // Optional URL from Supabase (e.g., /backgrounds/simran_bg.jpg)
   basePrompt: string; // Personality primer (e.g., "You are Simran, a sweet and poetic Indian girl…")
-  styleTags: string[]; // e.g., ["romantic", "shy", "Bollywood fan"]
+  styleTags: string[]; // e.g., ["romantic", "shy", "Bollywood fan", "Funny", "Bold"]
   defaultVoiceTone: string; // e.g., "soft playful Hinglish"
   createdAt: number; // RTDB timestamp (ms since epoch)
-  dataAiHint?: string; // For placeholder image generation (existing field, kept for consistency)
+  dataAiHint?: string; // For placeholder image generation
+  messageBubbleStyle?: string; // e.g. 'pink-gradient', 'default-blue' for custom message bubbles
+  animatedEmojiResponse?: string; // URL to a short Lottie/GIF for card hover
+  audioGreetingUrl?: string; // URL to a short audio clip for card hover
+  isPremium?: boolean; // For future monetization
 }
 
 // Represents metadata for a chat session between a user and a character
@@ -48,8 +56,8 @@ export interface UserChatSessionMetadata {
   updatedAt: number; // RTDB timestamp
   lastMessageText?: string;
   lastMessageTimestamp?: number;
-  title?: string;
-  isFavorite?: boolean;
+  title?: string; // Optional: user can rename chat sessions
+  isFavorite?: boolean; // For starring chats
 }
 
 // Represents a message object as stored in RTDB
@@ -62,6 +70,8 @@ export interface MessageDocument {
   audioUrl?: string;
   videoUrl?: string;
   messageType: 'text' | 'audio' | 'video';
+  reactions?: Record<string, string[]>; // emoji: [userIds]
+  referencedMessageId?: string; // For replies or context
 }
 
 export const DEFAULT_AVATAR_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
@@ -70,12 +80,17 @@ export const DEFAULT_AVATAR_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSU
 export interface CharacterCreationFormSchema {
   name: string;
   description: string;
+  personalitySnippet: string;
   avatarUrl: string;
   backgroundImageUrl?: string;
   basePrompt: string;
   styleTags: string; // Comma-separated
   defaultVoiceTone: string;
   dataAiHint?: string;
+  messageBubbleStyle?: string;
+  animatedEmojiResponse?: string;
+  audioGreetingUrl?: string;
+  isPremium?: boolean;
 }
 
 // For Admin Login (Prototype - INSECURE for storing plain text passwords)

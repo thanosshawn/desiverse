@@ -3,20 +3,20 @@
 
 import type { ChatMessageUI } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Bot, User, AlertTriangle, Loader2 } from 'lucide-react';
+import { Bot, User, AlertTriangle, Loader2, Heart } from 'lucide-react';
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 
 interface ChatMessageProps {
   message: ChatMessageUI;
+  characterBubbleStyle?: string; // e.g. 'pink-gradient'
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, characterBubbleStyle }: ChatMessageProps) {
   const isUser = message.sender === 'user';
   
-  // Memoize formattedTimestamp to prevent re-computation on every render
   const formattedTimestamp = useMemo(() => {
-    if (message.timestamp) { // message.timestamp is already a Date object in ChatMessageUI
+    if (message.timestamp) { 
       return message.timestamp.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
@@ -25,20 +25,32 @@ export function ChatMessage({ message }: ChatMessageProps) {
     return null;
   }, [message.timestamp]);
 
-  // State to manage client-side rendering of timestamp after hydration
   const [clientFormattedTimestamp, setClientFormattedTimestamp] = useState<string | null>(null);
   
   useEffect(() => {
-    // This ensures toLocaleTimeString runs only on the client after hydration
     if (message.timestamp) {
       setClientFormattedTimestamp(
-        new Date(message.timestamp).toLocaleTimeString([], { // Ensure it's a new Date object for safety
+        new Date(message.timestamp).toLocaleTimeString([], { 
           hour: '2-digit',
           minute: '2-digit',
         })
       );
     }
   }, [message.timestamp]);
+
+  // Example custom styles, can be expanded
+  const getBubbleStyle = () => {
+    if (isUser) {
+      return 'bg-primary text-primary-foreground rounded-br-none';
+    }
+    switch (characterBubbleStyle) {
+      case 'pink-gradient':
+        return 'bg-gradient-to-br from-pink-500 to-rose-500 text-white rounded-bl-none';
+      // Add more cases for different character styles
+      default:
+        return 'bg-card text-card-foreground rounded-bl-none shadow-md';
+    }
+  };
 
 
   const renderContent = () => {
@@ -47,10 +59,10 @@ export function ChatMessage({ message }: ChatMessageProps) {
         return <p className="whitespace-pre-wrap">{message.content}</p>;
       case 'audio':
         return (
-          <div>
-            {message.content && message.content !== "[Playing audio...]" && <p className="mb-2 text-sm italic">{message.content}</p> }
+          <div className="space-y-1.5">
+            {message.content && message.content !== "[Playing audio...]" && <p className="text-sm italic opacity-90">{message.content}</p> }
             {message.audioSrc && (
-              <audio controls src={message.audioSrc} className="w-full max-w-xs h-10">
+              <audio controls src={message.audioSrc} className="w-full max-w-xs h-10 rounded-lg">
                 Your browser does not support the audio element.
               </audio>
             )}
@@ -58,31 +70,31 @@ export function ChatMessage({ message }: ChatMessageProps) {
         );
       case 'video': 
         return (
-           <div>
-            {message.content && message.content !== "[Playing video...]" && <p className="mb-2 text-sm italic">{message.content}</p>}
+           <div className="space-y-1.5">
+            {message.content && message.content !== "[Playing video...]" && <p className="text-sm italic opacity-90">{message.content}</p>}
             {message.videoSrc ? (
-              <video controls src={message.videoSrc} className="w-full max-w-xs rounded-md aspect-video" muted={false} playsInline>
+              <video controls src={message.videoSrc} className="w-full max-w-xs rounded-xl aspect-video shadow-lg" muted={false} playsInline>
                 Your browser does not support the video tag.
               </video>
             ) : (
               message.content.startsWith('data:image') ? 
-              <Image src={message.content} alt="User uploaded image" width={200} height={150} className="rounded-md object-cover" />
+              <Image src={message.content} alt="User uploaded image" width={200} height={150} className="rounded-xl object-cover shadow-lg" />
               : null 
             )}
           </div>
         );
       case 'loading':
         return (
-          <div className="flex items-center space-x-2 text-muted-foreground">
+          <div className="flex items-center space-x-2 text-current opacity-80">
             <Loader2 className="h-5 w-5 animate-spin" />
-            <span>{message.content || 'Thinking...'}</span>
+            <span className="text-sm">{message.content || 'Thinking...'}</span>
           </div>
         );
       case 'error':
         return (
-          <div className="flex items-center space-x-2 text-destructive">
+          <div className="flex items-center space-x-2 text-destructive-foreground bg-destructive/80 px-3 py-2 rounded-lg">
             <AlertTriangle className="h-5 w-5" />
-            <span>{message.content || 'An error occurred.'}</span>
+            <span className="text-sm">{message.content || 'An error occurred.'}</span>
           </div>
         );
       default:
@@ -93,33 +105,32 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div
       className={cn(
-        'flex items-end space-x-2 group animate-in fade-in-50 slide-in-from-bottom-5 duration-300',
-        isUser ? 'justify-end' : 'justify-start'
+        'flex items-end space-x-2 group animate-slide-in-from-bottom max-w-[85%] sm:max-w-[75%] md:max-w-[70%]',
+        isUser ? 'justify-end self-end' : 'justify-start self-start'
       )}
     >
       {!isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-          <Bot size={20} />
+        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/80 text-primary-foreground flex items-center justify-center shadow-sm self-end mb-1">
+          {/* Character avatar or icon. Using Bot icon as placeholder */}
+          <Bot size={18} />
         </div>
       )}
       <div
         className={cn(
-          'max-w-[70%] p-3 rounded-xl shadow-md break-words',
-          isUser
-            ? 'bg-primary text-primary-foreground rounded-br-none'
-            : 'bg-card text-card-foreground rounded-bl-none'
+          'p-3 rounded-2xl shadow-lg break-words text-sm md:text-base',
+          getBubbleStyle()
         )}
       >
         {renderContent()}
-        {clientFormattedTimestamp && (
-          <p className={cn("text-xs mt-1 text-right", isUser ? "text-primary-foreground/70" : "text-muted-foreground/70")}>
+        {clientFormattedTimestamp && message.type !== 'loading' && message.type !== 'error' && (
+          <p className={cn("text-xs mt-1.5 text-right opacity-70", isUser ? "text-primary-foreground/70" : "text-current/70")}>
             {clientFormattedTimestamp}
           </p>
         )}
       </div>
-      {isUser && (
-         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center">
-          <User size={20} />
+       {isUser && (
+         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/80 text-accent-foreground flex items-center justify-center shadow-sm self-end mb-1">
+          <User size={18} />
         </div>
       )}
     </div>

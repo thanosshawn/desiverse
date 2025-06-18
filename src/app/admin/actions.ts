@@ -3,20 +3,26 @@
 
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { addCharacter, getAdminCredentials } from '@/lib/firebase/rtdb'; // Added getAdminCredentials
+import { addCharacter, getAdminCredentials } from '@/lib/firebase/rtdb'; 
 import type { CharacterMetadata, CharacterCreationFormSchema } from '@/lib/types';
 
-// --- Create Character Action ---
-const characterFormSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }).max(50),
-  description: z.string().min(10, { message: 'Description must be at least 10 characters.' }).max(500),
-  avatarUrl: z.string().url({ message: 'Please enter a valid URL for the avatar.' }),
-  backgroundImageUrl: z.string().url({ message: 'Please enter a valid URL for the background.' }).optional().or(z.literal('')),
-  basePrompt: z.string().min(20, { message: 'Base prompt must be at least 20 characters.' }),
-  styleTags: z.string().min(1, {message: 'Please enter at least one style tag.'}), // Comma-separated
-  defaultVoiceTone: z.string().min(2, { message: 'Default voice tone must be at least 2 characters.' }),
+
+const characterFormActionSchema = z.object({
+  name: z.string().min(2).max(50),
+  description: z.string().min(10).max(500),
+  personalitySnippet: z.string().min(5).max(100),
+  avatarUrl: z.string().url(),
+  backgroundImageUrl: z.string().url().optional().or(z.literal('')),
+  basePrompt: z.string().min(20),
+  styleTags: z.string().min(1), 
+  defaultVoiceTone: z.string().min(2),
   dataAiHint: z.string().optional(),
+  messageBubbleStyle: z.string().optional(),
+  animatedEmojiResponse: z.string().url().optional().or(z.literal('')),
+  audioGreetingUrl: z.string().url().optional().or(z.literal('')),
+  isPremium: z.preprocess((val) => val === 'on' || val === true, z.boolean().optional()), // Handle FormData 'on' value for checkbox
 });
+
 
 export interface CreateCharacterActionState {
   message: string;
@@ -29,18 +35,16 @@ export async function createCharacterAction(
   prevState: CreateCharacterActionState,
   formData: FormData
 ): Promise<CreateCharacterActionState> {
-  const rawFormData: CharacterCreationFormSchema = {
-    name: formData.get('name') as string,
-    description: formData.get('description') as string,
-    avatarUrl: formData.get('avatarUrl') as string,
-    backgroundImageUrl: formData.get('backgroundImageUrl') as string || undefined,
-    basePrompt: formData.get('basePrompt') as string,
-    styleTags: formData.get('styleTags') as string,
-    defaultVoiceTone: formData.get('defaultVoiceTone') as string,
-    dataAiHint: formData.get('dataAiHint') as string || undefined,
-  };
+  const rawFormData = Object.fromEntries(formData.entries());
+   // Ensure boolean is correctly interpreted from FormData
+  if (formData.has('isPremium')) {
+    rawFormData.isPremium = formData.get('isPremium') === 'on';
+  } else {
+    rawFormData.isPremium = false; // Default if not present
+  }
 
-  const validatedFields = characterFormSchema.safeParse(rawFormData);
+
+  const validatedFields = characterFormActionSchema.safeParse(rawFormData);
 
   if (!validatedFields.success) {
     const fieldErrors: Partial<Record<keyof CharacterCreationFormSchema, string[]>> = {};
@@ -61,16 +65,20 @@ export async function createCharacterAction(
   const data = validatedFields.data;
   const characterId = `${data.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${uuidv4().substring(0, 4)}`;
 
-  const characterMetadata: Omit<CharacterMetadata, 'id'> = {
+  const characterMetadata: Omit<CharacterMetadata, 'id' | 'createdAt'> & { createdAt?: number } = {
     name: data.name,
     description: data.description,
+    personalitySnippet: data.personalitySnippet,
     avatarUrl: data.avatarUrl,
     backgroundImageUrl: data.backgroundImageUrl || undefined,
     basePrompt: data.basePrompt,
     styleTags: data.styleTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
     defaultVoiceTone: data.defaultVoiceTone,
-    createdAt: Date.now(),
     dataAiHint: data.dataAiHint || data.name.toLowerCase().split(' ')[0] || 'person',
+    messageBubbleStyle: data.messageBubbleStyle || undefined,
+    animatedEmojiResponse: data.animatedEmojiResponse || undefined,
+    audioGreetingUrl: data.audioGreetingUrl || undefined,
+    isPremium: data.isPremium || false,
   };
 
   try {

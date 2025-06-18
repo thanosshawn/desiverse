@@ -12,8 +12,9 @@ interface ChatLayoutProps {
   onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request') => void;
   isLoading: boolean;
   currentCharacterName: CharacterName;
-  currentCharacterAvatar: string; // URL for static avatar
-  currentVideoMessageSrc?: string; // For AI video replies shown in avatar
+  currentCharacterAvatar: string; 
+  currentVideoMessageSrc?: string;
+  characterMessageBubbleStyle?: string;
 }
 
 export function ChatLayout({
@@ -23,22 +24,28 @@ export function ChatLayout({
   currentCharacterName,
   currentCharacterAvatar,
   currentVideoMessageSrc,
+  characterMessageBubbleStyle,
 }: ChatLayoutProps) {
   
-  // Find the latest AI video message to pass to ChatAvatar if not explicitly provided
-  // The videoSrc for an AI message is now part of ChatMessageUI if it's a video type.
-  const latestAiVideoSrcForAvatar = currentVideoMessageSrc; // The page can explicitly set this for avatar
-
+  const latestAiVideoSrcForAvatar = currentVideoMessageSrc;
 
   return (
+    // Ensure this div takes full height and allows children to manage their own scroll/layout
     <div className="flex flex-col md:flex-row flex-grow overflow-hidden h-full">
-      <ChatAvatar 
-        characterName={currentCharacterName}
-        staticAvatarSrc={currentCharacterAvatar} // Pass the character's actual avatar
-        videoSrc={latestAiVideoSrcForAvatar} // This will make the avatar play the video
-      />
-      <div className="flex flex-col flex-grow bg-background/50 backdrop-blur-sm md:border-l border-border h-full">
-        <ChatMessages messages={messages} />
+      {/* Avatar section for larger screens, hidden on mobile where avatar might be in header or messages */}
+      <div className="hidden md:flex md:w-1/3 lg:w-1/4 p-4 flex-col items-center justify-start border-r border-border/30 bg-card/50 backdrop-blur-sm sticky top-0 h-full overflow-y-auto">
+        <ChatAvatar 
+          characterName={currentCharacterName}
+          staticAvatarSrc={currentCharacterAvatar}
+          videoSrc={latestAiVideoSrcForAvatar}
+          isLoadingAiResponse={isLoading} // Pass loading state
+        />
+        {/* You can add more character details or actions here for desktop */}
+      </div>
+      
+      {/* Chat messages and input area take remaining space and handle their own scrolling */}
+      <div className="flex flex-col flex-grow h-full overflow-hidden bg-transparent"> {/* Removed backdrop blur from here */}
+        <ChatMessages messages={messages} characterBubbleStyle={characterMessageBubbleStyle} />
         <ChatInput onSendMessage={onSendMessage} isLoading={isLoading} characterName={currentCharacterName} />
       </div>
     </div>

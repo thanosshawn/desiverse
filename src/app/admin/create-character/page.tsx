@@ -16,18 +16,24 @@ import { createCharacterAction, type CreateCharacterActionState } from '../actio
 import type { CharacterCreationFormSchema } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client'; 
-import { Loader2, LogOut } from 'lucide-react';
+import { Loader2, LogOut, CheckSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Switch } from '@/components/ui/switch'; // For isPremium toggle
 
 const characterFormZodSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.').max(50, 'Name must be 50 characters or less.'),
   description: z.string().min(10, 'Description must be at least 10 characters.').max(500, 'Description must be 500 characters or less.'),
+  personalitySnippet: z.string().min(5, 'Snippet must be at least 5 chars.').max(100, 'Snippet max 100 chars.'),
   avatarUrl: z.string().url('Please enter a valid Supabase public URL. e.g., https://your-project-ref.supabase.co/storage/v1/object/public/character-assets/avatars/char.png'),
   backgroundImageUrl: z.string().url('Please enter a valid Supabase public URL. e.g., https://your-project-ref.supabase.co/storage/v1/object/public/character-assets/backgrounds/char_bg.jpg').optional().or(z.literal('')),
   basePrompt: z.string().min(20, 'Base prompt must be at least 20 characters.'),
   styleTags: z.string().min(1, 'Please enter at least one style tag (comma-separated).'),
   defaultVoiceTone: z.string().min(2, 'Default voice tone must be at least 2 characters.'),
   dataAiHint: z.string().max(30, 'AI hint should be short, max 2 words. E.g., "indian woman"').optional(),
+  messageBubbleStyle: z.string().optional(),
+  animatedEmojiResponse: z.string().url("Must be a valid URL if provided.").optional().or(z.literal('')),
+  audioGreetingUrl: z.string().url("Must be a valid URL if provided.").optional().or(z.literal('')),
+  isPremium: z.boolean().optional(),
 });
 
 const initialState: CreateCharacterActionState = {
@@ -58,12 +64,17 @@ export default function CreateCharacterPage() {
     defaultValues: {
       name: '',
       description: '',
+      personalitySnippet: '',
       avatarUrl: '',
       backgroundImageUrl: '',
       basePrompt: '',
       styleTags: '',
       defaultVoiceTone: '',
       dataAiHint: '',
+      messageBubbleStyle: '',
+      animatedEmojiResponse: '',
+      audioGreetingUrl: '',
+      isPremium: false,
     },
   });
 
@@ -128,7 +139,6 @@ export default function CreateCharacterPage() {
     router.replace('/admin/login');
   };
   
-  // Initial check in case component mounts after localStorage check could have run (e.g. fast navigation)
   if (typeof window !== 'undefined' && localStorage.getItem('isAdminLoggedIn') !== 'true') {
     return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
@@ -140,22 +150,22 @@ export default function CreateCharacterPage() {
   }
   
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
-        <Card className="max-w-2xl mx-auto">
+        <Card className="max-w-2xl mx-auto bg-card/90 backdrop-blur-lg shadow-xl rounded-2xl">
           <CardHeader className="flex flex-row justify-between items-center">
             <div>
-                <CardTitle className="text-2xl font-headline">Create New AI Character</CardTitle>
-                <CardDescription>Fill in the details for your new DesiBae character. You can upload images or paste public URLs from Supabase.</CardDescription>
+                <CardTitle className="text-2xl font-headline text-primary">Create New AI Character</CardTitle>
+                <CardDescription>Fill in the details for your new DesiBae character.</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
+            <Button variant="outline" size="sm" onClick={handleLogout} className="rounded-lg">
               <LogOut className="mr-2 h-4 w-4" /> Logout
             </Button>
           </CardHeader>
           <Form {...form}>
             <form action={formAction} className="space-y-6">
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-4 p-6">
                 <FormField
                   control={form.control}
                   name="name"
@@ -163,7 +173,7 @@ export default function CreateCharacterPage() {
                     <FormItem>
                       <FormLabel>Character Name</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Simran" {...field} />
+                        <Input placeholder="e.g., Simran Kaur" {...field} className="!rounded-lg" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -174,9 +184,22 @@ export default function CreateCharacterPage() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>Full Description</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="A shy, poetic girl from Delhi who loves chai..." {...field} />
+                        <Textarea placeholder="A shy, poetic girl from Delhi who loves chai, long walks, and Bollywood movies from the 90s..." {...field} className="!rounded-lg" rows={3} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="personalitySnippet"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Personality Snippet (for card)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Poetic & Shy Chai Lover ☕" {...field} className="!rounded-lg" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -190,7 +213,7 @@ export default function CreateCharacterPage() {
                       type="file"
                       accept="image/png, image/jpeg, image/webp"
                       onChange={(e) => handleFileUpload(e, 'avatar')}
-                      className="mb-2"
+                      className="mb-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                       disabled={isUploadingAvatar}
                     />
                   </FormControl>
@@ -201,7 +224,7 @@ export default function CreateCharacterPage() {
                     render={({ field }) => (
                       <>
                         <FormControl>
-                          <Input placeholder="Paste Avatar URL or upload above" {...field} disabled={isUploadingAvatar} />
+                          <Input placeholder="Supabase Avatar URL (auto-filled on upload)" {...field} disabled={isUploadingAvatar} className="!rounded-lg" />
                         </FormControl>
                         <FormDescription>Public URL from Supabase. (e.g., https://project-ref.supabase.co/.../avatar.png)</FormDescription>
                         <FormMessage />
@@ -211,13 +234,13 @@ export default function CreateCharacterPage() {
                 </FormItem>
 
                  <FormItem>
-                  <FormLabel>Background Image (Optional)</FormLabel>
+                  <FormLabel>Background Image (Optional for Chat)</FormLabel>
                   <FormControl>
                     <Input
                       type="file"
                       accept="image/png, image/jpeg, image/webp"
                       onChange={(e) => handleFileUpload(e, 'background')}
-                      className="mb-2"
+                      className="mb-2 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                       disabled={isUploadingBackground}
                     />
                   </FormControl>
@@ -228,7 +251,7 @@ export default function CreateCharacterPage() {
                     render={({ field }) => (
                       <>
                         <FormControl>
-                          <Input placeholder="Paste Background URL or upload above" {...field} disabled={isUploadingBackground} />
+                          <Input placeholder="Supabase Background URL (auto-filled on upload)" {...field} disabled={isUploadingBackground} className="!rounded-lg"/>
                         </FormControl>
                         <FormDescription>Public URL from Supabase. (e.g., https://project-ref.supabase.co/.../background.jpg)</FormDescription>
                         <FormMessage />
@@ -242,11 +265,11 @@ export default function CreateCharacterPage() {
                   name="basePrompt"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Base Prompt (Personality)</FormLabel>
+                      <FormLabel>Base Prompt (AI Personality Core)</FormLabel>
                       <FormControl>
-                        <Textarea rows={5} placeholder="You are [Name], a [adjectives] AI companion who..." {...field} />
+                        <Textarea rows={5} placeholder="You are [Name], a [adjectives] AI companion from [City/Region] who loves [hobbies/interests]. Your personality is [traits like flirty, shy, witty]. You speak in Hinglish, often using phrases like 'yaar', 'kya scene hai', ' टेंशन नहीं लेने का'. You are empathetic and engaging. You sometimes use Bollywood references..." {...field} className="!rounded-lg"/>
                       </FormControl>
-                      <FormDescription>The core personality prompt for the AI.</FormDescription>
+                      <FormDescription>The core personality instructions for the AI.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -256,11 +279,11 @@ export default function CreateCharacterPage() {
                   name="styleTags"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Style Tags</FormLabel>
+                      <FormLabel>Style Tags (for filtering)</FormLabel>
                       <FormControl>
-                        <Input placeholder="romantic, shy, Bollywood fan" {...field} />
+                        <Input placeholder="Romantic, Shy, Bollywood, Funny, Bold" {...field} className="!rounded-lg"/>
                       </FormControl>
-                      <FormDescription>Comma-separated list of personality/style tags.</FormDescription>
+                      <FormDescription>Comma-separated list of tags.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -270,11 +293,10 @@ export default function CreateCharacterPage() {
                   name="defaultVoiceTone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Default Voice Tone</FormLabel>
+                      <FormLabel>Default Voice Tone (for TTS later)</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Riya or soft playful Hinglish" {...field} />
+                        <Input placeholder="e.g., Sweet and playful Hinglish" {...field} className="!rounded-lg"/>
                       </FormControl>
-                      <FormDescription>Describes the character's voice style. Should match a valid CharacterName enum or be descriptive.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -284,18 +306,78 @@ export default function CreateCharacterPage() {
                   name="dataAiHint"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Image AI Hint (Optional)</FormLabel>
+                      <FormLabel>Image AI Hint (Optional, for placeholders)</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., indian woman" {...field} />
+                        <Input placeholder="e.g., indian woman smile" {...field} className="!rounded-lg"/>
                       </FormControl>
-                      <FormDescription>Short hint (1-2 words) for AI image generation if a placeholder is used for the avatar (via placehold.co).</FormDescription>
+                      <FormDescription>Short hint (1-2 words) for AI image generation if a placeholder is used for the avatar.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                 <FormField
+                  control={form.control}
+                  name="messageBubbleStyle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Message Bubble Style (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., pink-gradient (CSS class or key)" {...field} className="!rounded-lg"/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="animatedEmojiResponse"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Animated Emoji Response URL (Optional, for card hover)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="URL to Lottie/GIF" {...field} className="!rounded-lg"/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="audioGreetingUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Audio Greeting URL (Optional, for card hover)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="URL to short audio clip" {...field} className="!rounded-lg"/>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="isPremium"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm bg-primary/5">
+                      <div className="space-y-0.5">
+                        <FormLabel>Premium Character</FormLabel>
+                        <FormDescription>
+                          Mark this character as premium (requires subscription to chat).
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </CardContent>
-              <CardFooter>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={form.formState.isSubmitting || isUploadingAvatar || isUploadingBackground}>
+              <CardFooter className="p-6">
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground !rounded-xl text-lg py-3 shadow-lg" disabled={form.formState.isSubmitting || isUploadingAvatar || isUploadingBackground}>
+                  {(form.formState.isSubmitting || isUploadingAvatar || isUploadingBackground) ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <CheckSquare className="mr-2 h-5 w-5"/>}
                   {(form.formState.isSubmitting || isUploadingAvatar || isUploadingBackground) ? 'Processing...' : 'Create Character'}
                 </Button>
               </CardFooter>
