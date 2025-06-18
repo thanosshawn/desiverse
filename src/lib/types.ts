@@ -11,6 +11,8 @@ export interface VirtualGift {
   iconName: keyof typeof import('lucide-react'); // Name of the Lucide icon
   description: string; // Short description for the gift store
   aiReactionPrompt: string; // Specific prompt for AI to react to this gift
+  isPremium?: boolean; // Flag to indicate if the gift requires payment/subscription
+  price?: number; // Optional price for future use
 }
 
 // For UI display
