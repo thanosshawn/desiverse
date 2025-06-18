@@ -4,7 +4,6 @@
 import React, { useEffect, useState, useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,29 +12,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { createCharacterAction, type CreateCharacterActionState } from '../actions';
-import type { CharacterCreationFormSchema } from '@/lib/types';
+import { characterCreationAdminFormSchema, type CharacterCreationAdminFormValues } from '@/lib/types'; // Using shared schema and type
 import { Header } from '@/components/layout/header';
-import { uploadCharacterAsset } from '@/lib/supabase/client'; 
+import { uploadCharacterAsset } from '@/lib/supabase/client';
 import { Loader2, LogOut, CheckSquare, ListChecks } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Switch } from '@/components/ui/switch'; // For isPremium toggle
+import { Switch } from '@/components/ui/switch';
 
-const characterFormZodSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters.').max(50, 'Name must be 50 characters or less.'),
-  description: z.string().min(10, 'Description must be at least 10 characters.').max(500, 'Description must be 500 characters or less.'),
-  personalitySnippet: z.string().min(5, 'Snippet must be at least 5 chars.').max(100, 'Snippet max 100 chars.'),
-  avatarUrl: z.string().url('Please enter a valid Supabase public URL. e.g., https://your-project-ref.supabase.co/storage/v1/object/public/character-assets/avatars/char.png'),
-  backgroundImageUrl: z.string().url('Please enter a valid Supabase public URL. e.g., https://your-project-ref.supabase.co/storage/v1/object/public/character-assets/backgrounds/char_bg.jpg').optional().or(z.literal('')),
-  basePrompt: z.string().min(20, 'Base prompt must be at least 20 characters.'),
-  styleTags: z.string().min(1, 'Please enter at least one style tag (comma-separated).'),
-  defaultVoiceTone: z.string().min(2, 'Default voice tone must be at least 2 characters.'),
-  dataAiHint: z.string().max(30, 'AI hint should be short, max 2 words. E.g., "indian woman"').optional(),
-  messageBubbleStyle: z.string().optional(),
-  animatedEmojiResponse: z.string().url("Must be a valid URL if provided.").optional().or(z.literal('')),
-  audioGreetingUrl: z.string().url("Must be a valid URL if provided.").optional().or(z.literal('')),
-  isPremium: z.boolean().optional(),
-});
-
+// Initial state for the server action
 const initialState: CreateCharacterActionState = {
   message: '',
   success: false,
@@ -45,6 +29,7 @@ const initialState: CreateCharacterActionState = {
 export default function CreateCharacterPage() {
   const { toast } = useToast();
   const router = useRouter();
+  // useActionState for handling form submission with server action
   const [state, formAction] = useActionState(createCharacterAction, initialState);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
@@ -53,20 +38,19 @@ export default function CreateCharacterPage() {
   const [authStatusChecked, setAuthStatusChecked] = useState(false);
 
   useEffect(() => {
-    // This effect runs only on the client
     const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
     setIsAdminLoggedIn(loggedIn);
-    setAuthStatusChecked(true); // Mark that we've checked localStorage
+    setAuthStatusChecked(true);
 
-    if (!loggedIn) {
-      // This part of the effect will also only run client-side
+    if (!loggedIn && authStatusChecked) { // Ensure authStatusChecked is true before redirecting
       router.replace('/admin/login');
       toast({ title: 'Unauthorized', description: 'Please login as admin.', variant: 'destructive' });
     }
-  }, [router, toast]);
+  }, [router, toast, authStatusChecked]); // Added authStatusChecked dependency
 
-  const form = useForm<CharacterCreationFormSchema>({
-    resolver: zodResolver(characterFormZodSchema),
+  // Initialize react-hook-form with Zod validation
+  const form = useForm<CharacterCreationAdminFormValues>({
+    resolver: zodResolver(characterCreationAdminFormSchema), // Using shared schema
     defaultValues: {
       name: '',
       description: '',
@@ -84,19 +68,21 @@ export default function CreateCharacterPage() {
     },
   });
 
+  // Effect to handle server action response (state updates)
   useEffect(() => {
     if (state.message) {
       toast({
         title: state.success ? 'Success!' : 'Error',
-        description: state.message,
+        description: state.message, // This message comes from the server action
         variant: state.success ? 'default' : 'destructive',
       });
       if (state.success) {
-        form.reset(); 
+        form.reset(); // Reset form on successful character creation
       }
     }
+    // Set form errors if returned by the server action
     if (state.errors) {
-        (Object.keys(state.errors) as Array<keyof CharacterCreationFormSchema>).forEach((key) => {
+        (Object.keys(state.errors) as Array<keyof CharacterCreationAdminFormValues>).forEach((key) => {
             if (state.errors && state.errors[key] && state.errors[key]?.[0]) {
                  form.setError(key, { type: 'server', message: state.errors[key]?.[0] });
             }
@@ -127,7 +113,6 @@ export default function CreateCharacterPage() {
       }
     } catch (error: any) {
       console.error(`Error uploading ${fileType}:`, error);
-      // Use the detailed error logging from supabase client
       const errorMessage = error.message || (typeof error === 'object' ? JSON.stringify(error) : 'Failed to upload file.');
       toast({
         title: `Upload Error (${fileType})`,
@@ -137,7 +122,7 @@ export default function CreateCharacterPage() {
     } finally {
       if (fileType === 'avatar') setIsUploadingAvatar(false);
       if (fileType === 'background') setIsUploadingBackground(false);
-      if (event.target) event.target.value = ''; // Reset file input
+      if (event.target) event.target.value = '';
     }
   };
 
@@ -148,7 +133,6 @@ export default function CreateCharacterPage() {
   };
   
   if (!authStatusChecked) {
-    // Render a consistent loading state for both server and initial client render
     return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
             <Header />
@@ -159,8 +143,6 @@ export default function CreateCharacterPage() {
   }
 
   if (!isAdminLoggedIn) {
-    // This will be rendered client-side if not logged in, after authStatusChecked is true.
-    // The useEffect will handle the redirection.
     return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
              <Header />
@@ -170,7 +152,6 @@ export default function CreateCharacterPage() {
     );
   }
   
-  // Main content, rendered only if authStatusChecked is true AND isAdminLoggedIn is true
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
@@ -353,6 +334,7 @@ export default function CreateCharacterPage() {
                       <FormControl>
                         <Input placeholder="e.g., pink-gradient (CSS class or key)" {...field} className="!rounded-lg"/>
                       </FormControl>
+                       <FormDescription>Custom style identifier for chat messages.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -398,6 +380,7 @@ export default function CreateCharacterPage() {
                         <Switch
                           checked={field.value}
                           onCheckedChange={field.onChange}
+                          name={field.name} // Ensure name is passed for FormData
                         />
                       </FormControl>
                     </FormItem>
@@ -417,3 +400,5 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
+
+    

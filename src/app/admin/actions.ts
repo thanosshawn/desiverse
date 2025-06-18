@@ -3,32 +3,16 @@
 
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { addCharacter, getAdminCredentials } from '@/lib/firebase/rtdb'; 
-import type { CharacterMetadata, CharacterCreationFormSchema } from '@/lib/types';
-
-
-const characterFormActionSchema = z.object({
-  name: z.string().min(2).max(50),
-  description: z.string().min(10).max(500),
-  personalitySnippet: z.string().min(5).max(100),
-  avatarUrl: z.string().url(),
-  backgroundImageUrl: z.string().url().optional().or(z.literal('')),
-  basePrompt: z.string().min(20),
-  styleTags: z.string().min(1), 
-  defaultVoiceTone: z.string().min(2),
-  dataAiHint: z.string().optional(),
-  messageBubbleStyle: z.string().optional(),
-  animatedEmojiResponse: z.string().url().optional().or(z.literal('')),
-  audioGreetingUrl: z.string().url().optional().or(z.literal('')),
-  isPremium: z.preprocess((val) => val === 'on' || val === true, z.boolean().optional()), // Handle FormData 'on' value for checkbox
-});
+import { addCharacter, getAdminCredentials } from '@/lib/firebase/rtdb';
+import type { CharacterMetadata } from '@/lib/types';
+import { characterCreationAdminFormSchema, type CharacterCreationAdminFormValues } from '@/lib/types';
 
 
 export interface CreateCharacterActionState {
   message: string;
   characterId?: string;
   success: boolean;
-  errors?: Partial<Record<keyof CharacterCreationFormSchema, string[]>> | null;
+  errors?: Partial<Record<keyof CharacterCreationAdminFormValues, string[]>> | null;
 }
 
 export async function createCharacterAction(
@@ -36,27 +20,29 @@ export async function createCharacterAction(
   formData: FormData
 ): Promise<CreateCharacterActionState> {
   const rawFormData = Object.fromEntries(formData.entries());
-   // Ensure boolean is correctly interpreted from FormData
+
+  // Preprocess isPremium as Zod schema expects boolean but FormData gives string 'on' or undefined
   if (formData.has('isPremium')) {
     rawFormData.isPremium = formData.get('isPremium') === 'on';
   } else {
     rawFormData.isPremium = false; // Default if not present
   }
 
-
-  const validatedFields = characterFormActionSchema.safeParse(rawFormData);
+  // Use the shared schema for validation
+  const validatedFields = characterCreationAdminFormSchema.safeParse(rawFormData);
 
   if (!validatedFields.success) {
-    const fieldErrors: Partial<Record<keyof CharacterCreationFormSchema, string[]>> = {};
+    const fieldErrors: Partial<Record<keyof CharacterCreationAdminFormValues, string[]>> = {};
     for (const issue of validatedFields.error.issues) {
-        const path = issue.path[0] as keyof CharacterCreationFormSchema;
+        // issue.path is an array, for simple objects, path[0] is the field name
+        const path = issue.path[0] as keyof CharacterCreationAdminFormValues;
         if (!fieldErrors[path]) {
             fieldErrors[path] = [];
         }
-        fieldErrors[path]?.push(issue.message);
+        fieldErrors[path]?.push(issue.message); // Use the explicit message from the shared schema
     }
     return {
-      message: 'Validation failed. Please check the form for errors.',
+      message: 'Validation failed. Please check the form for errors highlighted below.', // Updated generic message
       success: false,
       errors: fieldErrors,
     };
@@ -177,3 +163,5 @@ export async function loginAdminAction(
     };
   }
 }
+
+    
