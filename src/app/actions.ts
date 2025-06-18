@@ -3,10 +3,10 @@
 'use server';
 
 import { personalizeDailyMessage } from '@/ai/flows/personalize-daily-message';
-import { generatePersonalizedVoiceMessage } from '@/ai/flows/generate-personalized-voice-message';
-import { generateVideoReply } from '@/ai/flows/generate-video-replies';
+// import { generatePersonalizedVoiceMessage } from '@/ai/flows/generate-personalized-voice-message'; // Audio disabled
+// import { generateVideoReply } from '@/ai/flows/generate-video-replies'; // Video disabled
 import type { CharacterMetadata } from '@/lib/types'; 
-import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
+// import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types'; // Not needed if video is disabled
 import type { MessageDocument } from '@/lib/types';
 
 interface AIActionInputMessage { 
@@ -57,30 +57,31 @@ export async function handleUserMessageAction(
     const aiTextResponse = personalizedMessage.message;
     let response: AIResponse = { text: aiTextResponse };
 
-    const lowerInput = userInput.toLowerCase();
-    // let shouldGenerateVoice = false; // Audio generation disabled for now
-    let shouldGenerateVideo = false;
+    // const lowerInput = userInput.toLowerCase();
+    // let shouldGenerateVoice = false; // Audio generation disabled
+    // let shouldGenerateVideo = false; // Video generation disabled
 
     // if (lowerInput.includes('voice') || lowerInput.includes('sing') || lowerInput.includes('awaaz') || lowerInput.includes('gana')) {
     //     shouldGenerateVoice = true;
     // }
-    if (lowerInput.includes('video') || lowerInput.includes('dekhna') || lowerInput.includes('show me') || lowerInput.includes('dikhao')) {
-        shouldGenerateVideo = true;
-    }
+    // if (lowerInput.includes('video') || lowerInput.includes('dekhna') || lowerInput.includes('show me') || lowerInput.includes('dikhao')) {
+    //     shouldGenerateVideo = true;
+    // }
 
-    if (shouldGenerateVideo || (aiTextResponse.length > 150 && Math.random() < 0.2)) { 
-        const videoReply = await generateVideoReply({
-            message: aiTextResponse,
-            avatarDataUri: characterMeta.avatarUrl || DEFAULT_AVATAR_DATA_URI, 
-        });
-        if (videoReply && videoReply.videoDataUri) {
-            response.videoDataUri = videoReply.videoDataUri;
-        } else {
-            console.warn('Video generation failed, falling back to text/audio.');
-        }
-    }
+    // Video generation is disabled
+    // if (shouldGenerateVideo || (aiTextResponse.length > 150 && Math.random() < 0.2)) { 
+    //     const videoReply = await generateVideoReply({
+    //         message: aiTextResponse,
+    //         avatarDataUri: characterMeta.avatarUrl || DEFAULT_AVATAR_DATA_URI, 
+    //     });
+    //     if (videoReply && videoReply.videoDataUri) {
+    //         response.videoDataUri = videoReply.videoDataUri;
+    //     } else {
+    //         console.warn('Video generation failed, falling back to text/audio.');
+    //     }
+    // }
     
-    // Audio generation is disabled for now
+    // Audio generation is disabled
     // if ((shouldGenerateVoice || aiTextResponse.length > 10) && !response.videoDataUri) {
     //   const voiceMessage = await generatePersonalizedVoiceMessage({
     //     messageText: aiTextResponse,
@@ -123,8 +124,8 @@ export async function processAndAddAiResponse(
     sender: 'ai',
     text: aiResponse.text,
     messageType: aiResponse.videoDataUri ? 'video' : aiResponse.audioDataUri ? 'audio' : 'text',
-    audioUrl: aiResponse.audioDataUri || null, // Ensure null instead of undefined
-    videoUrl: aiResponse.videoDataUri || null, // Ensure null instead of undefined
+    audioUrl: aiResponse.audioDataUri || null, 
+    videoUrl: aiResponse.videoDataUri || null, 
   };
 
   try {
