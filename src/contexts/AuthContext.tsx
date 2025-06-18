@@ -1,13 +1,21 @@
+
 // src/contexts/AuthContext.tsx
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup, signInAnonymously as firebaseSignInAnonymously } from 'firebase/auth';
-import { auth } from '@/lib/firebase/config'; // RTDB instance
-import { serverTimestamp as rtdbServerTimestamp } from 'firebase/database'; // RTDB specific imports
+import { auth, db } from '@/lib/firebase/config'; 
+import { serverTimestamp as rtdbServerTimestamp, ref, set } from 'firebase/database'; 
 import type { UserProfile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { createUserProfile, getUserProfile, updateUserProfile } from '@/lib/firebase/rtdb'; // Import RTDB functions
+import { 
+  createUserProfile, 
+  getUserProfile, 
+  updateUserProfile,
+  setOnlineStatus,
+  goOfflineOnDisconnect,
+  setOfflineStatus
+} from '@/lib/firebase/rtdb'; 
 
 interface AuthContextType {
   user: User | null;
@@ -20,11 +28,9 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Define a type for the data structure when writing a new user profile,
-// where timestamp fields are Firebase ServerValue.TIMESTAMP objects.
 type NewUserProfileWritePayload = Omit<Partial<UserProfile>, 'uid' | 'joinedAt' | 'lastActive'> & {
-  joinedAt: object; // Firebase Server Timestamp Placeholder
-  lastActive: object; // Firebase Server Timestamp Placeholder
+  joinedAt: object; 
+  lastActive: object; 
 };
 
 
@@ -42,24 +48,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         let existingProfile = await getUserProfile(currentUser.uid);
         if (existingProfile) {
           setUserProfile(existingProfile);
-          if (auth.currentUser) { 
-             updateUserProfile(auth.currentUser.uid, { lastActive: rtdbServerTimestamp() }); // Call rtdbServerTimestamp()
-          }
+          await updateUserProfile(currentUser.uid, { lastActive: rtdbServerTimestamp() }); 
         } else {
           const newUserProfileData: NewUserProfileWritePayload = {
             email: currentUser.email,
             name: currentUser.displayName,
             avatarUrl: currentUser.photoURL,
-            joinedAt: rtdbServerTimestamp(), // CALL the function here
-            lastActive: rtdbServerTimestamp(), // CALL the function here
+            joinedAt: rtdbServerTimestamp(), 
+            lastActive: rtdbServerTimestamp(), 
             subscriptionTier: 'free',
-            // selectedTheme and languagePreference will be set to defaults by createUserProfile
           };
           await createUserProfile(currentUser.uid, newUserProfileData);
           
-           // Optimistic update for UI (timestamps become numbers here)
            setUserProfile({
-             uid: currentUser.uid, // Make sure uid is included
+             uid: currentUser.uid, 
              email: newUserProfileData.email || undefined,
              name: newUserProfileData.name || undefined,
              avatarUrl: newUserProfileData.avatarUrl || undefined,
@@ -70,7 +72,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
              languagePreference: 'hinglish', 
            } as UserProfile); 
         }
+        // Set user online and configure onDisconnect
+        await setOnlineStatus(currentUser.uid, currentUser.displayName || (existingProfile?.name || 'Anonymous'));
+        goOfflineOnDisconnect(currentUser.uid);
+
       } else {
+        // If there was a previous user, mark them as offline explicitly
+        if (user?.uid) {
+          await setOfflineStatus(user.uid);
+        }
         setUser(null);
         setUserProfile(null);
       }
@@ -78,45 +88,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user?.uid]); // Add user.uid to dependency array for explicit offline setting
 
   const signInWithGoogle = async () => {
-    setLoading(true); // Indicate that a sign-in process has started
+    setLoading(true); 
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // If successful, onAuthStateChanged will handle the rest.
       toast({ title: 'Checking your Google account...' });
     } catch (error: any) {
       console.error('Error signing in with Google:', error);
       toast({ title: 'Google Sign-In Error', description: error.message, variant: 'destructive' });
-      setLoading(false); // Reset loading state *only if an error occurs* during the popup initiation.
+      setLoading(false); 
     }
   };
 
   const signInAnonymously = async () => {
-    setLoading(true); // Indicate an anonymous sign-in process has started
+    setLoading(true); 
     try {
       await firebaseSignInAnonymously(auth);
-      // onAuthStateChanged will handle the rest.
       toast({ title: 'Signing you in anonymously...' });
     } catch (error: any) {
       console.error('Error signing in anonymously:', error);
       toast({ title: 'Anonymous Sign-In Error', description: error.message, variant: 'destructive' });
-      setLoading(false); // Reset loading state *only if an error occurs*.
+      setLoading(false); 
     }
   };
 
   const signOut = async () => {
-    setLoading(true); // Indicate a sign-out process has started
+    if (user) { // Ensure user exists before trying to set offline
+      await setOfflineStatus(user.uid); // Explicitly set offline before sign out
+    }
+    setLoading(true); 
     try {
       await firebaseSignOut(auth);
-      // onAuthStateChanged will detect the sign-out and update user, userProfile, and loading state.
       toast({ title: 'Signing you out...' });
     } catch (error: any) {
       console.error('Error signing out:', error);
       toast({ title: 'Sign-Out Error', description: error.message, variant: 'destructive' });
-      setLoading(false); // Reset loading state *only if an error occurs* during sign-out.
+      setLoading(false); 
     }
   };
   
@@ -124,7 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const updateUserLastActiveInterval = async () => {
       if (user?.uid) {
         try {
-          await updateUserProfile(user.uid, { lastActive: rtdbServerTimestamp() }); // Call rtdbServerTimestamp()
+          await updateUserProfile(user.uid, { lastActive: rtdbServerTimestamp() }); 
         } catch (error) {
           console.warn('Failed to update lastActive in interval:', error);
         }
@@ -159,3 +169,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+

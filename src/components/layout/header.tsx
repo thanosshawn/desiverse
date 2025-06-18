@@ -1,12 +1,13 @@
+
 // src/components/layout/header.tsx
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles } from 'lucide-react';
+import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,10 +17,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { usePathname } from 'next/navigation';
+import { listenToOnlineUsersCount, listenToTotalRegisteredUsers } from '@/lib/firebase/rtdb';
 
 export function Header() {
   const { user, userProfile, loading, signInWithGoogle, signInAnonymously, signOut } = useAuth();
   const pathname = usePathname();
+  const [onlineUsersCount, setOnlineUsersCount] = useState(0);
+  const [totalRegisteredCount, setTotalRegisteredCount] = useState(0);
+
+  useEffect(() => {
+    const unsubscribeOnline = listenToOnlineUsersCount(setOnlineUsersCount);
+    const unsubscribeTotal = listenToTotalRegisteredUsers(setTotalRegisteredCount);
+
+    return () => {
+      unsubscribeOnline();
+      unsubscribeTotal();
+    };
+  }, []);
 
   const getInitials = (name?: string | null) => {
     if (!name) return 'DB';
@@ -33,12 +47,24 @@ export function Header() {
   return (
     <header className="bg-gradient-to-br from-pink-400 via-rose-400 via-fuchsia-300 to-orange-300 text-primary-foreground p-3 md:p-4 shadow-lg sticky top-0 z-50 h-16 md:h-18 flex items-center">
       <div className="container mx-auto flex justify-between items-center">
-        <Link href="/" passHref>
-          <div className="flex items-center gap-2 cursor-pointer">
-            <Sparkles className="h-7 w-7 md:h-8 md:w-8 animate-pulse" />
-            <h1 className="text-2xl md:text-3xl font-headline">DesiBae</h1>
+        <div className="flex items-center gap-4">
+          <Link href="/" passHref>
+            <div className="flex items-center gap-2 cursor-pointer">
+              <Sparkles className="h-7 w-7 md:h-8 md:w-8 animate-pulse" />
+              <h1 className="text-2xl md:text-3xl font-headline">DesiBae</h1>
+            </div>
+          </Link>
+          <div className="hidden md:flex items-center gap-3 text-xs opacity-80">
+            <div className="flex items-center gap-1" title="Online Users">
+              <Users className="h-4 w-4" />
+              <span>{onlineUsersCount} Online</span>
+            </div>
+            <div className="flex items-center gap-1" title="Total Registered Users">
+              <Globe className="h-4 w-4" />
+              <span>{totalRegisteredCount} Total</span>
+            </div>
           </div>
-        </Link>
+        </div>
         <nav className="flex items-center space-x-2 md:space-x-4">
           {loading ? (
             <Loader2 className="h-6 w-6 animate-spin text-primary-foreground" />
@@ -117,3 +143,4 @@ export function Header() {
     </header>
   );
 }
+

@@ -13,6 +13,8 @@
         "joinedAt": { ".validate": "newData.isNumber() && (data.exists() ? newData.val() == data.val() : newData.val() == now)" }, // Allow write only on create or if unchanged
         "lastActive": { ".validate": "newData.isNumber() && newData.val() >= data.parent().child('joinedAt').val()" },
         "subscriptionTier": { ".validate": "newData.isString() && (newData.val() == 'free' || newData.val() == 'premium' || newData.val() == 'spicy')" },
+        "selectedTheme": { ".validate": "newData.isString() || newData.val() == null" },
+        "languagePreference": { ".validate": "newData.isString() || newData.val() == null" },
         "$other": { ".validate": false }, // Disallow any other fields at the root of user profile
 
         "userChats": {
@@ -75,7 +77,13 @@
         },
         "defaultVoiceTone": { ".validate": "newData.isString()" },
         "createdAt": { ".validate": "newData.isNumber()" },
-        "dataAiHint": { ".validate": "newData.isString() || newData.val() == null" }, 
+        "dataAiHint": { ".validate": "newData.isString() || newData.val() == null" },
+        "messageBubbleStyle": { ".validate": "newData.isString() || newData.val() == null" },
+        "animatedEmojiResponse": { ".validate": "newData.isString() || newData.val() == null" },
+        "audioGreetingUrl": { ".validate": "newData.isString() || newData.val() == null" },
+        "isPremium": { ".validate": "newData.isBoolean() || newData.val() == null" },
+        "personalitySnippet": { ".validate": "newData.isString() || newData.val() == null" },
+        "id": {".validate": "newData.isString()"},
         "$other": { ".validate": false }
       }
     },
@@ -84,12 +92,25 @@
         // For this prototype, allow read for admin login. 
         // WARNING: INSECURE for production. In production, this path would be highly secured and not world-readable.
         ".read": true, 
-        // Disallow client-side writes. Seeding should be done via a secure mechanism (e.g. Admin SDK script, or specific Firebase function).
-        // The seedAdminCredentialsIfNeeded function in rtdb.ts will attempt to write if path doesn't exist.
-        // For this to work initially if rules are strict, you might need to manually set write to true once, seed, then set to false.
-        // Or, ensure the user performing the first login/seed operation has sufficient privileges.
         ".write": false 
+      }
+    },
+    "status": {
+      ".read": true, // Allow all users to read the status list for counting online users
+      "$uid": {
+        // Authenticated user can write their own status
+        ".write": "auth != null && auth.uid == $uid",
+        ".validate": "newData.hasChildren(['online', 'lastChanged']) && newData.child('online').isBoolean() && newData.child('lastChanged').isNumber()"
+      }
+    },
+    "siteStats": {
+      "totalUsersRegistered": {
+        ".read": true,
+        // For client-side increment in prototype, validate it's an increment
+        ".write": "auth != null", // Allow authenticated users to increment (e.g., on profile creation)
+        ".validate": "newData.isNumber() && (!data.exists() || newData.val() >= data.val())"
       }
     }
   }
 }
+

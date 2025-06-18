@@ -13,6 +13,8 @@ import {
   off,
   type Unsubscribe,
   update,
+  onDisconnect,
+  runTransaction,
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
 import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials } from '@/lib/types';
@@ -40,6 +42,7 @@ export async function createUserProfile(uid: string, data: NewUserProfileWritePa
     lastActive: data.lastActive, // This IS the placeholder object from data
   };
   await set(userRef, profileDataForWrite);
+  await incrementTotalRegisteredUsers(); // Increment total users when a new profile is created
 }
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
@@ -56,17 +59,7 @@ type UserProfileUpdateData = Omit<Partial<UserProfile>, 'lastActive'> & {
 
 export async function updateUserProfile(uid: string, data: UserProfileUpdateData): Promise<void> {
   const userRef = ref(db, `users/${uid}`);
-  // Create a new object for the update operation to avoid mutating the input `data`
   const updatePayload: { [key: string]: any } = { ...data };
-
-  // If lastActive is explicitly part of the data to update, ensure it's correctly formatted.
-  // If `data.lastActive` is already a server timestamp object or a number, it will be used as is.
-  // If `data.lastActive` was undefined, it won't be in `updatePayload` unless explicitly added like below.
-  // The AuthContext calls now ensure `lastActive` is `rtdbServerTimestamp()` if it's meant to be a server update.
-  
-  // No specific transformation for lastActive is needed here if AuthContext correctly provides it.
-  // Firebase `update` handles partial updates correctly.
-
   await update(userRef, updatePayload);
 }
 
@@ -132,7 +125,7 @@ export async function addCharacter(characterId: string, data: Omit<CharacterMeta
   const characterDataToWrite: Omit<CharacterMetadata, 'createdAt' | 'id'> & { createdAt: number | object, id: string } = {
      ...data, 
      id: characterId, 
-     createdAt: data.createdAt || rtdbServerTimestamp(), // Call rtdbServerTimestamp()
+     createdAt: data.createdAt || rtdbServerTimestamp(), 
      personalitySnippet: data.personalitySnippet || data.description.substring(0,70) + "...",
      isPremium: data.isPremium || false,
      styleTags: data.styleTags || [],
@@ -148,7 +141,7 @@ export async function getOrCreateChatSession(userId: string, characterId: string
 
   if (snapshot.exists()) {
     const existingData = snapshot.val() as UserChatSessionMetadata;
-    await update(chatMetadataRef, { updatedAt: rtdbServerTimestamp() }); // Call rtdbServerTimestamp()
+    await update(chatMetadataRef, { updatedAt: rtdbServerTimestamp() }); 
     return { ...existingData, updatedAt: Date.now() }; 
   } else {
     const characterMeta = await getCharacterMetadata(characterId);
@@ -160,10 +153,10 @@ export async function getOrCreateChatSession(userId: string, characterId: string
       characterId,
       characterName: characterMeta.name,
       characterAvatarUrl: characterMeta.avatarUrl,
-      createdAt: rtdbServerTimestamp(), // Call rtdbServerTimestamp()
-      updatedAt: rtdbServerTimestamp(), // Call rtdbServerTimestamp()
+      createdAt: rtdbServerTimestamp(), 
+      updatedAt: rtdbServerTimestamp(), 
       lastMessageText: `Chat started with ${characterMeta.name}`,
-      lastMessageTimestamp: rtdbServerTimestamp(), // Call rtdbServerTimestamp()
+      lastMessageTimestamp: rtdbServerTimestamp(), 
       isFavorite: false,
     };
     await set(chatMetadataRef, newChatSessionMetaDataForWrite);
@@ -210,7 +203,7 @@ export async function getUserChatSessions(userId: string): Promise<(UserChatSess
 export async function updateChatSessionMetadata(userId: string, characterId: string, data: Partial<UserChatSessionMetadata>): Promise<void> {
   const chatMetadataRef = ref(db, `users/${userId}/userChats/${characterId}/metadata`);
   const updateData : Partial<UserChatSessionMetadata> & {updatedAt?: object} = {...data};
-  updateData.updatedAt = rtdbServerTimestamp(); // Call rtdbServerTimestamp()
+  updateData.updatedAt = rtdbServerTimestamp(); 
   await update(chatMetadataRef, updateData);
 }
 
@@ -226,7 +219,7 @@ export async function addMessageToChat(
 
   const finalMessageData: MessageDocument = {
     ...messageData,
-    timestamp: typeof messageData.timestamp === 'number' ? messageData.timestamp : (messageData.timestamp || rtdbServerTimestamp()), // Call rtdbServerTimestamp()
+    timestamp: typeof messageData.timestamp === 'number' ? messageData.timestamp : (messageData.timestamp || rtdbServerTimestamp()), 
   } as MessageDocument; 
   
   await set(newMessageRef, finalMessageData);
@@ -291,5 +284,79 @@ export async function seedAdminCredentialsIfNeeded(): Promise<void> {
       console.error('Error seeding admin credentials. Check RTDB rules for /admin_settings/credentials.', error);
     }
   }
+}
+
+// --- Presence and Site Stats ---
+export async function setOnlineStatus(uid: string, displayName: string | null): Promise<void> {
+  const userStatusRef = ref(db, `status/${uid}`);
+  const status = {
+    online: true,
+    name: displayName || 'Anonymous User',
+    lastChanged: rtdbServerTimestamp(),
+  };
+  await set(userStatusRef, status);
+}
+
+export async function setOfflineStatus(uid: string): Promise<void> {
+  const userStatusRef = ref(db, `status/${uid}`);
+   const status = {
+    online: false,
+    name: null, // Or keep the name if preferred when offline
+    lastChanged: rtdbServerTimestamp(),
+  };
+  await set(userStatusRef, status);
+}
+
+export function goOfflineOnDisconnect(uid: string): void {
+  const userStatusRef = ref(db, `status/${uid}`);
+  const status = {
+    online: false,
+    name: null,
+    lastChanged: rtdbServerTimestamp(),
+  };
+  onDisconnect(userStatusRef).set(status).catch((err) => {
+    console.error('Could not establish onDisconnect event', err);
+  });
+}
+
+export function listenToOnlineUsersCount(callback: (count: number) => void): Unsubscribe {
+  const statusRef = ref(db, 'status');
+  const listener = onValue(statusRef, (snapshot) => {
+    let count = 0;
+    if (snapshot.exists()) {
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.val()?.online === true) {
+          count++;
+        }
+      });
+    }
+    callback(count);
+  }, (error) => {
+    console.error("Error listening to online users count:", error);
+    callback(0);
+  });
+  return () => off(statusRef, 'value', listener);
+}
+
+export async function incrementTotalRegisteredUsers(): Promise<void> {
+  const counterRef = ref(db, 'siteStats/totalUsersRegistered');
+  try {
+    await runTransaction(counterRef, (currentData) => {
+      return (currentData || 0) + 1;
+    });
+  } catch (error) {
+    console.error('Failed to increment total registered users:', error);
+  }
+}
+
+export function listenToTotalRegisteredUsers(callback: (count: number) => void): Unsubscribe {
+  const counterRef = ref(db, 'siteStats/totalUsersRegistered');
+  const listener = onValue(counterRef, (snapshot) => {
+    callback(snapshot.exists() ? snapshot.val() as number : 0);
+  }, (error) => {
+    console.error("Error listening to total registered users:", error);
+    callback(0);
+  });
+  return () => off(counterRef, 'value', listener);
 }
     
