@@ -80,8 +80,8 @@ export function Header() {
         </div>
         <nav className="flex items-center space-x-1 md:space-x-2">
           <Link href="https://t.me/desibaecommunity" target="_blank" passHref>
-            <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10 rounded-full" title="Join Telegram Group">
-              <Send className="h-5 w-5" />
+            <Button variant="ghost" className="hover:bg-primary-foreground/10 rounded-lg px-3 py-2 text-sm" title="Join Telegram Group">
+              <Send className="h-5 w-5 mr-1.5" /> Join Group
             </Button>
           </Link>
           <DropdownMenu>
