@@ -31,7 +31,7 @@ export function Header() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-primary via-pink-500 to-rose-600 text-primary-foreground p-3 md:p-4 shadow-lg sticky top-0 z-50 h-16 md:h-18 flex items-center">
+    <header className="bg-gradient-to-br from-pink-400 via-rose-400 via-fuchsia-300 to-orange-300 text-primary-foreground p-3 md:p-4 shadow-lg sticky top-0 z-50 h-16 md:h-18 flex items-center">
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" passHref>
           <div className="flex items-center gap-2 cursor-pointer">
