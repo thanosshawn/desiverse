@@ -2,42 +2,38 @@
 // src/app/chat/[characterId]/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef, useMemo, use } from 'react'; // Added use
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
-import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult, UserChatStreakData, UserProfile, VirtualGift } from '@/lib/types'; 
+import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult, UserChatStreakData, UserProfile, VirtualGift } from '@/lib/types';
 import { handleUserMessageAction } from '../../actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
-  getCharacterMetadata, 
-  getOrCreateChatSession, 
-  getMessagesStream, 
+import {
+  getCharacterMetadata,
+  getOrCreateChatSession,
+  getMessagesStream,
   addMessageToChat,
   updateChatSessionMetadata,
   updateUserChatStreak,
-  getStreakDataStream 
-} from '@/lib/firebase/rtdb'; 
-import { Loader2 } from 'lucide-react'; 
-import { ChatPageHeader } from '@/components/chat/chat-page-header'; 
+  getStreakDataStream
+} from '@/lib/firebase/rtdb';
+import { Loader2 } from 'lucide-react';
+import { ChatPageHeader } from '@/components/chat/chat-page-header';
 
 export default function ChatPage() {
   const { user, userProfile, loading: authLoading } = useAuth();
   const router = useRouter();
-  
-  // Unwrap params using React.use() to handle Next.js Proxy object
+
   const paramsFromHook = useParams();
-  // Type assertion for actualParams might be needed if TypeScript complains about `use` with `useParams` return type.
-  // However, Next.js docs suggest this pattern for its specific Proxy objects.
-  const actualParams = use(paramsFromHook as any); 
-  const characterId = actualParams.characterId as string;
+  const characterId = paramsFromHook.characterId as string;
 
 
   const [messages, setMessages] = useState<ChatMessageUI[]>([]);
   const [isLoadingMessage, setIsLoadingMessage] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
-  
+
   const [currentCharacterMeta, setCurrentCharacterMeta] = useState<CharacterMetadata | null>(null);
   const [currentChatSessionMeta, setCurrentChatSessionMeta] = useState<UserChatSessionMetadata | null>(null);
   const [currentVideoSrc, setCurrentVideoSrc] = useState<string | undefined>(undefined);
@@ -53,7 +49,7 @@ export default function ChatPage() {
   };
 
   useEffect(scrollToBottom, [messages]);
-  
+
   useEffect(() => {
     if (currentCharacterMeta?.backgroundImageUrl) {
       document.body.style.backgroundImage = `linear-gradient(rgba(var(--background-rgb),0.7), rgba(var(--background-rgb),0.7)), url(${currentCharacterMeta.backgroundImageUrl})`;
@@ -62,11 +58,11 @@ export default function ChatPage() {
       document.body.style.backgroundRepeat = 'no-repeat';
       document.body.style.backgroundAttachment = 'fixed';
     } else {
-      document.body.style.backgroundImage = ''; 
+      document.body.style.backgroundImage = '';
     }
-    
+
     const rootStyle = getComputedStyle(document.documentElement);
-    let bgRgb = '330 50% 98%'; 
+    let bgRgb = '330 50% 98%';
     const bgHslRaw = rootStyle.getPropertyValue('--background').trim();
     const bgHslMatch = bgHslRaw.match(/hsl\(([^)]+)\)/);
 
@@ -79,7 +75,7 @@ export default function ChatPage() {
     document.documentElement.style.setProperty('--background-rgb', bgRgb);
 
 
-    return () => { 
+    return () => {
       document.body.style.backgroundImage = '';
       document.body.style.backgroundSize = '';
       document.body.style.backgroundPosition = '';
@@ -133,29 +129,29 @@ export default function ChatPage() {
 
     const unsubscribeMessages = getMessagesStream(
       user.uid,
-      characterId, 
+      characterId,
       (rtdbMessages) => {
         const uiMessages: ChatMessageUI[] = rtdbMessages.map(doc => {
           const baseMessage: ChatMessageUI = {
-            id: doc.id, 
+            id: doc.id,
             rtdbKey: doc.id,
             sender: doc.sender,
-            type: doc.messageType === 'audio' ? 'audio' : 
-                  doc.messageType === 'video' ? 'video' : 
+            type: doc.messageType === 'audio' ? 'audio' :
+                  doc.messageType === 'video' ? 'video' :
                   doc.messageType === 'gift_sent' ? 'gift_sent' : 'text',
             content: doc.text,
             characterName: doc.sender === 'ai' ? currentCharacterMeta?.name : undefined,
-            timestamp: new Date(doc.timestamp as number), 
+            timestamp: new Date(doc.timestamp as number),
             audioSrc: doc.audioUrl || undefined,
             videoSrc: doc.videoUrl || undefined,
           };
           if (doc.messageType === 'gift_sent' && doc.sentGiftId) {
             baseMessage.sentGift = {
                 id: doc.sentGiftId,
-                name: doc.text.includes("sent a") ? doc.text.split("sent a ")[1].split(" to")[0] : "a gift", 
-                iconName: 'Gift', 
+                name: doc.text.includes("sent a") ? doc.text.split("sent a ")[1].split(" to")[0] : "a gift",
+                iconName: 'Gift',
                 description: "A lovely gift",
-                aiReactionPrompt: "" 
+                aiReactionPrompt: ""
             };
           }
           return baseMessage;
@@ -216,7 +212,7 @@ export default function ChatPage() {
         content: userInput,
       });
     }
-    
+
     setIsLoadingMessage(true);
     setCurrentVideoSrc(undefined);
 
@@ -240,7 +236,7 @@ export default function ChatPage() {
         }
         if (streakToastMessage) toast({ title: "Chat Streak Update!", description: streakToastMessage, duration: 4000 });
       } catch (streakError) { console.error("Error updating chat streak:", streakError); }
-      
+
       const optimisticAiLoadingId = addOptimisticMessage({
         sender: 'ai',
         type: 'loading',
@@ -249,19 +245,19 @@ export default function ChatPage() {
       });
 
       const aiResponse = await handleUserMessageAction(
-        userInput, 
+        userInput,
         messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({
-            id: m.rtdbKey || m.id, 
+            id: m.rtdbKey || m.id,
             sender: m.sender,
-            content: m.content, 
-            timestamp: m.timestamp.getTime(), 
-        })).slice(-10), 
-        currentCharacterMeta, 
+            content: m.content,
+            timestamp: m.timestamp.getTime(),
+        })).slice(-10),
+        currentCharacterMeta,
         user.uid,
         characterId,
-        gift?.aiReactionPrompt 
+        gift?.aiReactionPrompt
       );
-      
+
       removeOptimisticMessage(optimisticAiLoadingId);
 
       if (aiResponse.error || !aiResponse.text) {
@@ -281,7 +277,7 @@ export default function ChatPage() {
           videoUrl: aiResponse.videoDataUri || null,
         };
         await addMessageToChat(user.uid, characterId, aiMessageData);
-        
+
         if (aiResponse.videoDataUri) {
           setCurrentVideoSrc(aiResponse.videoDataUri);
         }
@@ -299,7 +295,7 @@ export default function ChatPage() {
     } finally {
       setIsLoadingMessage(false);
     }
-  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]); 
+  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]);
 
   const toggleFavoriteChat = async () => {
     if (!user || !characterId) return;
@@ -313,7 +309,7 @@ export default function ChatPage() {
       });
     } catch (error) {
       console.error("Error updating favorite status:", error);
-      setIsFavorite(!newFavoriteStatus); 
+      setIsFavorite(!newFavoriteStatus);
       toast({ title: 'Error', description: 'Could not update favorite status.', variant: 'destructive' });
     }
   };
@@ -323,15 +319,15 @@ export default function ChatPage() {
     const numMessages = messages.filter(m => m.type !== 'loading' && m.type !== 'error' && m.sender === 'user').length;
     const streakValue = currentStreakData?.currentStreak || 0;
 
-    const messageScore = Math.min(numMessages / 50, 1) * 50; 
-    const streakScore = Math.min(streakValue / 7, 1) * 50;   
+    const messageScore = Math.min(numMessages / 50, 1) * 50;
+    const streakScore = Math.min(streakValue / 7, 1) * 50;
     return Math.max(0, Math.min(100, Math.round(messageScore + streakScore)));
   }, [messages, currentStreakData, currentCharacterMeta]);
 
 
   if (authLoading || pageLoading || !currentCharacterMeta || !currentChatSessionMeta) {
     const initialBackgroundStyle = currentCharacterMeta?.backgroundImageUrl
-    ? { 
+    ? {
         backgroundImage: `linear-gradient(rgba(var(--background-rgb),0.7), rgba(var(--background-rgb),0.7)), url(${currentCharacterMeta.backgroundImageUrl})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
@@ -339,7 +335,7 @@ export default function ChatPage() {
         backgroundAttachment: 'fixed',
       }
     : {
-        background: 'var(--background)', 
+        background: 'var(--background)',
     };
     return (
       <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={initialBackgroundStyle}>
@@ -353,11 +349,11 @@ export default function ChatPage() {
       </div>
     );
   }
-  
+
   const userDisplayName = userProfile?.name || user?.displayName || 'User';
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden"> 
+    <div className="flex flex-col h-screen overflow-hidden">
       <Header />
       <ChatPageHeader
         characterMeta={currentCharacterMeta}
@@ -372,7 +368,7 @@ export default function ChatPage() {
           onSendMessage={handleSendMessage}
           isLoading={isLoadingMessage}
           currentCharacterName={currentCharacterMeta.name as CharacterName}
-          currentCharacterAvatar={currentCharacterMeta.avatarUrl} 
+          currentCharacterAvatar={currentCharacterMeta.avatarUrl}
           currentVideoMessageSrc={currentVideoSrc}
           characterMessageBubbleStyle={currentCharacterMeta.messageBubbleStyle}
           characterIsPremium={currentCharacterMeta.isPremium}
@@ -384,4 +380,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
