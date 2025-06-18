@@ -64,7 +64,7 @@
     --popover-foreground: hsl(270 20% 90%);
     
     --primary: hsl(36 100% 65%); /* Brighter Saffron */
-    --primary-foreground: hsl(36 100% 10%); 
+    --primary-foreground: hsl(0 0% 100%); /* White - For better contrast on Saffron */
     
     --secondary: hsl(340 40% 35%); /* Dark Muted Rose */
     --secondary-foreground: hsl(340 40% 85%); 
@@ -73,7 +73,7 @@
     --muted-foreground: hsl(270 10% 65%); 
     
     --accent: hsl(180 80% 50%); /* Brighter Teal */
-    --accent-foreground: hsl(180 100% 10%); 
+    --accent-foreground: hsl(180 100% 10%); /* Very dark for contrast on bright Teal */
     
     --destructive: hsl(0 70% 60%); 
     --destructive-foreground: hsl(0 0% 100%);
@@ -92,7 +92,7 @@
     --sidebar-background: hsl(270 10% 12%);
     --sidebar-foreground: hsl(270 20% 85%);
     --sidebar-primary: hsl(36 100% 60%);
-    --sidebar-primary-foreground: hsl(36 100% 8%);
+    --sidebar-primary-foreground: hsl(0 0% 100%); /* White for consistency */
     --sidebar-accent: hsl(270 10% 18%);
     --sidebar-accent-foreground: hsl(36 100% 70%);
     --sidebar-border: hsl(270 10% 25%);
@@ -100,6 +100,7 @@
   }
 
   .pink {
+    /* Pink Theme */
     --background: hsl(330 100% 97%); /* Very Light Pink */
     --foreground: hsl(330 40% 30%); /* Dark Muted Pink/Rose */
     
