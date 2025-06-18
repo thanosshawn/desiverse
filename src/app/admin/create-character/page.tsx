@@ -33,7 +33,8 @@ const personalitySnippets = [
   "Bollywood Buff & Chai Connoisseur ☕✨", "Sarcasm is my love language 😉 #CoderLife", "Lost in poetry and monsoon rains 🌧️📖", "Spicy food, spicier comebacks 🔥🌶️", "Techie with a heart of gold & a love for ghazals 💻❤️",
   "Dreamer, believer, and a midnight philosopher 🌙", "Seeking adventures and good conversations 🌍💬", "Fluent in Hinglish, sarcasm, and movie quotes 🎬", "My playlist is 90% Bollywood classics 🎶", "Probably thinking about food or the meaning of life 🤔🍕"
 ];
-const dataAiHints = ["indian woman portrait", "desi girl smile", "indian man thoughtful", "urban youth india", "traditional attire modern", "person looking at camera", "south asian fashion"];
+// Refined: dataAiHints array to ensure 1-2 word hints
+const dataAiHints = ["indian woman", "desi girl", "indian man", "urban youth", "modern attire", "person portrait", "asian fashion", "smile portrait", "thoughtful look"];
 
 const getRandomElement = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const getRandomElements = <T,>(arr: T[], count: number): T[] => {
@@ -64,7 +65,12 @@ const generateRandomCharacterDefaults = (): CharacterCreationAdminFormValues => 
   const bgWidth = Math.floor(Math.random() * 600) + 1000; // 1000-1599
   const bgHeight = Math.floor(Math.random() * 300) + 600; // 600-899
 
-  const basePrompt = `You are ${fullName}, a ${adj1} and ${adj2} AI from ${city}. You speak fluent Hinglish (a mix of Hindi and English), frequently using common Hinglish phrases like "yaar", "kya scene hai", "arre", "theek hai", "bohot badiya", "tension nahi lene ka". You love ${hobby1} and ${hobby2}. Your personality is ${selectedStyleTags.join(', ')}. Your goal is to be an engaging, empathetic, and memorable companion. You sometimes share shayaris or Bollywood dialogues if the mood is right. Respond naturally.`;
+  const basePrompt = `You are ${fullName}, a ${adj1} and ${adj2} AI from ${city}. You speak fluent Hinglish (a mix of Hindi and English), frequently using common Hinglish phrases like "yaar", "kya scene hai", "arre", "theek hai", "bohot badiya", "tension nahi lene ka". You love ${hobby1} and ${hobby2}. Your personality is ${selectedStyleTags.join(', ')}. Your goal is to be an engaging, empathetic,and memorable companion. You sometimes share shayaris or Bollywood dialogues if the mood is right. Respond naturally.`;
+
+  // Refined fallback for dataAiHint to ensure it's 1-2 words
+  const adj1FirstWord = adj1.split(' ')[0];
+  const defaultDataAiHint = `${isFemale ? 'woman' : 'man'} ${adj1FirstWord}`;
+  const randomHint = getRandomElement(dataAiHints);
 
   return {
     name: fullName,
@@ -75,7 +81,7 @@ const generateRandomCharacterDefaults = (): CharacterCreationAdminFormValues => 
     basePrompt: basePrompt,
     styleTags: selectedStyleTags.join(", "),
     defaultVoiceTone: getRandomElement(voiceTones),
-    dataAiHint: getRandomElement(dataAiHints) || `${isFemale ? 'indian woman' : 'indian man'} ${adj1}`,
+    dataAiHint: randomHint || defaultDataAiHint, // Prioritize curated randomHint, fallback to generated 2-word hint
     messageBubbleStyle: `bubble-${firstName.toLowerCase()}`,
     animatedEmojiResponse: '', // Default to empty
     audioGreetingUrl: '', // Default to empty
@@ -464,5 +470,6 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
+    
 
     
