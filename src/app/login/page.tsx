@@ -12,6 +12,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, LogIn, UserCircle, Sparkles, Heart } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link'; // Added missing import
 
 const loginFormSchema = z.object({
   // No fields needed as we use provider buttons
