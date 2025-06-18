@@ -9,9 +9,10 @@ import React, { useEffect, useRef } from 'react';
 interface ChatMessagesProps {
   messages: ChatMessageType[];
   characterBubbleStyle?: string;
+  aiAvatarUrl: string; // Added prop for AI avatar
 }
 
-export function ChatMessages({ messages, characterBubbleStyle }: ChatMessagesProps) {
+export function ChatMessages({ messages, characterBubbleStyle, aiAvatarUrl }: ChatMessagesProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -30,7 +31,12 @@ export function ChatMessages({ messages, characterBubbleStyle }: ChatMessagesPro
       {/* Padding around the messages container */}
       <div className="space-y-3 p-4 md:p-6">
         {messages.map((msg) => (
-          <ChatMessage key={msg.id} message={msg} characterBubbleStyle={characterBubbleStyle} />
+          <ChatMessage 
+            key={msg.id} 
+            message={msg} 
+            characterBubbleStyle={characterBubbleStyle} 
+            aiAvatarUrl={aiAvatarUrl} // Pass down the AI avatar URL
+          />
         ))}
       </div>
     </ScrollArea>

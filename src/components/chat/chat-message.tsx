@@ -3,16 +3,18 @@
 
 import type { ChatMessageUI } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Bot, User, AlertTriangle, Loader2, Heart } from 'lucide-react';
-import React, { useState, useEffect, useMemo } from 'react';
+import { Bot, User, AlertTriangle, Loader2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
 
 interface ChatMessageProps {
   message: ChatMessageUI;
-  characterBubbleStyle?: string; // e.g. 'pink-gradient'
+  characterBubbleStyle?: string;
+  aiAvatarUrl: string; 
 }
 
-export function ChatMessage({ message, characterBubbleStyle }: ChatMessageProps) {
+export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl }: ChatMessageProps) {
   const isUser = message.sender === 'user';
   
   const [clientFormattedTimestamp, setClientFormattedTimestamp] = useState<string | null>(null);
@@ -32,15 +34,11 @@ export function ChatMessage({ message, characterBubbleStyle }: ChatMessageProps)
     if (isUser) {
       return 'bg-primary text-primary-foreground rounded-br-none';
     }
-    // Example: if characterBubbleStyle is 'rani-pink-bubble'
     if (characterBubbleStyle && characterBubbleStyle.includes('pink')) {
         return 'bg-gradient-to-br from-pink-500 to-rose-400 text-white rounded-bl-none shadow-md';
     }
-    // Add more specific styles based on characterBubbleStyle if needed
-    // default:
     return 'bg-card text-card-foreground rounded-bl-none shadow-md';
   };
-
 
   const renderContent = () => {
     switch (message.type) {
@@ -99,9 +97,12 @@ export function ChatMessage({ message, characterBubbleStyle }: ChatMessageProps)
       )}
     >
       {!isUser && (
-        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-pink-500/90 text-white flex items-center justify-center shadow-sm self-end mb-1">
-          <Heart size={18} className="fill-white"/>
-        </div>
+        <Avatar className="flex-shrink-0 w-8 h-8 rounded-full shadow-sm self-end mb-1">
+            <AvatarImage src={aiAvatarUrl} alt={message.characterName || 'AI'} />
+            <AvatarFallback className="bg-pink-500/90 text-white text-xs">
+              {message.characterName ? message.characterName.substring(0,1).toUpperCase() : <Bot size={16}/>}
+            </AvatarFallback>
+        </Avatar>
       )}
       <div
         className={cn(

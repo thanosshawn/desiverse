@@ -45,7 +45,11 @@ export function ChatLayout({
       
       {/* Chat messages and input area take remaining space and handle their own scrolling */}
       <div className="flex flex-col flex-grow h-full overflow-hidden bg-transparent"> {/* Removed backdrop blur from here */}
-        <ChatMessages messages={messages} characterBubbleStyle={characterMessageBubbleStyle} />
+        <ChatMessages 
+            messages={messages} 
+            characterBubbleStyle={characterMessageBubbleStyle}
+            aiAvatarUrl={currentCharacterAvatar} 
+        />
         <ChatInput onSendMessage={onSendMessage} isLoading={isLoading} characterName={currentCharacterName} />
       </div>
     </div>
