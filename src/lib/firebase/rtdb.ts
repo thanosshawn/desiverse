@@ -98,9 +98,16 @@ export async function getAllCharacters(): Promise<CharacterMetadata[]> {
 }
 
 export async function addCharacter(characterId: string, data: Omit<CharacterMetadata, 'id'>): Promise<void> {
+  // In RTDB, the characterId becomes the key of the node.
+  // The data stored at `characters/${characterId}` will be the `data` object itself.
+  // We no longer need to store the `id` field within the object if characterId is the key.
+  // However, to maintain consistency with CharacterMetadata type which expects an id, 
+  // we'll keep it for now, though it's redundant for direct RTDB structure under characters/${characterId}.
+  // If CharacterMetadata is used for other purposes where id is crucial from the object itself, it's fine.
+  // Otherwise, for pure RTDB storage under `characters/${characterId}`, the `id` field inside `data` isn't strictly needed.
   const characterRef = ref(db, `characters/${characterId}`);
-  const characterDataWithId: CharacterMetadata = { ...data, id: characterId };
-  await set(characterRef, characterDataWithId);
+  const characterDataToWrite: CharacterMetadata = { ...data, id: characterId, createdAt: data.createdAt || Date.now() };
+  await set(characterRef, characterDataToWrite);
 }
 
 
@@ -174,7 +181,7 @@ export function getMessagesStream(
   userId: string,
   characterId: string, 
   callback: (messages: (MessageDocument & { id: string })[]) => void,
-  messageLimit: number = 25
+  messageLimit: number = 50 // Increased default limit slightly
 ): Unsubscribe {
   const messagesQuery = query(
     ref(db, `users/${userId}/userChats/${characterId}/messages`),
@@ -189,6 +196,8 @@ export function getMessagesStream(
         messagesData.push({ id: childSnapshot.key!, ...childSnapshot.val() } as (MessageDocument & { id: string }));
       });
     }
+    // Ensure messages are sorted by timestamp if not guaranteed by RTDB default order for keys (though orderByChild should handle it)
+    // messagesData.sort((a, b) => a.timestamp - b.timestamp);
     callback(messagesData); 
   }, (error) => {
     console.error("Error fetching messages in real-time from RTDB: ", error);
@@ -229,47 +238,28 @@ export async function seedAdminCredentialsIfNeeded(): Promise<void> {
 
 // --- Seed Data ---
 export async function seedInitialCharacters() {
-  const now = Date.now(); 
-  const supabasePlaceholderBaseUrl = 'https://your-project-ref.supabase.co/storage/v1/object/public/character-assets';
-
-  const charactersDataToSeed: Record<string, CharacterMetadata> = {
-    priya_001: { 
-      id: 'priya_001',
-      name: 'Priya', 
-      description: 'Priya loves Bollywood, drama, and heartfelt conversations. She\'s waiting to share her dreams with you.', 
-      avatarUrl: `${supabasePlaceholderBaseUrl}/avatars/priya.png`, 
-      backgroundImageUrl: `${supabasePlaceholderBaseUrl}/backgrounds/priya_bg.jpg`, 
-      basePrompt: 'You are Priya, a friendly and flirty AI companion who loves Bollywood movies and romantic dialogues. Respond in Hinglish. Your responses should be engaging, warm, and sometimes a bit filmy.',
-      styleTags: ['romantic', 'filmy', 'dreamer', 'warm'],
-      defaultVoiceTone: "Riya", 
-      createdAt: now,
-      dataAiHint: 'indian woman smile'
-    },
-    rahul_001: { 
-      id: 'rahul_001',
-      name: 'Rahul', 
-      description: 'Rahul is a thoughtful poet who enjoys deep talks and shayari. He\'s looking for someone to share his verses with.', 
-      avatarUrl: `${supabasePlaceholderBaseUrl}/avatars/rahul.png`, 
-      backgroundImageUrl: `${supabasePlaceholderBaseUrl}/backgrounds/rahul_bg.jpg`, 
-      basePrompt: 'You are Rahul, a charming and poetic AI companion. You express yourself beautifully in Hinglish, often using shayari or thoughtful observations. You enjoy philosophical discussions and connecting on an emotional level.',
-      styleTags: ['poetic', 'thoughtful', 'shayari lover', 'deep'],
-      defaultVoiceTone: "Pooja", 
-      createdAt: now,
-      dataAiHint: 'indian man thinking'
-    },
-    // ... (other characters can be added here if needed)
-  };
+  const charactersDataToSeed: Record<string, CharacterMetadata> = {}; // Empty object to seed no characters
 
   const charactersRef = ref(db, 'characters');
   try {
     const snapshot = await get(charactersRef);
-    if (!snapshot.exists() || Object.keys(snapshot.val()).length < 2) { // Check if fewer than 2 chars exist
-      await set(charactersRef, charactersDataToSeed);
-      console.log("Initial characters seeded successfully to RTDB!");
+    // Only seed if the characters node is empty or doesn't exist.
+    // Or if you want to ensure it's empty if it previously had data, you could explicitly set it to null/empty object.
+    if (!snapshot.exists() || Object.keys(snapshot.val() || {}).length === 0) { 
+      if (Object.keys(charactersDataToSeed).length > 0) { // Only attempt to set if there's actually data to seed
+        await set(charactersRef, charactersDataToSeed);
+        console.log("Initial characters seeded successfully to RTDB!");
+      } else {
+        console.log("No initial characters to seed. Characters list will be empty unless added via admin.");
+        // If you want to ENSURE the characters node is empty if it had old data:
+        // await set(charactersRef, null); 
+        // console.log("Characters node in RTDB ensured to be empty.");
+      }
     } else {
-      console.log("Characters already exist in RTDB. Seed data skipped.");
+      console.log("Characters already exist in RTDB or no initial characters defined for seeding. Seed data process skipped/completed.");
     }
   } catch (error) {
-    console.error("Error seeding characters to RTDB: ", error);
+    console.error("Error during character seeding process in RTDB: ", error);
   }
 }
+
