@@ -27,7 +27,7 @@ export async function createCharacterAction(
     description: formData.get('description') as string || 'No description provided.',
     personalitySnippet: formData.get('personalitySnippet') as string || 'A mysterious AI.',
     avatarUrl: formData.get('avatarUrl') as string || 'https://placehold.co/400x400.png',
-    backgroundImageUrl: formData.get('backgroundImageUrl') as string || '',
+    backgroundImageUrl: formData.get('backgroundImageUrl') as string || '', // Default to empty string if not present
     basePrompt: formData.get('basePrompt') as string || 'You are a helpful AI.',
     styleTags: formData.get('styleTags') as string || 'general',
     defaultVoiceTone: formData.get('defaultVoiceTone') as string || 'neutral',
@@ -50,14 +50,14 @@ export async function createCharacterAction(
     description: data.description,
     personalitySnippet: data.personalitySnippet,
     avatarUrl: data.avatarUrl,
-    backgroundImageUrl: data.backgroundImageUrl || undefined,
+    backgroundImageUrl: data.backgroundImageUrl || null, // Convert empty string to null
     basePrompt: data.basePrompt,
     styleTags: data.styleTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
     defaultVoiceTone: data.defaultVoiceTone,
     dataAiHint: data.dataAiHint,
-    messageBubbleStyle: data.messageBubbleStyle || undefined,
-    animatedEmojiResponse: data.animatedEmojiResponse || undefined,
-    audioGreetingUrl: data.audioGreetingUrl || undefined,
+    messageBubbleStyle: data.messageBubbleStyle || null, // Convert empty string to null
+    animatedEmojiResponse: data.animatedEmojiResponse || null, // Convert empty string to null
+    audioGreetingUrl: data.audioGreetingUrl || null, // Convert empty string to null
     isPremium: data.isPremium || false,
   };
 
