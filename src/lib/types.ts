@@ -1,19 +1,31 @@
 // src/lib/types.ts
+import type { LucideIcon } from 'lucide-react';
 import { z } from 'zod';
 
 export type CharacterName = 'Riya' | 'Pooja' | 'Meera' | 'Anjali' | string;
+
+// Definition for a virtual gift
+export interface VirtualGift {
+  id: string;
+  name: string;
+  iconName: keyof typeof import('lucide-react'); // Name of the Lucide icon
+  description: string; // Short description for the gift store
+  aiReactionPrompt: string; // Specific prompt for AI to react to this gift
+}
 
 // For UI display
 export interface ChatMessageUI {
   id: string; // RTDB key or client-generated for optimistic updates
   sender: 'user' | 'ai';
-  type: 'text' | 'audio' | 'video' | 'loading' | 'error'; // UI states
-  content: string; // For text, loading message, or error message
+  type: 'text' | 'audio' | 'video' | 'loading' | 'error' | 'gift_sent' | 'gift_received'; // Added gift types
+  content: string; // For text, loading message, error message, or AI's gift reaction
   characterName?: CharacterName;
   timestamp: Date; // Converted from RTDB timestamp (number) for UI
   audioSrc?: string; // data URI for audio playback
   videoSrc?: string; // data URI for video playback
   rtdbKey?: string; // To link back to RTDB object key
+  sentGift?: VirtualGift; // If type is 'gift_sent', this holds the gift details
+  // receivedGift?: VirtualGift; // If type is 'gift_received', AI's message is the reaction
 }
 
 export interface UserProfile {
@@ -24,61 +36,54 @@ export interface UserProfile {
   joinedAt: number; // RTDB timestamp (ms since epoch)
   lastActive: number; // RTDB timestamp (ms since epoch)
   subscriptionTier: 'free' | 'premium' | 'spicy';
-  // New settings fields
-  selectedTheme?: 'light' | 'dark' | 'pink' | 'purple' | 'bollywood'; // Example themes
+  selectedTheme?: 'light' | 'dark' | 'pink' | 'purple' | 'bollywood'; 
   languagePreference?: 'hinglish' | 'english';
 }
 
 export interface CharacterMetadata {
-  id: string; // characterId, e.g., "simran_001" (key in RTDB)
+  id: string; 
   name: CharacterName;
-  description: string; // e.g., "A shy, poetic girl from Delhi who loves chai."
-  personalitySnippet: string; // Short, catchy snippet for character card
-  avatarUrl: string; // URL from Supabase (e.g., /avatars/simran.png)
-  backgroundImageUrl?: string; // Optional URL from Supabase (e.g., /backgrounds/simran_bg.jpg)
-  basePrompt: string; // Personality primer (e.g., "You are Simran, a sweet and poetic Indian girl…")
-  styleTags: string[]; // e.g., ["romantic", "shy", "Bollywood fan", "Funny", "Bold"]
-  defaultVoiceTone: string; // e.g., "soft playful Hinglish"
-  createdAt: number; // RTDB timestamp (ms since epoch)
-  dataAiHint?: string; // For placeholder image generation
-  messageBubbleStyle?: string; // e.g. 'pink-gradient', 'default-blue' for custom message bubbles
-  animatedEmojiResponse?: string; // URL to a short Lottie/GIF for card hover
-  audioGreetingUrl?: string; // URL to a short audio clip for card hover
-  isPremium?: boolean; // For future monetization
+  description: string; 
+  personalitySnippet: string; 
+  avatarUrl: string; 
+  backgroundImageUrl?: string; 
+  basePrompt: string; 
+  styleTags: string[]; 
+  defaultVoiceTone: string; 
+  createdAt: number; 
+  dataAiHint?: string; 
+  messageBubbleStyle?: string; 
+  animatedEmojiResponse?: string; 
+  audioGreetingUrl?: string; 
+  isPremium?: boolean; 
 }
 
-// Represents metadata for a chat session between a user and a character
-// Stored at users/{userId}/userChats/{characterId}/metadata
 export interface UserChatSessionMetadata {
-  characterId: string; // Redundant, as it's the key, but useful for objects
+  characterId: string; 
   characterName: CharacterName;
-  characterAvatarUrl: string; // This will be the Supabase URL
-  createdAt: number; // RTDB timestamp
-  updatedAt: number; // RTDB timestamp
+  characterAvatarUrl: string; 
+  createdAt: number; 
+  updatedAt: number; 
   lastMessageText?: string;
   lastMessageTimestamp?: number;
-  title?: string; // Optional: user can rename chat sessions
-  isFavorite?: boolean; // For starring chats
+  title?: string; 
+  isFavorite?: boolean; 
 }
 
-// Represents a message object as stored in RTDB
-// Stored at users/{userId}/userChats/{characterId}/messages/{messageId}
 export interface MessageDocument {
-  // id (messageId) is the key of the object in RTDB
   sender: 'user' | 'ai';
   text: string;
-  timestamp: number; // RTDB timestamp (ms since epoch) or ServerValue.TIMESTAMP
-  audioUrl?: string;
-  videoUrl?: string;
-  messageType: 'text' | 'audio' | 'video';
-  reactions?: Record<string, string[]>; // emoji: [userIds]
-  referencedMessageId?: string; // For replies or context
+  timestamp: number | object; // Can be server timestamp placeholder
+  audioUrl?: string | null;
+  videoUrl?: string | null;
+  messageType: 'text' | 'audio' | 'video' | 'gift_sent'; // Added 'gift_sent'
+  sentGiftId?: string; // ID of the gift if messageType is 'gift_sent'
+  reactions?: Record<string, string[]>; 
+  referencedMessageId?: string; 
 }
 
 export const DEFAULT_AVATAR_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-
-// Type for form values, now independent of Zod validation for this form.
 export type CharacterCreationAdminFormValues = {
   name: string;
   description: string;
@@ -86,7 +91,7 @@ export type CharacterCreationAdminFormValues = {
   avatarUrl: string;
   backgroundImageUrl?: string;
   basePrompt: string;
-  styleTags: string; // Stays as string for input, parsed in action
+  styleTags: string; 
   defaultVoiceTone: string;
   dataAiHint?: string;
   messageBubbleStyle?: string;
@@ -95,17 +100,14 @@ export type CharacterCreationAdminFormValues = {
   isPremium?: boolean;
 };
 
-
-// For Admin Login (Prototype - INSECURE for storing plain text passwords)
 export interface AdminCredentials {
   username: string;
-  password?: string; // Password stored in plain text - VERY INSECURE
+  password?: string; 
 }
 
-// For Chat Streaks
 export interface UserChatStreakData {
   currentStreak: number;
-  lastChatDate: string; // YYYY-MM-DD format, representing the last day user chatted to maintain/increment streak
+  lastChatDate: string; 
 }
 
 export interface StreakUpdateResult {

@@ -6,7 +6,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
-import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult, UserChatStreakData, UserProfile } from '@/lib/types';
+import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult, UserChatStreakData, UserProfile, VirtualGift } from '@/lib/types'; // Added VirtualGift
 import { handleUserMessageAction } from '../../actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,12 +17,13 @@ import {
   addMessageToChat,
   updateChatSessionMetadata,
   updateUserChatStreak,
-  getStreakDataStream // Import the new streak stream function
+  getStreakDataStream 
 } from '@/lib/firebase/rtdb'; 
-import { Loader2, Star, ArrowLeft } from 'lucide-react'; // Replaced SVG with Lucide
+import { Loader2, Star, ArrowLeft, Gift as GiftIconLucide } from 'lucide-react'; 
+import * as Icons from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
-import { BondMeter } from '@/components/chat/bond-meter'; // Import BondMeter
+import { BondMeter } from '@/components/chat/bond-meter'; 
 
 if (typeof crypto === 'undefined' || !crypto.randomUUID) {
   global.crypto = global.crypto || {} as Crypto;
@@ -67,7 +68,7 @@ export default function ChatPage() {
     }
     
     const rootStyle = getComputedStyle(document.documentElement);
-    let bgRgb = '330 50% 98%'; // Default light mode
+    let bgRgb = '330 50% 98%'; 
     const bgHslRaw = rootStyle.getPropertyValue('--background').trim();
     const bgHslMatch = bgHslRaw.match(/hsl\(([^)]+)\)/);
 
@@ -136,17 +137,34 @@ export default function ChatPage() {
       user.uid,
       characterId, 
       (rtdbMessages) => {
-        const uiMessages: ChatMessageUI[] = rtdbMessages.map(doc => ({
-          id: doc.id, 
-          rtdbKey: doc.id,
-          sender: doc.sender,
-          type: doc.messageType === 'audio' ? 'audio' : doc.messageType === 'video' ? 'video' : 'text',
-          content: doc.text,
-          characterName: doc.sender === 'ai' ? currentCharacterMeta?.name : undefined,
-          timestamp: new Date(doc.timestamp), 
-          audioSrc: doc.audioUrl,
-          videoSrc: doc.videoUrl,
-        }));
+        const uiMessages: ChatMessageUI[] = rtdbMessages.map(doc => {
+          const baseMessage: ChatMessageUI = {
+            id: doc.id, 
+            rtdbKey: doc.id,
+            sender: doc.sender,
+            type: doc.messageType === 'audio' ? 'audio' : 
+                  doc.messageType === 'video' ? 'video' : 
+                  doc.messageType === 'gift_sent' ? 'gift_sent' : 'text',
+            content: doc.text,
+            characterName: doc.sender === 'ai' ? currentCharacterMeta?.name : undefined,
+            timestamp: new Date(doc.timestamp as number), 
+            audioSrc: doc.audioUrl || undefined,
+            videoSrc: doc.videoUrl || undefined,
+          };
+          if (doc.messageType === 'gift_sent' && doc.sentGiftId) {
+            // In a real scenario, you might fetch gift details from a gift list based on sentGiftId
+            // For now, creating a placeholder or assuming text field contains enough info.
+            // This part may need refinement if full gift objects are stored/retrieved.
+            baseMessage.sentGift = {
+                id: doc.sentGiftId,
+                name: doc.text.includes("sent a") ? doc.text.split("sent a ")[1].split(" to")[0] : "a gift", // crude extraction
+                iconName: 'Gift', // Default icon
+                description: "A lovely gift",
+                aiReactionPrompt: "" // Not directly available here, handled by AI
+            };
+          }
+          return baseMessage;
+        });
         setMessages(uiMessages);
         if(pageLoading) setPageLoading(false);
       },
@@ -176,63 +194,67 @@ export default function ChatPage() {
      setMessages(prev => prev.filter(msg => msg.id !== optimisticId));
   };
 
-  const handleSendMessage = useCallback(async (userInput: string, requestType?: 'text' | 'audio_request' | 'video_request') => {
+  const handleSendMessage = useCallback(async (userInput: string, requestType?: 'text' | 'audio_request' | 'video_request', gift?: VirtualGift) => {
     if (!user || !currentCharacterMeta || !currentChatSessionMeta) {
       toast({ title: 'Cannot send message', description: 'User or character not loaded.', variant: 'destructive' });
       return;
     }
 
-    const userMessageData: Omit<MessageDocument, 'timestamp'> = {
-      sender: 'user',
-      text: userInput,
-      messageType: 'text', 
-    };
+    let userMessageText = userInput;
+    let messageTypeForRtdb: MessageDocument['messageType'] = 'text';
+    let sentGiftIdForRtdb: string | undefined = undefined;
+
+    if (gift) {
+      userMessageText = `You sent ${gift.name} to ${currentCharacterMeta.name}. ${userInput ? `You also said: "${userInput}"` : ''}`;
+      addOptimisticMessage({
+        sender: 'user',
+        type: 'gift_sent',
+        content: userMessageText,
+        sentGift: gift,
+      });
+      messageTypeForRtdb = 'gift_sent';
+      sentGiftIdForRtdb = gift.id;
+    } else {
+       addOptimisticMessage({
+        sender: 'user',
+        type: 'text',
+        content: userInput,
+      });
+    }
     
-    addOptimisticMessage({
-      sender: 'user',
-      type: 'text',
-      content: userInput,
-    });
     setIsLoadingMessage(true);
     setCurrentVideoSrc(undefined);
 
     try {
-      // Persist user's message
+      const userMessageData: Omit<MessageDocument, 'timestamp'> = {
+        sender: 'user',
+        text: userMessageText, // This text now includes gift info if a gift was sent
+        messageType: messageTypeForRtdb,
+        sentGiftId: sentGiftIdForRtdb,
+      };
       await addMessageToChat(user.uid, characterId, userMessageData);
 
-      // Update chat streak after user message is sent
       try {
         const streakResult = await updateUserChatStreak(user.uid, characterId);
         let streakToastMessage = '';
         switch (streakResult.status) {
-          case 'first_ever':
-            streakToastMessage = `Chat Streak Started! Day ${streakResult.streak}! 💖 Keep it going!`;
-            break;
-          case 'continued':
-            streakToastMessage = `Chat Streak: ${streakResult.streak} day${streakResult.streak > 1 ? 's' : ''}! 🔥 Keep the flame alive!`;
-            break;
-          case 'reset':
-            streakToastMessage = `Streak Reset! Back to Day ${streakResult.streak} 💪 Let's build it up!`;
-            break;
-          case 'maintained_same_day':
-            break;
+          case 'first_ever': streakToastMessage = `Chat Streak Started! Day ${streakResult.streak}! 💖 Keep it going!`; break;
+          case 'continued': streakToastMessage = `Chat Streak: ${streakResult.streak} day${streakResult.streak > 1 ? 's' : ''}! 🔥 Keep the flame alive!`; break;
+          case 'reset': streakToastMessage = `Streak Reset! Back to Day ${streakResult.streak} 💪 Let's build it up!`; break;
+          case 'maintained_same_day': break;
         }
-        if (streakToastMessage) {
-          toast({ title: "Chat Streak Update!", description: streakToastMessage, duration: 4000 });
-        }
-      } catch (streakError) {
-        console.error("Error updating chat streak:", streakError);
-      }
+        if (streakToastMessage) toast({ title: "Chat Streak Update!", description: streakToastMessage, duration: 4000 });
+      } catch (streakError) { console.error("Error updating chat streak:", streakError); }
       
       const optimisticAiLoadingId = addOptimisticMessage({
         sender: 'ai',
         type: 'loading',
-        content: `${currentCharacterMeta.name} is typing… kuch romantic hi hoga 💖`,
+        content: `${currentCharacterMeta.name} is typing… kuch special hi hoga ✨`,
         characterName: currentCharacterMeta.name as CharacterName,
       });
 
       const aiResponse = await handleUserMessageAction(
-        userInput,
+        userInput, // Original user text input
         messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({
             id: m.rtdbKey || m.id, 
             sender: m.sender,
@@ -241,7 +263,8 @@ export default function ChatPage() {
         })).slice(-10), 
         currentCharacterMeta, 
         user.uid,
-        characterId 
+        characterId,
+        gift?.aiReactionPrompt // Pass gift reaction prompt
       );
       
       removeOptimisticMessage(optimisticAiLoadingId);
@@ -281,7 +304,7 @@ export default function ChatPage() {
     } finally {
       setIsLoadingMessage(false);
     }
-  }, [user, userProfile, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]); // Added userProfile
+  }, [user, userProfile, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]);
 
   const toggleFavoriteChat = async () => {
     if (!user || !characterId) return;
@@ -305,8 +328,8 @@ export default function ChatPage() {
     const numMessages = messages.filter(m => m.type !== 'loading' && m.type !== 'error' && m.sender === 'user').length;
     const streakValue = currentStreakData?.currentStreak || 0;
 
-    const messageScore = Math.min(numMessages / 50, 1) * 50; // Max 50 points for 50+ user messages
-    const streakScore = Math.min(streakValue / 7, 1) * 50;   // Max 50 points for a 7+ day streak
+    const messageScore = Math.min(numMessages / 50, 1) * 50; 
+    const streakScore = Math.min(streakValue / 7, 1) * 50;   
     return messageScore + streakScore;
   }, [messages, currentStreakData, currentCharacterMeta]);
 

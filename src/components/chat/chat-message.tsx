@@ -1,12 +1,13 @@
 // src/components/chat/chat-message.tsx
 'use client';
 
-import type { ChatMessageUI } from '@/lib/types';
+import type { ChatMessageUI, VirtualGift } from '@/lib/types'; // Added VirtualGift
 import { cn } from '@/lib/utils';
-import { Bot, User, AlertTriangle, Loader2 } from 'lucide-react';
+import { Bot, User, AlertTriangle, Loader2, Gift as GiftIconLucide } from 'lucide-react'; // Added GiftIconLucide
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Import Avatar components
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; 
+import * as Icons from 'lucide-react'; // Import all for dynamic gift icons
 
 interface ChatMessageProps {
   message: ChatMessageUI;
@@ -32,17 +33,36 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl }: Chat
 
   const getBubbleStyle = () => {
     if (isUser) {
+      if (message.type === 'gift_sent') {
+        return 'bg-amber-400 dark:bg-amber-500 text-black dark:text-white rounded-br-none shadow-lg'; // Special style for sent gifts
+      }
       return 'bg-primary text-primary-foreground rounded-br-none';
     }
+    // For AI messages, including gift reactions (which are just text from AI)
     if (characterBubbleStyle && characterBubbleStyle.includes('pink')) {
         return 'bg-gradient-to-br from-pink-500 to-rose-400 text-white rounded-bl-none shadow-md';
     }
     return 'bg-card text-card-foreground rounded-bl-none shadow-md';
   };
 
+  const renderGiftIcon = (gift: VirtualGift) => {
+    const IconComponent = Icons[gift.iconName] as React.ElementType;
+    return IconComponent ? <IconComponent className="h-4 w-4 inline-block mr-1.5 text-current" /> : <GiftIconLucide className="h-4 w-4 inline-block mr-1.5 text-current"/>;
+  };
+
   const renderContent = () => {
     switch (message.type) {
       case 'text':
+        return <p className="whitespace-pre-wrap">{message.content}</p>;
+      case 'gift_sent':
+        return (
+            <div className="flex items-center">
+                {message.sentGift && renderGiftIcon(message.sentGift)}
+                <p className="whitespace-pre-wrap italic">{message.content}</p>
+            </div>
+        );
+      // gift_received is essentially a text message from AI, styled as normal AI message
+      case 'gift_received': 
         return <p className="whitespace-pre-wrap">{message.content}</p>;
       case 'audio':
         return (
@@ -112,12 +132,12 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl }: Chat
       >
         {renderContent()}
         {clientFormattedTimestamp && message.type !== 'loading' && message.type !== 'error' && (
-          <p className={cn("text-xs mt-1.5 text-right opacity-70", isUser ? "text-primary-foreground/70" : "text-current/70")}>
+          <p className={cn("text-xs mt-1.5 text-right opacity-70", isUser ? "text-current/70" : "text-current/70")}>
             {clientFormattedTimestamp}
           </p>
         )}
       </div>
-       {isUser && (
+       {isUser && message.type !== 'gift_sent' && ( // Don't show user avatar for gift_sent messages, as gift bubble is distinct
          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent text-accent-foreground flex items-center justify-center shadow-sm self-end mb-1">
           <User size={18} />
         </div>

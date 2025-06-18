@@ -4,15 +4,17 @@
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SendHorizonal, Mic, Paperclip, SmilePlus, Lock } from 'lucide-react';
+import { SendHorizonal, Mic, Paperclip, SmilePlus, Lock, Gift as GiftIcon, LucideIcon } from 'lucide-react'; // Added GiftIcon
 import React, { useState, useRef } from 'react';
-import type { CharacterName, UserProfile } from '@/lib/types';
+import type { CharacterName, UserProfile, VirtualGift } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import Picker, { type EmojiClickData, Theme as EmojiTheme, Categories as EmojiCategory } from 'emoji-picker-react';
-import { useTheme } from 'next-themes'; // To adapt emoji picker theme
+import { useTheme } from 'next-themes';
+import { virtualGifts } from '@/lib/gifts'; // Import gifts
+import * as Icons from 'lucide-react'; // Import all lucide-react icons
 
 interface ChatInputProps {
-  onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request') => void;
+  onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request', gift?: VirtualGift) => void; // Added gift
   isLoading: boolean;
   characterName?: CharacterName;
   characterIsPremium?: boolean;
@@ -28,6 +30,7 @@ export function ChatInput({
 }: ChatInputProps) {
   const [inputValue, setInputValue] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGiftPicker, setShowGiftPicker] = useState(false); // State for gift picker
   const { resolvedTheme } = useTheme();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -38,13 +41,13 @@ export function ChatInput({
     if (inputValue.trim() && !isLoading) {
       onSendMessage(inputValue.trim(), 'text');
       setInputValue('');
-      setShowEmojiPicker(false); // Close picker on send
+      setShowEmojiPicker(false); 
+      setShowGiftPicker(false);
     }
   };
   
   const handleSpecialRequest = (type: 'audio_request' | 'video_request') => {
      if (isPremiumFeatureLocked && type === 'audio_request') {
-        // Optionally, show a toast or modal to upgrade
         console.log("Audio request is a premium feature.");
         return;
      }
@@ -56,7 +59,8 @@ export function ChatInput({
       onSendMessage(messageContent, type);
       setInputValue(''); 
     }
-    setShowEmojiPicker(false); // Close picker
+    setShowEmojiPicker(false); 
+    setShowGiftPicker(false);
   };
 
   const onEmojiClick = (emojiData: EmojiClickData) => {
@@ -68,7 +72,6 @@ export function ChatInput({
       const textAfterCursor = inputValue.substring(currentCursorPosition);
       setInputValue(textBeforeCursor + emoji + textAfterCursor);
       
-      // Set cursor position after emoji insertion
       setTimeout(() => {
         textareaRef.current?.focus();
         textareaRef.current?.setSelectionRange(currentCursorPosition + emoji.length, currentCursorPosition + emoji.length);
@@ -82,17 +85,29 @@ export function ChatInput({
     }
   };
 
+  const handleSendGift = (gift: VirtualGift) => {
+    onSendMessage(inputValue.trim(), 'text', gift); // Send current input along with gift
+    setInputValue(''); // Clear input after sending gift
+    setShowGiftPicker(false); // Close gift picker
+  };
+
   const voiceButtonDisabled = isLoading || isPremiumFeatureLocked;
   const voiceButtonTitle = isPremiumFeatureLocked 
     ? "Voice messages are a Premium feature. Upgrade to unlock!" 
     : "Request voice message";
 
+  const renderGiftIcon = (iconName: keyof typeof Icons) => {
+    const IconComponent = Icons[iconName] as LucideIcon;
+    return IconComponent ? <IconComponent className="h-5 w-5 mr-2 text-primary" /> : <GiftIcon className="h-5 w-5 mr-2 text-primary"/>;
+  };
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-3 md:p-4 border-t border-border/50 bg-card/70 backdrop-blur-sm flex items-end space-x-2 sticky bottom-0"
+      className="p-3 md:p-4 border-t border-border/50 bg-card/70 backdrop-blur-sm flex items-end space-x-1 sm:space-x-2 sticky bottom-0"
       aria-label="Chat input form"
     >
+      {/* Emoji Picker Popover */}
       <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
         <PopoverTrigger asChild>
           <Button
@@ -103,7 +118,7 @@ export function ChatInput({
             aria-label="Emoji"
             className="text-muted-foreground hover:text-primary rounded-full p-2 hidden sm:inline-flex"
             title="Select an emoji"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGiftPicker(false); }}
           >
             <SmilePlus className="h-5 w-5" />
           </Button>
@@ -112,7 +127,7 @@ export function ChatInput({
             className="w-auto p-0 border-none shadow-xl bg-transparent mb-2" 
             side="top" 
             align="start"
-            onOpenAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
+            onOpenAutoFocus={(e) => e.preventDefault()} 
             onCloseAutoFocus={(e) => e.preventDefault()}
         >
           <Picker
@@ -122,24 +137,57 @@ export function ChatInput({
             searchPlaceholder="Search emoji"
             emojiVersion="5.0"
             lazyLoadEmojis={true}
-            categories={[
-                EmojiCategory.SUGGESTED,
-                EmojiCategory.SMILEYS_PEOPLE,
-                EmojiCategory.ANIMALS_NATURE,
-                EmojiCategory.FOOD_DRINK,
-                EmojiCategory.TRAVEL_PLACES,
-                EmojiCategory.ACTIVITIES,
-                EmojiCategory.OBJECTS,
-                EmojiCategory.SYMBOLS,
-                EmojiCategory.FLAGS,
-            ]}
+            categories={[EmojiCategory.SUGGESTED, EmojiCategory.SMILEYS_PEOPLE, EmojiCategory.ANIMALS_NATURE, EmojiCategory.FOOD_DRINK, EmojiCategory.TRAVEL_PLACES, EmojiCategory.ACTIVITIES, EmojiCategory.OBJECTS, EmojiCategory.SYMBOLS, EmojiCategory.FLAGS]}
             height={350}
-            // width={320} // You can set a fixed width if needed
             previewConfig={{ showPreview: false }}
           />
         </PopoverContent>
       </Popover>
 
+      {/* Gift Picker Popover */}
+      <Popover open={showGiftPicker} onOpenChange={setShowGiftPicker}>
+        <PopoverTrigger asChild>
+           <Button 
+            type="button" 
+            variant="ghost" 
+            size="icon" 
+            disabled={isLoading}
+            aria-label="Send a gift"
+            className="text-muted-foreground hover:text-primary rounded-full p-2"
+            title="Send a gift"
+            onClick={() => { setShowGiftPicker(!showGiftPicker); setShowEmojiPicker(false); }}
+          >
+            <GiftIcon className="h-5 w-5" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent 
+            className="w-72 p-2 border-border shadow-xl bg-popover mb-2 rounded-xl" 
+            side="top" 
+            align="start"
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            onCloseAutoFocus={(e) => e.preventDefault()}
+        >
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-popover-foreground px-2 pt-1">Send a Virtual Gift</p>
+            {virtualGifts.map((gift) => (
+              <Button
+                key={gift.id}
+                variant="ghost"
+                className="w-full justify-start h-auto p-2 text-left !rounded-md hover:bg-accent"
+                onClick={() => handleSendGift(gift)}
+              >
+                {renderGiftIcon(gift.iconName)}
+                <div className="flex flex-col">
+                    <span className="text-sm font-medium text-popover-foreground">{gift.name}</span>
+                    <span className="text-xs text-muted-foreground">{gift.description}</span>
+                </div>
+              </Button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+      
+      {/* Paperclip (Attach file - still placeholder) */}
        <Button 
         type="button" 
         variant="ghost" 
@@ -167,7 +215,7 @@ export function ChatInput({
         }}
         disabled={isLoading}
         aria-label="Message input"
-        onClick={() => setShowEmojiPicker(false)} // Close picker when textarea is clicked
+        onClick={() => { setShowEmojiPicker(false); setShowGiftPicker(false); }} 
       />
       <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
         <Button 
@@ -186,7 +234,7 @@ export function ChatInput({
           type="submit" 
           variant="default" 
           size="icon" 
-          disabled={isLoading || !inputValue.trim()}
+          disabled={isLoading || (!inputValue.trim())} // Disable if only gift is chosen but no text
           aria-label="Send message"
           className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-2.5 aspect-square shadow-lg transform transition-transform hover:scale-110"
           title="Send message"
