@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Check } from 'lucide-react';
+import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Send } from 'lucide-react'; // Added Send icon
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,14 +21,14 @@ import {
 import { usePathname } from 'next/navigation';
 import { listenToOnlineUsersCount, listenToTotalRegisteredUsers } from '@/lib/firebase/rtdb';
 import { useTheme } from 'next-themes';
-import { getInitials } from '@/lib/utils'; // Import getInitials
+import { getInitials } from '@/lib/utils';
 
 export function Header() {
   const { user, userProfile, loading, signInWithGoogle, signInAnonymously, signOut } = useAuth();
   const pathname = usePathname();
   const [onlineUsersCount, setOnlineUsersCount] = useState(0);
   const [totalRegisteredCount, setTotalRegisteredCount] = useState(0);
-  const { theme, setTheme, themes } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -79,6 +79,11 @@ export function Header() {
           </div>
         </div>
         <nav className="flex items-center space-x-1 md:space-x-2">
+          <Link href="https://t.me/+CViceBKjhrMwMzU1" target="_blank" passHref>
+            <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10 rounded-full" title="Join Telegram Group">
+              <Send className="h-5 w-5" />
+            </Button>
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10 rounded-full" title="Change theme">
