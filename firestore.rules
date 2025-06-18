@@ -1,0 +1,46 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users collection
+    // - Users can create their own profile.
+    // - Users can read and update their own profile.
+    // - Other users cannot read profiles (can be changed if public profiles are needed).
+    match /users/{userId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Characters collection (publicly readable, admin writable)
+    // Assuming character metadata is mostly static and managed by admins.
+    match /characters/{characterId} {
+      allow read: if true; // All users can read character metadata
+      allow write: if false; // Or check for admin role: request.auth.token.admin == true
+    }
+
+    // Chat sessions and messages
+    // Users can only read/write to their own chat sessions and messages.
+    match /users/{userId}/chats/{chatId} {
+      allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+
+      // Messages subcollection
+      match /messages/{messageId} {
+        allow read, create: if request.auth != null && request.auth.uid == userId;
+        // Users can delete their own messages.
+        // AI messages should not be directly deletable by users through client, only through trusted server/functions.
+        allow update: if request.auth != null && request.auth.uid == userId && resource.data.sender == 'user'; // User can only update their own messages
+        allow delete: if request.auth != null && request.auth.uid == userId && resource.data.sender == 'user'; // User can only delete their own messages
+
+        // Disallow direct edit/delete of AI-generated messages by users from client
+        // Update rule for AI: Forbid client-side update if sender is 'ai'
+        // This means AI messages are immutable from client once created.
+        // Updates to AI messages (e.g. adding audioUrl) should happen via trusted server environment.
+        // If no updates needed from client for AI messages:
+        // allow update: if request.auth != null && request.auth.uid == userId && resource.data.sender == 'user' && request.resource.data.sender == 'user';
+      }
+    }
+
+    // Add other collection rules as needed
+  }
+}
