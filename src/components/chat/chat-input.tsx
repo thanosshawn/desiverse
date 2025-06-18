@@ -1,11 +1,15 @@
+
 // src/components/chat/chat-input.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SendHorizonal, Mic, Video, SmilePlus, Paperclip } from 'lucide-react';
-import React, { useState } from 'react';
+import { SendHorizonal, Mic, Paperclip, SmilePlus } from 'lucide-react';
+import React, { useState, useRef } from 'react';
 import type { CharacterName } from '@/lib/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import Picker, { type EmojiClickData, Theme as EmojiTheme, Categories as EmojiCategory } from 'emoji-picker-react';
+import { useTheme } from 'next-themes'; // To adapt emoji picker theme
 
 interface ChatInputProps {
   onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request') => void;
@@ -15,12 +19,16 @@ interface ChatInputProps {
 
 export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae" }: ChatInputProps) {
   const [inputValue, setInputValue] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e?: React.FormEvent<HTMLFormElement>) => {
     e?.preventDefault();
     if (inputValue.trim() && !isLoading) {
-      onSendMessage(inputValue.trim(), 'text'); 
+      onSendMessage(inputValue.trim(), 'text');
       setInputValue('');
+      setShowEmojiPicker(false); // Close picker on send
     }
   };
   
@@ -33,6 +41,30 @@ export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae"
       onSendMessage(messageContent, type);
       setInputValue(''); 
     }
+    setShowEmojiPicker(false); // Close picker
+  };
+
+  const onEmojiClick = (emojiData: EmojiClickData) => {
+    const emoji = emojiData.emoji;
+    const currentCursorPosition = textareaRef.current?.selectionStart;
+
+    if (typeof currentCursorPosition === 'number') {
+      const textBeforeCursor = inputValue.substring(0, currentCursorPosition);
+      const textAfterCursor = inputValue.substring(currentCursorPosition);
+      setInputValue(textBeforeCursor + emoji + textAfterCursor);
+      
+      // Set cursor position after emoji insertion
+      setTimeout(() => {
+        textareaRef.current?.focus();
+        textareaRef.current?.setSelectionRange(currentCursorPosition + emoji.length, currentCursorPosition + emoji.length);
+      }, 0);
+
+    } else {
+      setInputValue((prevValue) => prevValue + emoji);
+       setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 0);
+    }
   };
 
   return (
@@ -41,17 +73,53 @@ export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae"
       className="p-3 md:p-4 border-t border-border/50 bg-card/70 backdrop-blur-sm flex items-end space-x-2 sticky bottom-0"
       aria-label="Chat input form"
     >
-      <Button 
-        type="button" 
-        variant="ghost" 
-        size="icon" 
-        disabled={isLoading}
-        aria-label="Emoji"
-        className="text-muted-foreground hover:text-primary rounded-full p-2 hidden sm:inline-flex"
-        title="Emoji (coming soon!)"
-      >
-        <SmilePlus className="h-5 w-5" />
-      </Button>
+      <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            disabled={isLoading}
+            aria-label="Emoji"
+            className="text-muted-foreground hover:text-primary rounded-full p-2 hidden sm:inline-flex"
+            title="Select an emoji"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          >
+            <SmilePlus className="h-5 w-5" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent 
+            className="w-auto p-0 border-none shadow-xl bg-transparent mb-2" 
+            side="top" 
+            align="start"
+            onOpenAutoFocus={(e) => e.preventDefault()} // Prevent focus stealing
+            onCloseAutoFocus={(e) => e.preventDefault()}
+        >
+          <Picker
+            onEmojiClick={onEmojiClick}
+            autoFocusSearch={false}
+            theme={resolvedTheme === 'dark' ? EmojiTheme.DARK : EmojiTheme.LIGHT}
+            searchPlaceholder="Search emoji"
+            emojiVersion="5.0"
+            lazyLoadEmojis={true}
+            categories={[
+                EmojiCategory.SUGGESTED,
+                EmojiCategory.SMILEYS_PEOPLE,
+                EmojiCategory.ANIMALS_NATURE,
+                EmojiCategory.FOOD_DRINK,
+                EmojiCategory.TRAVEL_PLACES,
+                EmojiCategory.ACTIVITIES,
+                EmojiCategory.OBJECTS,
+                EmojiCategory.SYMBOLS,
+                EmojiCategory.FLAGS,
+            ]}
+            height={350}
+            // width={320} // You can set a fixed width if needed
+            previewConfig={{ showPreview: false }}
+          />
+        </PopoverContent>
+      </Popover>
+
        <Button 
         type="button" 
         variant="ghost" 
@@ -65,6 +133,7 @@ export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae"
       </Button>
 
       <Textarea
+        ref={textareaRef}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         placeholder={`Bolo kya haal chaal, ${characterName}?`}
@@ -78,6 +147,7 @@ export function ChatInput({ onSendMessage, isLoading, characterName = "your Bae"
         }}
         disabled={isLoading}
         aria-label="Message input"
+        onClick={() => setShowEmojiPicker(false)} // Close picker when textarea is clicked
       />
       <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
         <Button 

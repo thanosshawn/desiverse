@@ -1,8 +1,10 @@
+
 import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext'; 
 import './globals.css';
 import { Baloo_Bhai_2, Hind } from 'next/font/google'; // Using Baloo Bhai 2 for more weights
+import { ThemeProvider } from "next-themes"; // Import ThemeProvider
 
 const balooBhai2 = Baloo_Bhai_2({
   weight: ['400', '500', '700'], 
@@ -34,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${balooBhai2.variable} ${hind.variable}`}>
+    <html lang="en" className={`${balooBhai2.variable} ${hind.variable}`} suppressHydrationWarning>
       <head>
         {/* Basic PWA icons, can be improved with a generator */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -42,10 +44,17 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className={`font-body antialiased ${hind.className}`}> 
-        <AuthProvider> 
-          {children}
-          <Toaster />
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light" // Set default theme
+          enableSystem={false} // Disable system theme preference if you want explicit control
+          // themes={['light', 'dark', 'pink', 'purple', 'bollywood']} // Define your themes if you have custom ones beyond light/dark
+        >
+          <AuthProvider> 
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

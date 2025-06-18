@@ -1,6 +1,6 @@
 
 {
-  "name": "DesiVerse Bae - Your Virtual Desi Companion",
+  "name": "DesiVerse Bae",
   "short_name": "DesiBae",
   "description": "Pyaar, dosti aur thoda flirting... all in Hinglish with your virtual Desi Bae!",
   "start_url": "/",
@@ -9,52 +9,52 @@
   "theme_color": "#FF69B4",
   "icons": [
     {
-      "src": "https://placehold.co/72x72.png",
+      "src": "https://placehold.co/72x72.png?text=DB&font=roboto",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/96x96.png",
+      "src": "https://placehold.co/96x96.png?text=DB&font=roboto",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/128x128.png",
+      "src": "https://placehold.co/128x128.png?text=DB&font=roboto",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/144x144.png",
+      "src": "https://placehold.co/144x144.png?text=DB&font=roboto",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/152x152.png",
+      "src": "https://placehold.co/152x152.png?text=DB&font=roboto",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/192x192.png",
+      "src": "https://placehold.co/192x192.png?text=DB&font=roboto",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     },
     {
-      "src": "https://placehold.co/384x384.png",
+      "src": "https://placehold.co/384x384.png?text=DB&font=roboto",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://placehold.co/512x512.png",
+      "src": "https://placehold.co/512x512.png?text=DB&font=roboto",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable any"
     }
   ]
 }
