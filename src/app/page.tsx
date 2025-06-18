@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MessageCircle, Users, Mic, Video, Heart, Zap, Instagram, Youtube, Smartphone } from 'lucide-react';
+import { MessageCircle, Users, Mic, Video, Heart, Zap, Instagram, Youtube, Smartphone, Edit } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState } from 'react';
 import type { CharacterMetadata } from '@/lib/types';
@@ -77,7 +77,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 relative z-10">
           <h2 className="text-4xl md:text-6xl font-bold font-headline mb-4 text-white">Chat with Your Virtual Desi Bae 💖</h2>
           <p className="text-lg md:text-2xl mb-8 font-body text-white/90">Pyaar, dosti aur thoda flirting... all in Hinglish!</p>
-          <div className="space-x-4">
+          <div className="space-y-4 sm:space-y-0 sm:space-x-4">
             <Link href={characters.length > 0 ? `/chat/${characters[0].id}` : "/chat/priya_001"} passHref>
               <Button size="lg" variant="secondary" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg transform hover:scale-105 transition-transform">
                 Try for Free ✨
@@ -86,6 +86,11 @@ export default function LandingPage() {
             <Link href="#characters" passHref>
               <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-primary shadow-lg transform hover:scale-105 transition-transform">
                 See Characters 👀
+              </Button>
+            </Link>
+             <Link href="/admin/create-character" passHref>
+              <Button size="lg" variant="outline" className="text-white border-white/80 hover:bg-white/90 hover:text-primary shadow-lg transform hover:scale-105 transition-transform">
+                <Edit className="mr-2 h-5 w-5" /> Create Character (Admin)
               </Button>
             </Link>
           </div>
