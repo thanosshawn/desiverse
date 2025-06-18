@@ -12,8 +12,8 @@ The application uses Firebase Realtime Database for storing character metadata a
 - **Dynamic Responses:** Utilizes Google's Gemini models via Genkit to generate text, voice, and video replies.
 - **User Authentication:** Firebase Authentication (Google Sign-In, Anonymous Sign-In).
 - **Realtime Chat:** Messages are stored and synced in real-time using Firebase Realtime Database.
-- **Supabase Asset Storage:** Character avatars and background images are hosted on Supabase Storage.
-- **Admin Character Creation:** A dedicated admin page to create and define new AI characters.
+- **Supabase Asset Storage:** Character avatars and background images are hosted on Supabase Storage, with direct upload from admin interface.
+- **Admin Character Creation:** A dedicated admin page to create and define new AI characters, including image uploads to Supabase.
 - **Responsive Design:** UI built with Next.js, React, ShadCN UI components, and Tailwind CSS.
 - **Theming:** Light and Dark mode support with a custom color palette.
 - **Optimized Images:** Uses `next/image` for optimized image delivery.
@@ -27,6 +27,7 @@ The application uses Firebase Realtime Database for storing character metadata a
 - **Database:** Firebase Realtime Database (for character metadata, user profiles, chat sessions)
 - **Authentication:** Firebase Authentication
 - **File Storage:** Supabase Storage (for character avatars and background images)
+- **Supabase Client:** `@supabase/supabase-js` for interacting with Supabase Storage.
 - **State Management:** React Context API (for Auth), `react-hook-form` (for forms)
 - **Validation:** Zod
 
@@ -69,6 +70,8 @@ The application uses Firebase Realtime Database for storing character metadata a
 │   │   ├── firebase/       # Firebase setup and service functions
 │   │   │   ├── config.ts   # Firebase initialization
 │   │   │   └── rtdb.ts     # Firebase Realtime Database interaction functions
+│   │   ├── supabase/       # Supabase client setup and utility functions
+│   │   │   └── client.ts   # Supabase client initialization and storage helpers
 │   │   ├── types.ts        # TypeScript type definitions
 │   │   └── utils.ts        # Utility functions (e.g., cn for Tailwind)
 │   └── tailwind.config.ts  # Tailwind CSS configuration
@@ -111,7 +114,7 @@ Create a `.env.local` file in the root of your project and add your Firebase and
 **Supabase:**
 1.  Go to your Supabase project dashboard.
 2.  Navigate to Project Settings > API.
-3.  Find your Project URL and anon public key. Your Supabase storage URL will be derived from your project reference (e.g., `https://<your-project-ref>.supabase.co`).
+3.  Find your Project URL and anon public key.
 
 Your `.env.local` file should look like this:
 
@@ -129,12 +132,16 @@ NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://your-project-id-default-rtdb.firebasei
 # Ensure this key has access to the Gemini API
 GOOGLE_API_KEY=your_google_ai_api_key
 
-# Supabase (only if you plan to use direct Supabase client SDK for uploads in future, not strictly needed for displaying images via public URLs)
-# NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
-# NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+# Supabase Configuration
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-public-key
 ```
 
-**Important:** Ensure your `GOOGLE_API_KEY` is for a project that has the "Generative Language API" (or "Vertex AI API" if using Vertex models) enabled.
+**Important:**
+- Replace placeholders with your actual keys and URLs.
+- Ensure your `GOOGLE_API_KEY` is for a project that has the "Generative Language API" (or "Vertex AI API" if using Vertex models) enabled.
+- For `NEXT_PUBLIC_SUPABASE_URL`, use the URL from your Supabase project's API settings (e.g., `https://xyzabc.supabase.co`).
+- For `NEXT_PUBLIC_SUPABASE_ANON_KEY`, use the `anon` `public` key from your Supabase project's API settings.
 
 ### 4. Configure Firebase
 
@@ -148,8 +155,22 @@ GOOGLE_API_KEY=your_google_ai_api_key
 1.  In your Supabase project, go to **Storage**.
 2.  Create a new **public bucket**. A common name is `character-assets`.
 3.  Inside this bucket, you can create folders like `avatars` and `backgrounds` to organize your images.
-4.  Upload your character images (avatars, backgrounds) to these folders. Make sure they are publicly accessible.
-5.  Note the public URLs for these images. They will look like: `https://<your-project-ref>.supabase.co/storage/v1/object/public/character-assets/avatars/your-image.png`.
+    *   **Bucket Policies (Important for Uploads):** Ensure your bucket policies allow `anon` role to perform `insert` (upload) operations. You might need to add policies like this (check Supabase docs for latest best practices):
+        ```sql
+        -- Allow anonymous uploads to the 'avatars' folder
+        CREATE POLICY "Allow anon uploads to avatars"
+        ON storage.objects FOR INSERT TO anon WITH CHECK (bucket_id = 'character-assets' AND (storage.foldername(name))[1] = 'avatars');
+
+        -- Allow anonymous uploads to the 'backgrounds' folder
+        CREATE POLICY "Allow anon uploads to backgrounds"
+        ON storage.objects FOR INSERT TO anon WITH CHECK (bucket_id = 'character-assets' AND (storage.foldername(name))[1] = 'backgrounds');
+
+        -- Allow public read access to all files in the bucket
+        CREATE POLICY "Public read access for character-assets"
+        ON storage.objects FOR SELECT TO public USING (bucket_id = 'character-assets');
+        ```
+        You can set these up in the Supabase SQL Editor or under Storage > Policies.
+4.  You don't need to manually upload images if you use the admin interface, as it will upload them directly.
 
 ### 6. Update `next.config.ts` for Image Hostnames
 
@@ -164,9 +185,10 @@ images: {
     {
       protocol: 'https',
       // IMPORTANT: Replace 'your-project-ref' with your actual Supabase project reference
+      // This is the 'xyzabc' part if your URL is 'https://xyzabc.supabase.co'
       hostname: 'your-project-ref.supabase.co',
       port: '',
-      pathname: '/storage/v1/object/public/**',
+      pathname: '/storage/v1/object/public/**', // Allow access to public objects in storage
     }
   ],
 },
@@ -199,13 +221,13 @@ This will typically start the Genkit UI on `http://localhost:4000`.
 2.  Fill out the form with the character's details:
     - **Name:** Character's display name.
     - **Description:** A short bio.
-    - **Avatar URL:** The public URL of the avatar image hosted on Supabase (e.g., `https://<your-project-ref>.supabase.co/storage/v1/object/public/character-assets/avatars/character-name.png`).
-    - **Background Image URL (Optional):** Public URL of the background image from Supabase.
-    - **Base Prompt:** The core personality prompt for the AI. This is crucial for defining how the character behaves.
-    - **Style Tags:** Comma-separated list of tags influencing the AI's response style (e.g., `romantic, shy, Hinglish expert`).
-    - **Default Voice Tone:** Describes the character's voice style (e.g., `Riya` or `soft playful Hinglish`). This should map to an enum or descriptive text used by your voice generation flow.
-    - **Image AI Hint (Optional):** 1-2 keywords for AI image generation if using `placehold.co` as a fallback (e.g., "indian woman").
-3.  Submit the form. The character data will be saved to Firebase Realtime Database.
+    - **Avatar Image:** Use the file input to upload an avatar. It will be uploaded to Supabase, and the URL field will be auto-populated.
+    - **Background Image (Optional):** Use the file input to upload a background image.
+    - **Base Prompt:** The core personality prompt for the AI.
+    - **Style Tags:** Comma-separated list of tags.
+    - **Default Voice Tone:** Describes the character's voice style.
+    - **Image AI Hint (Optional):** For placeholder images.
+3.  Submit the form. The character data (with Supabase image URLs) will be saved to Firebase Realtime Database.
 4.  The new character should appear on the homepage.
 
 ## 🤝 Contributing

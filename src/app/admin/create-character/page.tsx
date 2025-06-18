@@ -1,8 +1,7 @@
-
 // src/app/admin/create-character/page.tsx
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormState } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,13 +9,14 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label'; // Not directly used, FormLabel is from form component
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { createCharacterAction, type CreateCharacterActionState } from '../actions'; 
+import { createCharacterAction, type CreateCharacterActionState } from '../actions';
 import type { CharacterCreationFormSchema } from '@/lib/types';
 import { Header } from '@/components/layout/header';
+import { uploadCharacterAsset } from '@/lib/supabase/client'; // Import Supabase upload function
+import { Loader2 } from 'lucide-react';
 
 const characterFormZodSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.').max(50, 'Name must be 50 characters or less.'),
@@ -38,6 +38,8 @@ const initialState: CreateCharacterActionState = {
 export default function CreateCharacterPage() {
   const { toast } = useToast();
   const [state, formAction] = useFormState(createCharacterAction, initialState);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isUploadingBackground, setIsUploadingBackground] = useState(false);
 
   const form = useForm<CharacterCreationFormSchema>({
     resolver: zodResolver(characterFormZodSchema),
@@ -61,7 +63,7 @@ export default function CreateCharacterPage() {
         variant: state.success ? 'default' : 'destructive',
       });
       if (state.success) {
-        form.reset(); // Reset form on successful creation
+        form.reset(); 
       }
     }
     if (state.errors) {
@@ -72,22 +74,43 @@ export default function CreateCharacterPage() {
         });
     }
   }, [state, toast, form]);
-  
-  // Watch for server-side errors to set on form fields
-  useEffect(() => {
-    if (state.errors) {
-      for (const [fieldName, fieldErrors] of Object.entries(state.errors)) {
-        if (fieldErrors && fieldErrors.length > 0) {
-          form.setError(fieldName as keyof CharacterCreationFormSchema, {
-            type: 'server',
-            message: fieldErrors[0],
-          });
-        }
+
+  const handleFileUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    fileType: 'avatar' | 'background'
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (fileType === 'avatar') setIsUploadingAvatar(true);
+    if (fileType === 'background') setIsUploadingBackground(true);
+
+    try {
+      const pathPrefix = fileType === 'avatar' ? 'avatars' : 'backgrounds';
+      const publicUrl = await uploadCharacterAsset(file, pathPrefix);
+      
+      if (fileType === 'avatar') {
+        form.setValue('avatarUrl', publicUrl, { shouldValidate: true });
+        toast({ title: 'Avatar Uploaded', description: 'Avatar URL populated.' });
+      } else {
+        form.setValue('backgroundImageUrl', publicUrl, { shouldValidate: true });
+        toast({ title: 'Background Image Uploaded', description: 'Background URL populated.' });
       }
+    } catch (error: any) {
+      console.error(`Error uploading ${fileType}:`, error);
+      toast({
+        title: `Upload Error (${fileType})`,
+        description: error.message || 'Failed to upload file.',
+        variant: 'destructive',
+      });
+    } finally {
+      if (fileType === 'avatar') setIsUploadingAvatar(false);
+      if (fileType === 'background') setIsUploadingBackground(false);
+      // Reset file input to allow re-uploading the same file if needed
+      event.target.value = '';
     }
-  }, [state.errors, form]);
-
-
+  };
+  
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
@@ -95,7 +118,7 @@ export default function CreateCharacterPage() {
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle className="text-2xl font-headline">Create New AI Character</CardTitle>
-            <CardDescription>Fill in the details for your new DesiBae character.</CardDescription>
+            <CardDescription>Fill in the details for your new DesiBae character. You can upload images or paste public URLs from Supabase.</CardDescription>
           </CardHeader>
           <Form {...form}>
             <form action={formAction} className="space-y-6">
@@ -126,34 +149,63 @@ export default function CreateCharacterPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="avatarUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Avatar URL</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://your-project-ref.supabase.co/storage/v1/object/public/character-assets/avatars/char.png" {...field} />
-                      </FormControl>
-                      <FormDescription>Public URL of the character's avatar from Supabase Storage.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="backgroundImageUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Background Image URL (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://your-project-ref.supabase.co/storage/v1/object/public/character-assets/backgrounds/char_bg.jpg" {...field} />
-                      </FormControl>
-                       <FormDescription>Public URL of the character's background image from Supabase Storage.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
+                {/* Avatar URL and Upload */}
+                <FormItem>
+                  <FormLabel>Avatar Image</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/png, image/jpeg, image/webp"
+                      onChange={(e) => handleFileUpload(e, 'avatar')}
+                      className="mb-2"
+                      disabled={isUploadingAvatar}
+                    />
+                  </FormControl>
+                  {isUploadingAvatar && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading avatar...</div>}
+                  <FormField
+                    control={form.control}
+                    name="avatarUrl"
+                    render={({ field }) => (
+                      <>
+                        <FormControl>
+                          <Input placeholder="Paste Avatar URL or upload above" {...field} disabled={isUploadingAvatar} />
+                        </FormControl>
+                        <FormDescription>Public URL from Supabase. (e.g., https://project-ref.supabase.co/.../avatar.png)</FormDescription>
+                        <FormMessage />
+                      </>
+                    )}
+                  />
+                </FormItem>
+
+                {/* Background Image URL and Upload */}
+                 <FormItem>
+                  <FormLabel>Background Image (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/png, image/jpeg, image/webp"
+                      onChange={(e) => handleFileUpload(e, 'background')}
+                      className="mb-2"
+                      disabled={isUploadingBackground}
+                    />
+                  </FormControl>
+                  {isUploadingBackground && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading background...</div>}
+                  <FormField
+                    control={form.control}
+                    name="backgroundImageUrl"
+                    render={({ field }) => (
+                      <>
+                        <FormControl>
+                          <Input placeholder="Paste Background URL or upload above" {...field} disabled={isUploadingBackground} />
+                        </FormControl>
+                        <FormDescription>Public URL from Supabase. (e.g., https://project-ref.supabase.co/.../background.jpg)</FormDescription>
+                        <FormMessage />
+                      </>
+                    )}
+                  />
+                </FormItem>
+
                 <FormField
                   control={form.control}
                   name="basePrompt"
@@ -212,8 +264,8 @@ export default function CreateCharacterPage() {
                 />
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? 'Creating...' : 'Create Character'}
+                <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={form.formState.isSubmitting || isUploadingAvatar || isUploadingBackground}>
+                  {(form.formState.isSubmitting || isUploadingAvatar || isUploadingBackground) ? 'Processing...' : 'Create Character'}
                 </Button>
               </CardFooter>
             </form>
