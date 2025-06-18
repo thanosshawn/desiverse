@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Send, Gem } from 'lucide-react';
-import { Badge } from '@/components/ui/badge'; // Import Badge
+import { Badge } from '@/components/ui/badge'; 
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -95,18 +95,18 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-48 bg-white text-neutral-800 rounded-xl shadow-2xl border-border"
+              className="w-48 rounded-xl shadow-2xl" // bg-white text-neutral-800 border-neutral-200 now comes from base
             >
-              <DropdownMenuLabel className="text-neutral-700">Select Theme</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-neutral-200" />
+              <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
+              <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-                <DropdownMenuRadioItem value="light" className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md text-neutral-700">
+                <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md">
                   <Sun className="mr-2 h-4 w-4 text-neutral-600" /> Light
                 </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark" className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md text-neutral-700">
+                <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md">
                   <Moon className="mr-2 h-4 w-4 text-neutral-600" /> Dark
                 </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="pink" className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md text-neutral-700">
+                <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md">
                   <Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Pink
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
@@ -131,11 +131,11 @@ export function Header() {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-60 bg-white text-neutral-800 rounded-xl shadow-2xl border-border" align="end" forceMount>
+                <DropdownMenuContent className="w-60 rounded-xl shadow-2xl" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1 p-1">
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium leading-none truncate text-neutral-700">
+                        <p className="text-sm font-medium leading-none truncate">
                           {userProfile?.name || user.displayName || 'Desi User'}
                         </p>
                         {isPremiumUser && (
@@ -149,31 +149,31 @@ export function Header() {
                       </p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-neutral-200" />
-                  <DropdownMenuItem asChild className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md text-neutral-700">
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-md">
                     <Link href="/">
                       <MessageSquareText className="mr-2 h-4 w-4 text-neutral-600" /> Characters
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md text-neutral-700">
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-md">
                     <Link href="/history">
                       <History className="mr-2 h-4 w-4 text-neutral-600" /> Chat History
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md text-neutral-700">
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-md">
                      <Link href="/settings">
                        <Settings className="mr-2 h-4 w-4 text-neutral-600" /> Settings
                      </Link>
                   </DropdownMenuItem>
                    {!isPremiumUser && (
-                    <DropdownMenuItem asChild className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md text-neutral-700">
+                    <DropdownMenuItem asChild className="cursor-pointer rounded-md">
                       <Link href="/subscribe?feature=PremiumAccessHeader">
                         <Gem className="mr-2 h-4 w-4 text-yellow-500" /> Upgrade to Premium
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuSeparator className="bg-neutral-200"/>
-                  <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive focus:!text-destructive hover:!bg-red-50 focus:!bg-red-100 rounded-md">
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive data-[highlighted]:!bg-red-50 data-[highlighted]:!text-destructive rounded-md">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>
@@ -187,17 +187,17 @@ export function Header() {
                   <UserCircle className="mr-1.5 h-5 w-5" /> Login / Sign Up
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-60 bg-white text-neutral-800 rounded-xl shadow-2xl border-border" align="end" forceMount>
+              <DropdownMenuContent className="w-60 rounded-xl shadow-2xl" align="end" forceMount>
                  <DropdownMenuLabel className="text-center text-neutral-500 text-sm py-2 px-2">Chalo, milte hain tumhari virtual crush se 😍</DropdownMenuLabel>
-                 <DropdownMenuSeparator className="bg-neutral-200"/>
-                <DropdownMenuItem onClick={signInWithGoogle} className="cursor-pointer group py-2.5 px-3 hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md text-neutral-700">
+                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signInWithGoogle} className="cursor-pointer group py-2.5 px-3 rounded-md">
                   <LogIn className="mr-2 h-4 w-4 text-neutral-600" /> Sign in with Google
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={signInAnonymously} className="cursor-pointer group py-2.5 px-3 hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md text-neutral-700">
+                <DropdownMenuItem onClick={signInAnonymously} className="cursor-pointer group py-2.5 px-3 rounded-md">
                   <UserCircle className="mr-2 h-4 w-4 text-neutral-600" /> Continue as Guest
                 </DropdownMenuItem>
-                 <DropdownMenuSeparator className="bg-neutral-200"/>
-                 <DropdownMenuItem asChild className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md text-neutral-700">
+                 <DropdownMenuSeparator />
+                 <DropdownMenuItem asChild className="cursor-pointer rounded-md">
                     <Link href="/subscribe?feature=GuestUpgradePrompt">
                         <Gem className="mr-2 h-4 w-4 text-yellow-500" /> Explore Premium
                     </Link>
@@ -210,4 +210,3 @@ export function Header() {
     </header>
   );
 }
-
