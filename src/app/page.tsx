@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MessageCircle, Users, Mic, Video, Heart, Zap, Instagram, Youtube, Smartphone, Edit } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState } from 'react';
-import type { CharacterMetadata } from '@/lib/types';
+import { type CharacterMetadata, DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
 import { getAllCharacters, seedInitialCharacters } from '@/lib/firebase/rtdb'; // Use RTDB function
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -119,7 +119,7 @@ export default function LandingPage() {
                 <Card key={char.id} className="bg-card shadow-xl rounded-xl overflow-hidden transform hover:scale-105 transition-transform duration-300 flex flex-col">
                   <CardHeader className="p-0 relative w-full h-48 md:h-56">
                     <Image 
-                      src={char.avatarUrl.startsWith('http') ? char.avatarUrl : `https://placehold.co/300x300.png?text=${char.name}`} // Fallback for non-http URLs
+                      src={char.avatarUrl && (char.avatarUrl.startsWith('http://') || char.avatarUrl.startsWith('https://')) ? char.avatarUrl : DEFAULT_AVATAR_DATA_URI}
                       alt={char.name as string} 
                       fill
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -262,3 +262,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
