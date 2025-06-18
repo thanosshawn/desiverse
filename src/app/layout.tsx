@@ -1,27 +1,27 @@
 import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider } from '@/contexts/AuthContext'; // Import AuthProvider
-import './globals.css';
+import { AuthProvider } from '@/contexts/AuthContext'; 
+import './globals.css'; // Ensure globals.css is imported
 // Import new fonts
 import { Belleza, Alegreya } from 'next/font/google';
 
 // Configure fonts
 const belleza = Belleza({
-  weight: ['400'], // Belleza typically comes in one weight
+  weight: ['400'], 
   subsets: ['latin'],
-  variable: '--font-belleza', // Optional: if you want to use CSS variables
+  variable: '--font-belleza', 
   display: 'swap',
 });
 
 const alegreya = Alegreya({
-  weight: ['400', '500', '700'], // Alegreya has multiple weights
+  weight: ['400', '500', '700'], 
   subsets: ['latin'],
-  variable: '--font-alegreya', // Optional
+  variable: '--font-alegreya', 
   display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'DesiVerse Bae - Your Virtual Desi Companion', // Updated app name
+  title: 'DesiVerse Bae - Your Virtual Desi Companion', 
   description: 'Pyaar, dosti aur thoda flirting... all in Hinglish with your virtual Desi Bae!',
 };
 
@@ -33,10 +33,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${belleza.variable} ${alegreya.variable}`}>
       <head>
-        {/* Google Fonts CDN links are not needed if using next/font */}
       </head>
-      <body className={`font-body antialiased ${alegreya.className}`}> {/* Apply Alegreya to body */}
-        <AuthProvider> {/* Wrap children with AuthProvider */}
+      <body className={`font-body antialiased ${alegreya.className}`}> 
+        <AuthProvider> 
           {children}
           <Toaster />
         </AuthProvider>

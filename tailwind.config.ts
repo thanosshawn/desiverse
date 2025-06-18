@@ -10,8 +10,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Alegreya', 'serif'], // Updated body font
-        headline: ['Belleza', 'sans-serif'], // Updated headline font
+        body: ['Alegreya', 'serif'], 
+        headline: ['Belleza', 'sans-serif'], 
         code: ['monospace'],
       },
       colors: {

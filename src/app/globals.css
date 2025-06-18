@@ -39,15 +39,15 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
 
-    /* Sidebar colors - can be adjusted if needed, kept from previous for now */
-    --sidebar-background: 0 0% 98%; 
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar colors - adjusted for red theme */
+    --sidebar-background: hsl(0 30% 98%); /* Lighter reddish sidebar */
+    --sidebar-foreground: hsl(0 10% 20%);
+    --sidebar-primary: hsl(0 72% 51%); /* Red */
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(0 60% 94%); /* Light pinkish accent for sidebar */
+    --sidebar-accent-foreground: hsl(0 72% 45%); /* Darker red for accent text */
+    --sidebar-border: hsl(0 40% 88%);
+    --sidebar-ring: hsl(0 72% 51%);
   }
 
   .dark {
@@ -85,15 +85,15 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* Sidebar colors for dark mode - can be adjusted if needed */
-    --sidebar-background: 0 5% 8%; /* Darker red-tinted sidebar */
-    --sidebar-foreground: 0 10% 85%;
-    --sidebar-primary: 0 70% 55%; /* Reddish primary for sidebar elements */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 10% 12%;
-    --sidebar-accent-foreground: 0 10% 90%;
-    --sidebar-border: 0 10% 20%;
-    --sidebar-ring: 0 75% 60%;
+    /* Sidebar colors for dark mode - adjusted for red theme */
+    --sidebar-background: hsl(0 8% 8%); /* Darker red-tinted sidebar */
+    --sidebar-foreground: hsl(0 15% 88%);
+    --sidebar-primary: hsl(0 75% 55%); /* Reddish primary for sidebar elements */
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(0 10% 12%);
+    --sidebar-accent-foreground: hsl(0 20% 90%);
+    --sidebar-border: hsl(0 10% 20%);
+    --sidebar-ring: hsl(0 75% 60%);
   }
 }
 
