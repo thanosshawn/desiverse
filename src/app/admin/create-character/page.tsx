@@ -6,6 +6,7 @@ import { useFormState } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,7 +17,7 @@ import { createCharacterAction, type CreateCharacterActionState } from '../actio
 import type { CharacterCreationFormSchema } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client'; 
-import { Loader2, LogOut, CheckSquare } from 'lucide-react';
+import { Loader2, LogOut, CheckSquare, ListChecks } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch'; // For isPremium toggle
 
@@ -48,11 +49,13 @@ export default function CreateCharacterPage() {
   const [state, formAction] = useFormState(createCharacterAction, initialState);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const isAdmin = localStorage.getItem('isAdminLoggedIn') === 'true';
-      if (!isAdmin) {
+      const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+      setIsAdminLoggedIn(loggedIn);
+      if (!loggedIn) {
         router.replace('/admin/login');
         toast({ title: 'Unauthorized', description: 'Please login as admin.', variant: 'destructive' });
       }
@@ -129,7 +132,7 @@ export default function CreateCharacterPage() {
     } finally {
       if (fileType === 'avatar') setIsUploadingAvatar(false);
       if (fileType === 'background') setIsUploadingBackground(false);
-      event.target.value = '';
+      if (event.target) event.target.value = ''; // Reset file input
     }
   };
 
@@ -139,8 +142,8 @@ export default function CreateCharacterPage() {
     router.replace('/admin/login');
   };
   
-  if (typeof window !== 'undefined' && localStorage.getItem('isAdminLoggedIn') !== 'true') {
-    return (
+  if (typeof window !== 'undefined' && !isAdminLoggedIn) {
+     return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
              <Header />
             <p className="text-lg">Redirecting to login...</p>
@@ -159,9 +162,16 @@ export default function CreateCharacterPage() {
                 <CardTitle className="text-2xl font-headline text-primary">Create New AI Character</CardTitle>
                 <CardDescription>Fill in the details for your new DesiBae character.</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout} className="rounded-lg">
-              <LogOut className="mr-2 h-4 w-4" /> Logout
-            </Button>
+            <div className="space-x-2">
+                <Link href="/admin/manage-characters" passHref>
+                    <Button variant="outline" size="sm" className="rounded-lg">
+                        <ListChecks className="mr-2 h-4 w-4" /> Manage Characters
+                    </Button>
+                </Link>
+                <Button variant="outline" size="sm" onClick={handleLogout} className="rounded-lg">
+                <LogOut className="mr-2 h-4 w-4" /> Logout
+                </Button>
+            </div>
           </CardHeader>
           <Form {...form}>
             <form action={formAction} className="space-y-6">
@@ -388,3 +398,5 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
+
+    

@@ -78,6 +78,7 @@ export const DEFAULT_AVATAR_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSU
 
 // Schema for the character creation form
 export interface CharacterCreationFormSchema {
+  id?: string; // Character ID is not part of creation form but useful for editing
   name: string;
   description: string;
   personalitySnippet: string;
@@ -98,3 +99,5 @@ export interface AdminCredentials {
   username: string;
   password?: string; // Password stored in plain text - VERY INSECURE
 }
+
+    
