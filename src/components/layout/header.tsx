@@ -79,7 +79,7 @@ export function Header() {
           </div>
         </div>
         <nav className="flex items-center space-x-1 md:space-x-2">
-          <Link href="https://t.me/+CViceBKjhrMwMzU1" target="_blank" passHref>
+          <Link href="https://t.me/desibaecommunity" target="_blank" passHref>
             <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10 rounded-full" title="Join Telegram Group">
               <Send className="h-5 w-5" />
             </Button>
