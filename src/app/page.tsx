@@ -1,3 +1,4 @@
+
 // src/app/page.tsx - Character Selection Page
 'use client';
 import Image from 'next/image';
@@ -9,7 +10,7 @@ import { Filter, Heart, Loader2, MessageCircle, Sparkles, Star, Edit } from 'luc
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState, useMemo } from 'react';
 import { type CharacterMetadata, DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
-import { getAllCharacters, seedInitialCharacters } from '@/lib/firebase/rtdb';
+import { getAllCharacters } from '@/lib/firebase/rtdb'; // Removed seedInitialCharacters import
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
@@ -33,21 +34,21 @@ export default function CharacterSelectionPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
-    async function fetchAndSeedCharacters() {
+    async function fetchCharacters() { // Renamed function
       try {
         setLoadingCharacters(true);
-        await seedInitialCharacters(); // Clears characters
+        // Removed: await seedInitialCharacters(); // This was clearing characters
         const fetchedCharacters = await getAllCharacters();
         setCharacters(fetchedCharacters);
       } catch (error) {
-        console.error("Failed to fetch or seed characters:", error);
+        console.error("Failed to fetch characters:", error);
         setCharacters([]);
       } finally {
         setLoadingCharacters(false);
       }
     }
     if (!authLoading) { // Only fetch if auth is not loading
-        fetchAndSeedCharacters();
+        fetchCharacters();
     }
   }, [authLoading]);
 
@@ -67,11 +68,11 @@ export default function CharacterSelectionPage() {
   }, [characters, searchTerm, selectedTags]);
 
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev => 
+    setSelectedTags(prev =>
       prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
     );
   };
-  
+
   if (authLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
@@ -87,7 +88,7 @@ export default function CharacterSelectionPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50 text-foreground">
       <Header />
-      
+
       <section className="container mx-auto px-4 py-8 flex-grow">
         <div className="text-center mb-10">
           <h2 className="text-4xl md:text-5xl font-bold font-headline mb-3 text-primary animate-fade-in">
@@ -101,7 +102,7 @@ export default function CharacterSelectionPage() {
         {/* Filters and Search */}
         <div className="mb-8 p-4 bg-card/80 backdrop-blur-sm rounded-xl shadow-lg space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4">
           <div className="flex-grow">
-            <Input 
+            <Input
               type="text"
               placeholder="Search by name or personality..."
               value={searchTerm}
@@ -113,7 +114,7 @@ export default function CharacterSelectionPage() {
             <Filter className="h-5 w-5 text-primary mr-1 hidden md:inline-block" />
             <span className="text-sm font-medium text-muted-foreground mr-2 hidden md:inline-block">Filter by Tags:</span>
             {allTags.map(tag => (
-              <Button 
+              <Button
                 key={tag}
                 variant={selectedTags.includes(tag) ? "default" : "outline"}
                 size="sm"
@@ -145,13 +146,13 @@ export default function CharacterSelectionPage() {
             {filteredCharacters.map((char) => (
               <Card key={char.id} className="bg-card shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.03] transition-transform duration-300 flex flex-col group hover:shadow-primary/30 animate-fade-in">
                 <CardHeader className="p-0 relative w-full aspect-[3/4]">
-                  <Image 
+                  <Image
                     src={char.avatarUrl && (char.avatarUrl.startsWith('http')) ? char.avatarUrl : DEFAULT_AVATAR_DATA_URI}
                     alt={char.name}
                     fill
-                    className="object-cover group-hover:brightness-110 transition-all duration-300" 
+                    className="object-cover group-hover:brightness-110 transition-all duration-300"
                     data-ai-hint={char.dataAiHint || 'indian person portrait'}
-                    sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, (max-width: 1280px) 30vw, 23vw" 
+                    sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, (max-width: 1280px) 30vw, 23vw"
                   />
                   {char.isPremium && (
                     <Badge variant="default" className="absolute top-3 right-3 bg-accent text-accent-foreground shadow-md animate-heartbeat">
@@ -182,15 +183,15 @@ export default function CharacterSelectionPage() {
             <p className="text-muted-foreground font-body mb-6">
               {searchTerm || selectedTags.length > 0 ? "Try adjusting your search or filters. Shayad aapki perfect match thodi alag hai!" : "No characters available right now. Hum jald hi naye AI Baes add karenge!"}
             </p>
-            { (searchTerm || selectedTags.length > 0) && 
-                <Button onClick={() => { setSearchTerm(''); setSelectedTags([]); }} variant="outline">Clear Filters</Button> 
+            { (searchTerm || selectedTags.length > 0) &&
+                <Button onClick={() => { setSearchTerm(''); setSelectedTags([]); }} variant="outline">Clear Filters</Button>
             }
           </div>
         )}
-        
+
         {/* Admin Link (optional, can be conditional) */}
         <div className="mt-16 text-center">
-            <Link href="/admin/login" passHref> 
+            <Link href="/admin/login" passHref>
               <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-primary">
                 <Edit className="mr-2 h-4 w-4" /> Admin Panel
               </Button>
