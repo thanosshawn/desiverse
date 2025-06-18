@@ -61,18 +61,17 @@ export default function ChatPage() {
     }
     
     const rootStyle = getComputedStyle(document.documentElement);
+    let bgRgb = '330, 50%, 98%'; // Default light mode
     const bgHslRaw = rootStyle.getPropertyValue('--background').trim();
     const bgHslMatch = bgHslRaw.match(/hsl\(([^)]+)\)/);
 
     if (bgHslMatch && bgHslMatch[1]) {
         const [h, s, l] = bgHslMatch[1].split(/[\s,]+/).map(v => v.trim());
-        document.documentElement.style.setProperty('--background-rgb', `${h}, ${s}, ${l}`);
+        bgRgb = `${h}, ${s}, ${l}`;
     } else {
-        // Fallback if parsing fails, e.g. if --background is a hex or rgb()
-        // This part may need adjustment based on actual --background format if not HSL
-         console.warn("Could not parse HSL from --background. Background overlay may not work as expected.");
-         document.documentElement.style.setProperty('--background-rgb', `330, 50%, 98%`); // Default to light mode's background
+         console.warn("Could not parse HSL from --background. Using default for overlay.");
     }
+    document.documentElement.style.setProperty('--background-rgb', bgRgb);
 
 
     return () => { 
@@ -224,8 +223,8 @@ export default function ChatPage() {
           sender: 'ai',
           text: aiResponse.text,
           messageType: aiResponse.videoDataUri ? 'video' : aiResponse.audioDataUri ? 'audio' : 'text',
-          audioUrl: aiResponse.audioDataUri,
-          videoUrl: aiResponse.videoDataUri,
+          audioUrl: aiResponse.audioDataUri || null, // Ensure null if undefined
+          videoUrl: aiResponse.videoDataUri || null, // Ensure null if undefined
         };
         await addMessageToChat(user.uid, characterId, aiMessageData);
         
@@ -323,3 +322,4 @@ export default function ChatPage() {
     </div>
   );
 }
+
