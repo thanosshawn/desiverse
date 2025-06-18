@@ -1,0 +1,75 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        // Only the authenticated user can read/write their own profile data
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid",
+        // Validate UserProfile structure (simplified example)
+        "name": { ".validate": "newData.isString() || newData.val() == null" },
+        "email": { ".validate": "newData.isString() || newData.val() == null" },
+        "avatarUrl": { ".validate": "newData.isString() || newData.val() == null" },
+        "joinedAt": { ".validate": "newData.isNumber() && (data.exists() ? newData.val() == data.val() : newData.val() == now)" }, // Allow write only on create or if unchanged
+        "lastActive": { ".validate": "newData.isNumber() && newData.val() >= data.parent().child('joinedAt').val()" },
+        "subscriptionTier": { ".validate": "newData.isString() && (newData.val() == 'free' || newData.val() == 'premium' || newData.val() == 'spicy')" },
+        "$other": { ".validate": false }, // Disallow any other fields at the root of user profile
+
+        "userChats": {
+          "$characterId": {
+            "metadata": {
+              ".read": "auth != null && auth.uid == $uid",
+              ".write": "auth != null && auth.uid == $uid",
+              // Validate UserChatSessionMetadata structure
+              "characterId": { ".validate": "newData.isString() && newData.val() == $characterId" },
+              "characterName": { ".validate": "newData.isString()" },
+              "characterAvatarUrl": { ".validate": "newData.isString()" },
+              "createdAt": { ".validate": "newData.isNumber() && (data.exists() ? newData.val() == data.val() : newData.val() <= now)" },
+              "updatedAt": { ".validate": "newData.isNumber() && newData.val() >= data.parent().child('createdAt').val() && newData.val() <= now" },
+              "lastMessageText": { ".validate": "newData.isString() || newData.val() == null" },
+              "lastMessageTimestamp": { ".validate": "newData.isNumber() || newData.val() == null" },
+              "title": { ".validate": "newData.isString() || newData.val() == null" },
+              "isFavorite": { ".validate": "newData.isBoolean()" },
+              "$other": { ".validate": false }
+            },
+            "messages": {
+              ".read": "auth != null && auth.uid == $uid",
+              // Users can add new messages
+              "$messageId": {
+                ".write": "auth != null && auth.uid == $uid && (!data.exists() || newData.child('sender').val() == 'user')", // Allow create, or user to update their own message (if needed later)
+                ".validate": "newData.hasChildren(['sender', 'text', 'timestamp', 'messageType'])",
+                "sender": { ".validate": "newData.isString() && (newData.val() == 'user' || newData.val() == 'ai')" },
+                "text": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length < 2000" },
+                "timestamp": { ".validate": "newData.isNumber() && newData.val() <= now" },
+                "messageType": { ".validate": "newData.isString() && (newData.val() == 'text' || newData.val() == 'audio' || newData.val() == 'video')" },
+                "audioUrl": { ".validate": "newData.isString() || newData.val() == null" },
+                "videoUrl": { ".validate": "newData.isString() || newData.val() == null" },
+                // Disallow users from writing AI messages or modifying existing AI messages directly
+                ".validate": "(newData.child('sender').val() == 'user' && auth.uid == $uid) || (newData.child('sender').val() == 'ai' && !data.exists()) || (newData.child('sender').val() == 'ai' && data.child('sender').val() == 'ai' && !root.child('users').child($uid).child('userChats').child($characterId).child('messages').child($messageId).exists())", // Complex rule: AI can write new messages, user only their own
+                "$other": { ".validate": false }
+              },
+              // Index for querying messages by timestamp
+              ".indexOn": ["timestamp"]
+            }
+          }
+        }
+      }
+    },
+    "characters": {
+      // All authenticated users can read character metadata
+      ".read": "auth != null",
+      // Writing characters should be restricted (e.g., admin only - not shown here for simplicity)
+      ".write": false, // For now, disable direct client write to characters. Seed via script/admin SDK.
+      "$characterId": {
+        ".validate": "newData.hasChildren(['name', 'tagline', 'avatarUrl', 'description', 'prompt'])",
+        "name": { ".validate": "newData.isString()" },
+        "tagline": { ".validate": "newData.isString()" },
+        "avatarUrl": { ".validate": "newData.isString()" },
+        "description": { ".validate": "newData.isString()" },
+        "prompt": { ".validate": "newData.isString()" },
+        "voiceStyle": { ".validate": "newData.isString() || newData.val() == null" },
+        "dataAiHint": { ".validate": "newData.isString() || newData.val() == null" },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}

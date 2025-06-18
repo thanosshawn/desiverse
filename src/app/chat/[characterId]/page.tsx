@@ -5,21 +5,24 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
-import type { ChatMessageUI, CharacterMetadata, ChatSession, MessageDocument, CharacterName } from '@/lib/types';
+import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName } from '@/lib/types';
 import { handleUserMessageAction } from '../../actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { getCharacterMetadata, getOrCreateChatSession, getMessagesStream, addMessageToChat } from '@/lib/firebase/firestore';
-import type { Timestamp } from 'firebase/firestore';
+import { 
+  getCharacterMetadata, 
+  getOrCreateChatSession, 
+  getMessagesStream, 
+  addMessageToChat 
+} from '@/lib/firebase/rtdb'; // Use RTDB functions
 import { Loader2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
-// Polyfill for crypto.randomUUID in environments where it might be missing (like older Node for SSR tests)
+// Polyfill for crypto.randomUUID
 if (typeof crypto === 'undefined' || !crypto.randomUUID) {
   global.crypto = global.crypto || {} as Crypto;
   (global.crypto as any).randomUUID = uuidv4;
 }
-
 
 export default function ChatPage() {
   const { user, loading: authLoading } = useAuth();
@@ -28,11 +31,11 @@ export default function ChatPage() {
   const characterId = params.characterId as string;
 
   const [messages, setMessages] = useState<ChatMessageUI[]>([]);
-  const [isLoadingMessage, setIsLoadingMessage] = useState(false); // For AI response loading
-  const [pageLoading, setPageLoading] = useState(true); // For initial page and data load
+  const [isLoadingMessage, setIsLoadingMessage] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   
   const [currentCharacterMeta, setCurrentCharacterMeta] = useState<CharacterMetadata | null>(null);
-  const [currentChatSession, setCurrentChatSession] = useState<ChatSession | null>(null);
+  const [currentChatSessionMeta, setCurrentChatSessionMeta] = useState<UserChatSessionMetadata | null>(null);
   const [currentVideoSrc, setCurrentVideoSrc] = useState<string | undefined>(undefined);
 
   const { toast } = useToast();
@@ -44,18 +47,17 @@ export default function ChatPage() {
 
   useEffect(scrollToBottom, [messages]);
 
-  // Effect for initial auth check and data fetching
   useEffect(() => {
     if (authLoading) return;
 
     if (!user) {
       toast({ title: 'Authentication Required', description: 'Please log in to chat.', variant: 'destructive' });
-      router.push('/'); // Redirect to homepage or a login page
+      router.push('/');
       return;
     }
 
     if (!characterId) {
-      toast({ title: 'Character Not Specified', description: 'Please select a character to chat with.', variant: 'destructive' });
+      toast({ title: 'Character Not Specified', variant: 'destructive' });
       router.push('/');
       return;
     }
@@ -71,52 +73,47 @@ export default function ChatPage() {
         }
         setCurrentCharacterMeta(charMeta);
 
-        const chatSession = await getOrCreateChatSession(user.uid, characterId);
-        setCurrentChatSession(chatSession);
-        // Initial messages will be loaded by the stream listener
+        const chatSessionMeta = await getOrCreateChatSession(user.uid, characterId);
+        setCurrentChatSessionMeta(chatSessionMeta);
       } catch (error: any) {
         console.error("Error initializing chat:", error);
         toast({ title: 'Error Initializing Chat', description: error.message, variant: 'destructive' });
         router.push('/');
-      } finally {
-        // Page loading will be set to false after the first message stream callback
       }
+      // Page loading set to false by messages stream
     };
 
     initializeChat();
   }, [user, authLoading, characterId, router, toast]);
 
-
-  // Effect for streaming messages
   useEffect(() => {
-    if (!user || !currentChatSession) return;
+    if (!user || !characterId || !currentChatSessionMeta) return; // Ensure chat session meta is loaded
 
     const unsubscribe = getMessagesStream(
       user.uid,
-      currentChatSession.id, // This is effectively characterId if using that as chatID
-      (firestoreMessages) => {
-        const uiMessages: ChatMessageUI[] = firestoreMessages.map(doc => ({
-          id: doc.id || crypto.randomUUID(), // Use doc.id from Firestore
-          firestoreDocId: doc.id,
+      characterId, // characterId is the chat session ID here
+      (rtdbMessages) => {
+        const uiMessages: ChatMessageUI[] = rtdbMessages.map(doc => ({
+          id: doc.id, // RTDB key is the ID
+          rtdbKey: doc.id,
           sender: doc.sender,
           type: doc.messageType === 'audio' ? 'audio' : doc.messageType === 'video' ? 'video' : 'text',
           content: doc.text,
           characterName: doc.sender === 'ai' ? currentCharacterMeta?.name : undefined,
-          timestamp: (doc.timestamp as Timestamp)?.toDate() || new Date(),
+          timestamp: new Date(doc.timestamp), // Convert number to Date
           audioSrc: doc.audioUrl,
           videoSrc: doc.videoUrl,
         }));
         setMessages(uiMessages);
-        if(pageLoading) setPageLoading(false); // Stop page loading after first messages arrive
+        if(pageLoading) setPageLoading(false);
       },
-      50 // Load last 50 messages
+      50
     );
 
     return () => unsubscribe();
-  }, [user, currentChatSession, currentCharacterMeta?.name, pageLoading]);
+  }, [user, characterId, currentChatSessionMeta, currentCharacterMeta?.name, pageLoading]);
 
-
-  const addOptimisticMessage = (message: Omit<ChatMessageUI, 'id' | 'timestamp' | 'firestoreDocId'>): string => {
+  const addOptimisticMessage = (message: Omit<ChatMessageUI, 'id' | 'timestamp' | 'rtdbKey'>): string => {
     const optimisticId = crypto.randomUUID();
     const optimisticMessage: ChatMessageUI = {
       ...message,
@@ -127,9 +124,12 @@ export default function ChatPage() {
     return optimisticId;
   };
 
-  const updateOptimisticMessage = (optimisticId: string, confirmedMessage: Partial<ChatMessageUI> & { firestoreDocId: string }) => {
+  const updateOptimisticMessageKey = (optimisticId: string, rtdbKey: string) => {
+     // With RTDB, the message will appear via the stream with its RTDB key as id.
+     // We might not need explicit update if stream handling is robust,
+     // but if optimistic ID needs to be replaced by RTDB key for some reason:
     setMessages(prev => prev.map(msg => 
-      msg.id === optimisticId ? { ...msg, ...confirmedMessage, id: confirmedMessage.firestoreDocId } : msg
+      msg.id === optimisticId ? { ...msg, id: rtdbKey, rtdbKey: rtdbKey } : msg
     ));
   };
 
@@ -137,33 +137,31 @@ export default function ChatPage() {
      setMessages(prev => prev.filter(msg => msg.id !== optimisticId));
   };
 
-
   const handleSendMessage = useCallback(async (userInput: string, requestType?: 'text' | 'audio_request' | 'video_request') => {
-    if (!user || !currentCharacterMeta || !currentChatSession) {
+    if (!user || !currentCharacterMeta || !currentChatSessionMeta) {
       toast({ title: 'Cannot send message', description: 'User or character not loaded.', variant: 'destructive' });
       return;
     }
 
-    const userMessageData: Omit<MessageDocument, 'timestamp' | 'id'> = {
-      chatId: currentChatSession.id,
+    const userMessageData: Omit<MessageDocument, 'timestamp'> = {
       sender: 'user',
       text: userInput,
-      messageType: 'text',
+      messageType: 'text', // User messages are text by default through input
     };
     
     const optimisticUserMessageId = addOptimisticMessage({
       sender: 'user',
       type: 'text',
       content: userInput,
-      characterName: undefined, // User message has no AI character name
     });
     setIsLoadingMessage(true);
     setCurrentVideoSrc(undefined);
 
     try {
-      // Save user message to Firestore
-      const userMessageFirestoreId = await addMessageToChat(user.uid, currentChatSession.id, userMessageData);
-      updateOptimisticMessage(optimisticUserMessageId, { firestoreDocId: userMessageFirestoreId, content: userInput });
+      // Save user message to RTDB
+      const userMessageRtdbKey = await addMessageToChat(user.uid, characterId, userMessageData);
+      // Optimistic message will be replaced by the one from RTDB stream with the correct key.
+      // updateOptimisticMessageKey(optimisticUserMessageId, userMessageRtdbKey);
 
 
       const optimisticAiLoadingId = addOptimisticMessage({
@@ -173,22 +171,18 @@ export default function ChatPage() {
         characterName: currentCharacterMeta.name as CharacterName,
       });
 
-      // Call AI action
       const aiResponse = await handleUserMessageAction(
         userInput,
-        messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({ // Pass history of actual messages
-            id: m.firestoreDocId || m.id,
+        messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({
+            id: m.rtdbKey || m.id, // Prefer rtdbKey if available
             sender: m.sender,
-            type: m.type,
-            content: m.content,
-            character: m.characterName,
-            timestamp: m.timestamp,
-            audioSrc: m.audioSrc,
-            videoSrc: m.videoSrc,
-        })), // This needs to be adjusted to pass MessageDocument-like structure if action expects it
-        currentCharacterMeta, // Pass full metadata
+            content: m.content, // text content
+            timestamp: m.timestamp.getTime(), // Pass as number
+            // For AI context, we might simplify the history structure
+        })).slice(-10), // Pass recent history for context to AI
+        currentCharacterMeta,
         user.uid,
-        currentChatSession.id
+        characterId // ChatId is characterId here
       );
       
       removeOptimisticMessage(optimisticAiLoadingId);
@@ -202,16 +196,15 @@ export default function ChatPage() {
         });
         toast({ title: 'AI Error', description: aiResponse.error || "Failed to get AI response.", variant: 'destructive' });
       } else {
-        const aiMessageData: Omit<MessageDocument, 'timestamp' | 'id'> = {
-          chatId: currentChatSession.id,
+        const aiMessageData: Omit<MessageDocument, 'timestamp'> = {
           sender: 'ai',
           text: aiResponse.text,
           messageType: aiResponse.videoDataUri ? 'video' : aiResponse.audioDataUri ? 'audio' : 'text',
           audioUrl: aiResponse.audioDataUri,
           videoUrl: aiResponse.videoDataUri,
         };
-        await addMessageToChat(user.uid, currentChatSession.id, aiMessageData);
-        // Message will appear via Firestore stream. Optimistic update for AI message already handled by stream.
+        // Save AI message to RTDB. It will appear via the stream.
+        await addMessageToChat(user.uid, characterId, aiMessageData);
         
         if (aiResponse.videoDataUri) {
           setCurrentVideoSrc(aiResponse.videoDataUri);
@@ -219,7 +212,7 @@ export default function ChatPage() {
       }
     } catch (error: any) {
       console.error("Send message error:", error);
-      removeOptimisticMessage(messages.find(m => m.type === 'loading')?.id || ''); // Remove any loading message
+      removeOptimisticMessage(messages.find(m => m.type === 'loading')?.id || '');
       addOptimisticMessage({
         sender: 'ai',
         type: 'error',
@@ -230,9 +223,9 @@ export default function ChatPage() {
     } finally {
       setIsLoadingMessage(false);
     }
-  }, [user, currentCharacterMeta, currentChatSession, messages, toast]);
+  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast]);
 
-  if (authLoading || pageLoading || !currentCharacterMeta) {
+  if (authLoading || pageLoading || !currentCharacterMeta || !currentChatSessionMeta) {
     return (
       <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center">
         <Header />

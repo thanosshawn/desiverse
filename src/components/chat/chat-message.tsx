@@ -5,7 +5,7 @@ import type { ChatMessageUI } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Bot, User, AlertTriangle, Loader2 } from 'lucide-react';
 import React, { useState, useEffect, useMemo } from 'react';
-import Image from 'next/image'; // For displaying video thumbnails or static image messages
+import Image from 'next/image';
 
 interface ChatMessageProps {
   message: ChatMessageUI;
@@ -14,10 +14,10 @@ interface ChatMessageProps {
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.sender === 'user';
   
+  // Memoize formattedTimestamp to prevent re-computation on every render
   const formattedTimestamp = useMemo(() => {
-    if (typeof window === 'undefined') return null; // Ensure client-side only for initial render
-    if (message.timestamp) {
-      return new Date(message.timestamp).toLocaleTimeString([], {
+    if (message.timestamp) { // message.timestamp is already a Date object in ChatMessageUI
+      return message.timestamp.toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit',
       });
@@ -27,9 +27,18 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
   // State to manage client-side rendering of timestamp after hydration
   const [clientFormattedTimestamp, setClientFormattedTimestamp] = useState<string | null>(null);
+  
   useEffect(() => {
-    setClientFormattedTimestamp(formattedTimestamp);
-  }, [formattedTimestamp]);
+    // This ensures toLocaleTimeString runs only on the client after hydration
+    if (message.timestamp) {
+      setClientFormattedTimestamp(
+        new Date(message.timestamp).toLocaleTimeString([], { // Ensure it's a new Date object for safety
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      );
+    }
+  }, [message.timestamp]);
 
 
   const renderContent = () => {
@@ -41,14 +50,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
           <div>
             {message.content && message.content !== "[Playing audio...]" && <p className="mb-2 text-sm italic">{message.content}</p> }
             {message.audioSrc && (
-              <audio controls src={message.audioSrc} className="w-full max-w-xs h-10"> {/* Adjusted height */}
+              <audio controls src={message.audioSrc} className="w-full max-w-xs h-10">
                 Your browser does not support the audio element.
               </audio>
             )}
           </div>
         );
       case 'video': 
-        // Videos for AI are played by ChatAvatar. This is for inline display if needed, or user videos.
         return (
            <div>
             {message.content && message.content !== "[Playing video...]" && <p className="mb-2 text-sm italic">{message.content}</p>}
@@ -57,9 +65,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
                 Your browser does not support the video tag.
               </video>
             ) : (
-              message.content.startsWith('data:image') ? // Simple check if content itself is an image data URI
+              message.content.startsWith('data:image') ? 
               <Image src={message.content} alt="User uploaded image" width={200} height={150} className="rounded-md object-cover" />
-              : null // Or some placeholder
+              : null 
             )}
           </div>
         );
@@ -91,7 +99,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
     >
       {!isUser && (
         <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-          {/* TODO: Could show AI character avatar here if needed, or keep generic Bot */}
           <Bot size={20} />
         </div>
       )}

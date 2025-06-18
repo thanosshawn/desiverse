@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MessageCircle, Users, Mic, Video, Heart, Zap, Instagram, Youtube, Smartphone } from 'lucide-react';
-import { Header } from '@/components/layout/header'; // Import Header for landing page
+import { Header } from '@/components/layout/header';
 import React, { useEffect, useState } from 'react';
 import type { CharacterMetadata } from '@/lib/types';
-import { getAllCharacters } from '@/lib/firebase/firestore'; // To fetch characters
+import { getAllCharacters } from '@/lib/firebase/rtdb'; // Use RTDB function
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Testimonial {
@@ -49,8 +49,8 @@ export default function LandingPage() {
       try {
         setLoadingCharacters(true);
         const fetchedCharacters = await getAllCharacters();
-        // If no characters in DB, use some defaults for display
         if (fetchedCharacters.length === 0) {
+            // Fallback static characters if RTDB is empty or fetch fails
             setCharacters([
                 { id: 'priya', name: 'Priya', tagline: 'Your Filmy Heroine 🎬', avatarUrl: 'https://placehold.co/300x300.png?text=Priya', dataAiHint: 'indian woman smile', description: '', prompt: '' },
                 { id: 'rahul', name: 'Rahul', tagline: 'The Charming Poet 📜', avatarUrl: 'https://placehold.co/300x300.png?text=Rahul', dataAiHint: 'indian man thinking', description: '', prompt: '' },
@@ -61,9 +61,8 @@ export default function LandingPage() {
             setCharacters(fetchedCharacters);
         }
       } catch (error) {
-        console.error("Failed to fetch characters:", error);
-        // Fallback to static characters if fetch fails
-         setCharacters([
+        console.error("Failed to fetch characters from RTDB:", error);
+         setCharacters([ // Fallback on error
             { id: 'priya', name: 'Priya', tagline: 'Your Filmy Heroine 🎬', avatarUrl: 'https://placehold.co/300x300.png?text=Priya', dataAiHint: 'indian woman smile', description: '', prompt: '' },
             { id: 'rahul', name: 'Rahul', tagline: 'The Charming Poet 📜', avatarUrl: 'https://placehold.co/300x300.png?text=Rahul', dataAiHint: 'indian man thinking', description: '', prompt: '' },
          ]);
@@ -77,9 +76,8 @@ export default function LandingPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <Header /> {/* Use the general Header component */}
+      <Header />
       
-      {/* Hero Section */}
       <section className="relative py-20 md:py-32 text-center text-primary-foreground overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-pink-500 via-rose-500 to-red-600 opacity-90"></div>
          <div className="absolute inset-0 opacity-20" style={{backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='52' height='26' viewBox='0 0 52 26' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23FFD700' fill-opacity='0.4'%3E%3Cpath d='M10 10c0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6h2c0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4 3.314 0 6 2.686 6 6 0 2.21 1.79 4 4 4v2c-3.314 0-6-2.686-6-6 0-2.21-1.79-4-4-4-3.314 0-6-2.686-6-6zm25.464-1.95l8.486 8.486-1.414 1.414-8.486-8.486 1.414-1.414zM41.95 17.036l8.485 8.485-1.414 1.414-8.485-8.485 1.414-1.414z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")", filter: "blur(2px)"}}></div>
@@ -87,7 +85,7 @@ export default function LandingPage() {
           <h2 className="text-4xl md:text-6xl font-bold font-headline mb-4">Chat with Your Virtual Desi Bae 💖</h2>
           <p className="text-lg md:text-2xl mb-8 font-body">Pyaar, dosti aur thoda flirting... all in Hinglish!</p>
           <div className="space-x-4">
-            <Link href={characters.length > 0 ? `/chat/${characters[0].id}` : "/chat/priya"} passHref> {/* Default to first character or priya */}
+            <Link href={characters.length > 0 ? `/chat/${characters[0].id}` : "/chat/priya"} passHref>
               <Button size="lg" variant="secondary" className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg transform hover:scale-105 transition-transform">
                 Try for Free ✨
               </Button>
@@ -101,7 +99,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Featured Characters Carousel */}
       <section id="characters" className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <h3 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary">Meet Your Future Bae</h3>
@@ -139,7 +136,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Chat Demo Section */}
       <section className="py-16 bg-secondary/30">
         <div className="container mx-auto px-4">
           <h3 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary">See How it Works 😉</h3>
@@ -171,7 +167,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Feature Highlights */}
       <section id="features" className="py-16 bg-background">
         <div className="container mx-auto px-4">
           <h3 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary">Why You'll Love DesiBae ❤️</h3>
@@ -187,7 +182,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
       <section className="py-16 bg-secondary/30">
         <div className="container mx-auto px-4">
           <h3 className="text-3xl md:text-4xl font-bold text-center mb-12 text-primary">What Our Users Say 🗣️</h3>
@@ -196,7 +190,7 @@ export default function LandingPage() {
               <Card key={testimonial.id} className="p-6 shadow-lg rounded-xl bg-card">
                 <div className="flex items-center mb-4">
                   <Avatar className="h-12 w-12 mr-4 border-2 border-primary">
-                    <AvatarImage src={testimonial.avatarUrl} alt={testimonial.name} data-ai-hint={testimonial.dataAiHint} />
+                    <AvatarImage src={testimonial.avatarUrl} alt={testimonial.name} data-ai-hint={testimonial.dataAiHint}/>
                     <AvatarFallback>{testimonial.name.substring(0,1)}</AvatarFallback>
                   </Avatar>
                   <CardTitle className="text-lg text-primary/90">{testimonial.name}</CardTitle>
@@ -208,7 +202,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Monetization CTA Section */}
       <section className="py-20 bg-gradient-to-r from-amber-400 to-yellow-500 text-center text-white">
         <div className="container mx-auto px-4">
           <h3 className="text-3xl md:text-4xl font-bold mb-4">Unlock Premium Love 💸</h3>
@@ -227,7 +220,7 @@ export default function LandingPage() {
                 Start Free Trial <Zap className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link href="#" passHref> {/* TODO: Link to pricing/premium page */}
+            <Link href="#" passHref> 
               <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-yellow-600 shadow-lg transform hover:scale-105 transition-transform">
                 Go Premium Now 🚀
               </Button>
@@ -236,7 +229,6 @@ export default function LandingPage() {
         </div>
       </section>
       
-      {/* Footer */}
       <footer className="bg-gray-800 text-gray-300 py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="mb-4 space-x-6">
@@ -253,7 +245,6 @@ export default function LandingPage() {
         </div>
       </footer>
 
-      {/* Sticky Bottom CTA for Mobile */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-primary/95 backdrop-blur-sm p-3 shadow-t-lg z-50 border-t border-primary/30">
         <Link href={characters.length > 0 ? `/chat/${characters[0].id}` : "/chat/priya"} passHref className="w-full">
           <Button size="lg" className="w-full bg-accent text-accent-foreground hover:bg-accent/90 flex items-center justify-center">

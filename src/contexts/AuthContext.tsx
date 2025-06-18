@@ -3,10 +3,11 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, onAuthStateChanged, signOut as firebaseSignOut, GoogleAuthProvider, signInWithPopup, signInAnonymously as firebaseSignInAnonymously } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase/config';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { auth, db as rtdb } from '@/lib/firebase/config'; // RTDB instance
+import { ref, serverTimestamp as rtdbServerTimestamp, get, set, update } from 'firebase/database'; // RTDB specific imports
 import type { UserProfile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { createUserProfile, getUserProfile, updateUserProfile } from '@/lib/firebase/rtdb'; // Import RTDB functions
 
 interface AuthContextType {
   user: User | null;
@@ -30,23 +31,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       if (currentUser) {
         setUser(currentUser);
-        const userDocRef = doc(db, 'users', currentUser.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          setUserProfile(userDocSnap.data() as UserProfile);
+        let existingProfile = await getUserProfile(currentUser.uid);
+        if (existingProfile) {
+          setUserProfile(existingProfile);
+          // Optionally update lastActive here or rely on the dedicated effect
+          if (auth.currentUser) { // ensure user is still current
+             updateUserProfile(auth.currentUser.uid, { lastActive: rtdbServerTimestamp as unknown as number });
+          }
         } else {
-          // Create new user profile if it doesn't exist (e.g. first login)
-          const newUserProfile: UserProfile = {
+          // Create new user profile if it doesn't exist
+          const newUserProfileData: Partial<UserProfile> = {
             uid: currentUser.uid,
             email: currentUser.email,
             name: currentUser.displayName,
             avatarUrl: currentUser.photoURL,
-            joinedAt: serverTimestamp() as any, // Will be converted by Firestore
-            lastActive: serverTimestamp() as any,
+            joinedAt: rtdbServerTimestamp as unknown as number, // RTDB server timestamp
+            lastActive: rtdbServerTimestamp as unknown as number,
             subscriptionTier: 'free',
           };
-          await setDoc(userDocRef, newUserProfile, { merge: true });
-          setUserProfile(newUserProfile);
+          await createUserProfile(currentUser.uid, newUserProfileData);
+          // Fetch the profile again to get server-resolved timestamps (or construct client-side if complex)
+           setUserProfile({
+             ...newUserProfileData,
+             joinedAt: Date.now(), // Approximate with client time for immediate UI
+             lastActive: Date.now(),
+           } as UserProfile);
         }
       } else {
         setUser(null);
@@ -63,12 +72,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-      // onAuthStateChanged will handle profile creation/loading
       toast({ title: 'Successfully signed in with Google!' });
+      // onAuthStateChanged will handle profile creation/loading
     } catch (error: any) {
       console.error('Error signing in with Google:', error);
       toast({ title: 'Google Sign-In Error', description: error.message, variant: 'destructive' });
-      setLoading(false);
+      setLoading(false); // Ensure loading is false on error
     }
   };
 
@@ -76,12 +85,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     try {
       await firebaseSignInAnonymously(auth);
-      // onAuthStateChanged will handle profile creation/loading for anonymous user
       toast({ title: 'Signed in anonymously.' });
+      // onAuthStateChanged will handle profile creation/loading
     } catch (error: any) {
       console.error('Error signing in anonymously:', error);
       toast({ title: 'Anonymous Sign-In Error', description: error.message, variant: 'destructive' });
-      setLoading(false);
+      setLoading(false); // Ensure loading is false on error
     }
   };
 
@@ -100,25 +109,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  // Update lastActive on user activity - could be debounced or on specific actions
   useEffect(() => {
-    const updateUserLastActive = async () => {
+    const updateUserLastActiveInterval = async () => {
       if (user?.uid) {
-        const userDocRef = doc(db, 'users', user.uid);
         try {
-          await setDoc(userDocRef, { lastActive: serverTimestamp() }, { merge: true });
+          // Use updateUserProfile to ensure lastActive is updated correctly
+          await updateUserProfile(user.uid, { lastActive: rtdbServerTimestamp as unknown as number });
         } catch (error) {
-          console.warn('Failed to update lastActive:', error);
+          console.warn('Failed to update lastActive in interval:', error);
         }
       }
     };
 
-    // Example: update on visibility change
-    document.addEventListener('visibilitychange', updateUserLastActive);
-    // And maybe on important actions within the app
+    // Update lastActive periodically and on visibility change
+    const intervalId = setInterval(updateUserLastActiveInterval, 5 * 60 * 1000); // Every 5 minutes
+    document.addEventListener('visibilitychange', updateUserLastActiveInterval);
+    
+    // Initial update on load if user is present
+    if (user?.uid) {
+        updateUserLastActiveInterval();
+    }
 
     return () => {
-      document.removeEventListener('visibilitychange', updateUserLastActive);
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', updateUserLastActiveInterval);
     };
   }, [user?.uid]);
 
