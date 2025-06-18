@@ -3,17 +3,15 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Filter, Heart, Loader2, MessageCircle, Sparkles, Star, Edit } from 'lucide-react';
+import { Filter, Heart, Loader2, MessageCircle, Sparkles, Edit } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState, useMemo } from 'react';
-import { type CharacterMetadata, DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
+import { type CharacterMetadata } from '@/lib/types';
 import { getAllCharacters } from '@/lib/firebase/rtdb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { CharacterCard } from '@/components/character/character-card'; // New Import
 
 const tagColors: Record<string, string> = {
   "Romantic": "bg-pink-500 hover:bg-pink-600",
@@ -128,51 +126,22 @@ export default function CharacterSelectionPage() {
         {loadingCharacters ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
             {[...Array(4)].map((_, i) => (
-              <Card key={i} className="bg-card shadow-xl rounded-2xl overflow-hidden">
-                <Skeleton className="w-full h-60 md:h-72 aspect-[3/4]" /> 
-                <CardContent className="p-5 text-center space-y-2">
-                  <Skeleton className="h-7 w-3/4 mx-auto" />
-                  <Skeleton className="h-4 w-full mx-auto" />
-                  <Skeleton className="h-4 w-5/6 mx-auto mb-3" />
+              <Skeleton key={i} className="bg-card shadow-xl rounded-2xl overflow-hidden aspect-[3/5] flex flex-col">
+                <Skeleton className="w-full h-3/5" /> 
+                <div className="p-5 text-center space-y-2 flex-grow flex flex-col justify-between">
+                  <div>
+                    <Skeleton className="h-7 w-3/4 mx-auto mb-1.5" />
+                    <Skeleton className="h-10 w-full mx-auto mb-3" />
+                  </div>
                   <Skeleton className="h-10 w-full rounded-lg" />
-                </CardContent>
-              </Card>
+                </div>
+              </Skeleton>
             ))}
           </div>
         ) : filteredCharacters.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
             {filteredCharacters.map((char) => (
-              <Card key={char.id} className="bg-card shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.03] transition-transform duration-300 flex flex-col group hover:shadow-primary/30 animate-fade-in">
-                <CardHeader className="p-0 relative w-full aspect-[3/4]">
-                  <Image
-                    src={char.avatarUrl && (char.avatarUrl.startsWith('http')) ? char.avatarUrl : DEFAULT_AVATAR_DATA_URI}
-                    alt={char.name}
-                    fill
-                    className="object-cover group-hover:brightness-110 transition-all duration-300"
-                    data-ai-hint={char.dataAiHint || 'indian person portrait'}
-                    sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, (max-width: 1280px) 30vw, 23vw"
-                  />
-                  {char.isPremium && (
-                    <Badge variant="default" className="absolute top-3 right-3 bg-accent text-accent-foreground shadow-md animate-heartbeat">
-                      <Heart className="w-3 h-3 mr-1.5" /> Premium
-                    </Badge>
-                  )}
-                </CardHeader>
-                <CardContent className="p-5 text-center flex flex-col flex-grow">
-                  <CardTitle className="text-2xl text-primary mb-1.5 font-headline">{char.name}</CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground mb-3 flex-grow min-h-[3em] line-clamp-2">{char.personalitySnippet}</CardDescription>
-                  <div className="flex flex-wrap gap-1.5 justify-center mb-4">
-                    {char.styleTags.slice(0,3).map(tag => (
-                        <Badge key={tag} variant="secondary" className={`text-xs px-2 py-0.5 rounded-md ${tagColors[tag]?.replace('bg-', 'bg-opacity-20 border border-').replace('hover:','text-').replace('500','400') || 'bg-secondary/70 text-secondary-foreground'}`}>{tag}</Badge>
-                    ))}
-                  </div>
-                  <Link href={user ? `/chat/${char.id}` : `/login?redirect=/chat/${char.id}`} passHref className="mt-auto">
-                    <Button variant="default" className="w-full text-primary-foreground rounded-xl text-base py-3 shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 group-hover:animate-heartbeat bg-gradient-to-br from-rose-400 via-orange-300 to-amber-300 hover:from-rose-500 hover:via-orange-400 hover:to-amber-400 hover:shadow-orange-500/50">
-                      <MessageCircle className="mr-2 h-5 w-5" /> Chat with {char.name}
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+              <CharacterCard key={char.id} character={char} user={user} tagColors={tagColors} />
             ))}
           </div>
         ) : (

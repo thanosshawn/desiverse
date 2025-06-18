@@ -19,11 +19,9 @@ import {
   updateUserChatStreak,
   getStreakDataStream 
 } from '@/lib/firebase/rtdb'; 
-import { Loader2, Star, ArrowLeft, Gift as GiftIconLucide } from 'lucide-react'; 
-import * as Icons from 'lucide-react';
+import { Loader2 } from 'lucide-react'; 
 import { v4 as uuidv4 } from 'uuid';
-import { Button } from '@/components/ui/button';
-import { BondMeter } from '@/components/chat/bond-meter'; 
+import { ChatPageHeader } from '@/components/chat/chat-page-header'; // New Import
 
 if (typeof crypto === 'undefined' || !crypto.randomUUID) {
   global.crypto = global.crypto || {} as Crypto;
@@ -327,7 +325,7 @@ export default function ChatPage() {
 
     const messageScore = Math.min(numMessages / 50, 1) * 50; 
     const streakScore = Math.min(streakValue / 7, 1) * 50;   
-    return messageScore + streakScore;
+    return Math.max(0, Math.min(100, messageScore + streakScore));
   }, [messages, currentStreakData, currentCharacterMeta]);
 
 
@@ -361,26 +359,13 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-screen overflow-hidden"> 
       <Header />
-      <div className="bg-card/80 backdrop-blur-sm shadow-md border-b border-border sticky top-16 md:top-18 z-40">
-        <div className="container mx-auto flex items-center justify-between px-3 py-2">
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-primary hover:bg-primary/10 rounded-full">
-                    <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <h2 className="text-lg font-headline text-primary truncate">{currentCharacterMeta.name}</h2>
-            </div>
-            <Button variant="ghost" size="icon" onClick={toggleFavoriteChat} className="text-primary hover:bg-primary/10 rounded-full" title={isFavorite ? "Unfavorite Chat" : "Favorite Chat"}>
-                <Star className={`h-6 w-6 transition-colors duration-200 ${isFavorite ? 'fill-accent text-accent' : 'text-muted-foreground'}`} />
-            </Button>
-        </div>
-         {currentCharacterMeta && (
-          <BondMeter
-            characterName={currentCharacterMeta.name}
-            bondPercentage={bondPercentage}
-          />
-        )}
-      </div>
-
+      <ChatPageHeader
+        characterMeta={currentCharacterMeta}
+        isFavorite={isFavorite}
+        toggleFavoriteChat={toggleFavoriteChat}
+        bondPercentage={bondPercentage}
+        router={router}
+      />
       <main className="flex-grow overflow-hidden">
         <ChatLayout
           messages={messages}
