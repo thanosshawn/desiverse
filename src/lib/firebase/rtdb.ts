@@ -1,3 +1,4 @@
+
 // src/lib/firebase/rtdb.ts
 import {
   ref,
@@ -17,27 +18,28 @@ import { db } from './config'; // RTDB instance
 import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials } from '@/lib/types';
 
 // Helper to get server timestamp value for RTDB
-const getServerTimestamp = () => rtdbServerTimestamp;
+const getServerTimestamp = () => rtdbServerTimestamp(); // Corrected: Call the function
 
 // --- User Profile ---
 export async function createUserProfile(uid: string, data: Partial<UserProfile>): Promise<void> {
   const userRef = ref(db, `users/${uid}`);
-  const profileData: UserProfile = {
+  // Create a temporary object for writing that allows the server timestamp placeholder
+  const profileDataForWrite: Partial<UserProfile> & { joinedAt?: object; lastActive?: object } = {
     uid,
-    name: data.name || "Desi User", // Default name
+    name: data.name || "Desi User",
     email: data.email || null,
     avatarUrl: data.avatarUrl || null,
-    joinedAt: data.joinedAt || Date.now(), 
-    lastActive: data.lastActive || Date.now(),
     subscriptionTier: data.subscriptionTier || 'free',
     selectedTheme: data.selectedTheme || 'light',
     languagePreference: data.languagePreference || 'hinglish',
-    ...data,
+    ...data, // Spread other provided data
   };
-  if (!data.joinedAt) profileData.joinedAt = getServerTimestamp() as unknown as number;
-  if (!data.lastActive) profileData.lastActive = getServerTimestamp() as unknown as number;
+
+  // Set timestamps using the corrected helper or direct value
+  profileDataForWrite.joinedAt = data.joinedAt || getServerTimestamp();
+  profileDataForWrite.lastActive = data.lastActive || getServerTimestamp();
   
-  await set(userRef, profileData);
+  await set(userRef, profileDataForWrite);
 }
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
@@ -48,9 +50,16 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 
 export async function updateUserProfile(uid: string, data: Partial<UserProfile>): Promise<void> {
   const userRef = ref(db, `users/${uid}`);
-  // We use `update` here to only change specified fields and avoid overwriting the whole profile
-  // especially if `getServerTimestamp()` is involved.
-  await update(userRef, {...data, lastActive: getServerTimestamp()});
+  const updateData: Partial<UserProfile> & { lastActive?: object } = { ...data };
+  if (data.lastActive === undefined) { // Check if lastActive specifically needs to be updated by server
+    updateData.lastActive = getServerTimestamp();
+  } else if (typeof data.lastActive === 'number') { // If a number is provided, use it
+     updateData.lastActive = data.lastActive;
+  } else { // If it's deliberately set to the placeholder or another object, allow it
+     updateData.lastActive = data.lastActive;
+  }
+  
+  await update(userRef, updateData);
 }
 
 
@@ -112,10 +121,11 @@ export async function getAllCharacters(): Promise<CharacterMetadata[]> {
 
 export async function addCharacter(characterId: string, data: Omit<CharacterMetadata, 'id' | 'createdAt'> & { createdAt?: number }): Promise<void> {
   const characterRef = ref(db, `characters/${characterId}`);
-  const characterDataToWrite: CharacterMetadata = {
+  // Prepare data for writing, allowing createdAt to be the server timestamp object
+  const characterDataToWrite: Omit<CharacterMetadata, 'createdAt' | 'id'> & { createdAt: number | object, id: string } = {
      ...data, 
      id: characterId, 
-     createdAt: data.createdAt || (getServerTimestamp() as unknown as number),
+     createdAt: data.createdAt || getServerTimestamp(), // Use corrected helper
      personalitySnippet: data.personalitySnippet || data.description.substring(0,70) + "...",
      isPremium: data.isPremium || false,
      styleTags: data.styleTags || [],
@@ -131,35 +141,43 @@ export async function getOrCreateChatSession(userId: string, characterId: string
 
   if (snapshot.exists()) {
     const existingData = snapshot.val() as UserChatSessionMetadata;
-    await update(chatMetadataRef, { updatedAt: getServerTimestamp() }); // Use update
-    return { ...existingData, updatedAt: Date.now() }; 
+    await update(chatMetadataRef, { updatedAt: getServerTimestamp() });
+    // Return what was read, but update updatedAt for immediate client use if needed, or rely on next read.
+    // For consistency, it's better to reflect the server's action as much as possible.
+    return { ...existingData, updatedAt: Date.now() }; // Approximate for UI update
   } else {
     const characterMeta = await getCharacterMetadata(characterId);
     if (!characterMeta) {
       throw new Error(`Character with ID ${characterId} not found.`);
     }
 
-    const newChatSessionMeta: UserChatSessionMetadata = {
+    const newChatSessionMetaDataForWrite: Partial<UserChatSessionMetadata> & {createdAt: object; updatedAt: object; lastMessageTimestamp?: object} = {
       characterId,
       characterName: characterMeta.name,
       characterAvatarUrl: characterMeta.avatarUrl,
-      createdAt: getServerTimestamp() as unknown as number,
-      updatedAt: getServerTimestamp() as unknown as number,
+      createdAt: getServerTimestamp(),
+      updatedAt: getServerTimestamp(),
       lastMessageText: `Chat started with ${characterMeta.name}`,
-      lastMessageTimestamp: getServerTimestamp() as unknown as number,
-      isFavorite: false, // Initialize new field
+      lastMessageTimestamp: getServerTimestamp(),
+      isFavorite: false,
     };
-    await set(chatMetadataRef, newChatSessionMeta);
+    await set(chatMetadataRef, newChatSessionMetaDataForWrite);
 
     await addMessageToChat(userId, characterId, {
       sender: 'ai',
       text: `Namaste! Main hoon ${characterMeta.name}. ${characterMeta.personalitySnippet} Kaho, kya baat karni hai? 😉`,
       messageType: 'text',
-      timestamp: getServerTimestamp() as unknown as number,
+      // Let addMessageToChat handle its own timestamping if not provided
     });
     
-    const now = Date.now();
-    return { ...newChatSessionMeta, createdAt: now, updatedAt: now, lastMessageTimestamp: now };
+    const now = Date.now(); // For optimistic client-side update
+    return { 
+      ...newChatSessionMetaDataForWrite, 
+      // Convert server value placeholders to optimistic client values for immediate use
+      createdAt: now, 
+      updatedAt: now, 
+      lastMessageTimestamp: now 
+    } as UserChatSessionMetadata;
   }
 }
 
@@ -178,7 +196,6 @@ export async function getUserChatSessions(userId: string): Promise<(UserChatSess
       }
     });
   }
-  // Sort by updatedAt descending (most recent first), then by isFavorite
   sessions.sort((a, b) => {
     if (a.isFavorite && !b.isFavorite) return -1;
     if (!a.isFavorite && b.isFavorite) return 1;
@@ -189,7 +206,9 @@ export async function getUserChatSessions(userId: string): Promise<(UserChatSess
 
 export async function updateChatSessionMetadata(userId: string, characterId: string, data: Partial<UserChatSessionMetadata>): Promise<void> {
   const chatMetadataRef = ref(db, `users/${userId}/userChats/${characterId}/metadata`);
-  await update(chatMetadataRef, {...data, updatedAt: getServerTimestamp()});
+  const updateData : Partial<UserChatSessionMetadata> & {updatedAt?: object} = {...data};
+  updateData.updatedAt = getServerTimestamp();
+  await update(chatMetadataRef, updateData);
 }
 
 
@@ -197,24 +216,24 @@ export async function updateChatSessionMetadata(userId: string, characterId: str
 export async function addMessageToChat(
   userId: string,
   characterId: string, 
-  messageData: Omit<MessageDocument, 'timestamp'> & { timestamp?: number }
+  messageData: Omit<MessageDocument, 'timestamp'> & { timestamp?: number | object } // Allow object for server timestamp
 ): Promise<string> {
   const messagesRef = ref(db, `users/${userId}/userChats/${characterId}/messages`);
   const newMessageRef = push(messagesRef); 
 
   const finalMessageData: MessageDocument = {
     ...messageData,
-    timestamp: messageData.timestamp || getServerTimestamp() as unknown as number,
-  };
+    timestamp: typeof messageData.timestamp === 'number' ? messageData.timestamp : (messageData.timestamp || getServerTimestamp()),
+  } as MessageDocument; // Cast because TS might not infer object is valid for number after logic
+  
   await set(newMessageRef, finalMessageData);
 
-  // Update chat session metadata
-  const chatMetadataUpdates: Partial<UserChatSessionMetadata> = {
+  const chatMetadataUpdates: Partial<UserChatSessionMetadata> & {lastMessageTimestamp?: object} = {
     lastMessageText: messageData.text.substring(0, 100),
-    lastMessageTimestamp: finalMessageData.timestamp as number,
-    // No need to spread currentMetadata here, update will merge
+    lastMessageTimestamp: finalMessageData.timestamp, // This will be the placeholder object if server generated
   };
-   await updateChatSessionMetadata(userId, characterId, chatMetadataUpdates);
+  // Let updateChatSessionMetadata handle its own updatedAt
+  await updateChatSessionMetadata(userId, characterId, chatMetadataUpdates);
 
   return newMessageRef.key!;
 }
@@ -277,31 +296,13 @@ export async function seedAdminCredentialsIfNeeded(): Promise<void> {
 export async function seedInitialCharacters() {
   const charactersRef = ref(db, 'characters');
   try {
-    await set(charactersRef, null); // Clears existing characters
+    await set(charactersRef, null); 
     console.log("Characters node in RTDB has been cleared.");
     
-    // Example of how you might add a character if needed for testing,
-    // but for now, we keep it empty as per "remove all characters"
-    /*
-    const sampleCharId = "priya_sharma_001";
-    const sampleCharData: Omit<CharacterMetadata, 'id' | 'createdAt'> = {
-        name: "Priya Sharma",
-        description: "A bubbly and modern girl from Mumbai, loves Bollywood and street food. She's confident and flirty.",
-        personalitySnippet: "Mumbai ki Kudi ✨ Bollywood & Chats!",
-        avatarUrl: "https://placehold.co/400x400.png", // Replace with actual Supabase URL
-        backgroundImageUrl: "https://placehold.co/800x600.png", // Replace
-        basePrompt: "You are Priya Sharma, a fun-loving and flirty girl from Mumbai. You use a lot of Hinglish, latest slang, and Bollywood references. You are here to have an exciting and engaging chat.",
-        styleTags: ["Flirty", "Bollywood", "Funny", "Bold"],
-        defaultVoiceTone: "Upbeat Hinglish (Mumbai accent)",
-        dataAiHint: "indian woman",
-        messageBubbleStyle: "pink-gradient",
-        isPremium: false,
-    };
-    await addCharacter(sampleCharId, sampleCharData);
-    console.log("Added sample character Priya Sharma.");
-    */
-
   } catch (error) {
     console.error("Error seeding/clearing characters in RTDB: ", error);
   }
 }
+
+
+    
