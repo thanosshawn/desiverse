@@ -1,3 +1,4 @@
+
 // src/lib/firebase/rtdb.ts
 import {
   ref,
@@ -10,7 +11,7 @@ import {
   onValue,
   serverTimestamp as rtdbServerTimestamp, // This is an object, not a function to call
   off,
-  Unsubscribe,
+  type Unsubscribe,
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
 import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument } from '@/lib/types';
@@ -99,6 +100,8 @@ export async function getAllCharacters(): Promise<CharacterMetadata[]> {
 
 export async function addCharacter(characterId: string, data: Omit<CharacterMetadata, 'id'>): Promise<void> {
   const characterRef = ref(db, `characters/${characterId}`);
+  // Construct the full CharacterMetadata object, including the id derived from the key.
+  // This ensures the 'id' field is present in the RTDB object, matching the type.
   const characterDataWithId: CharacterMetadata = { ...data, id: characterId };
   await set(characterRef, characterDataWithId);
 }
@@ -200,16 +203,18 @@ export function getMessagesStream(
 
 
 // --- Seed Data ---
-// Updated to reflect new CharacterMetadata schema
+// Updated to reflect new CharacterMetadata schema and Supabase URL placeholder format
 export async function seedInitialCharacters() {
   const now = Date.now(); // Use a consistent timestamp for creation for seed data
+  const supabasePlaceholderBaseUrl = 'https://your-project-ref.supabase.co/storage/v1/object/public/character-assets';
+
   const charactersDataToSeed: Record<string, CharacterMetadata> = {
     priya_001: { 
       id: 'priya_001',
       name: 'Priya', 
       description: 'Priya loves Bollywood, drama, and heartfelt conversations. She\'s waiting to share her dreams with you.', 
-      avatarUrl: 'https://your-supabase-url.com/character-assets/avatars/priya.png', 
-      backgroundImageUrl: 'https://your-supabase-url.com/character-assets/backgrounds/priya_bg.jpg', 
+      avatarUrl: `${supabasePlaceholderBaseUrl}/avatars/priya.png`, 
+      backgroundImageUrl: `${supabasePlaceholderBaseUrl}/backgrounds/priya_bg.jpg`, 
       basePrompt: 'You are Priya, a friendly and flirty AI companion who loves Bollywood movies and romantic dialogues. Respond in Hinglish. Your responses should be engaging, warm, and sometimes a bit filmy.',
       styleTags: ['romantic', 'filmy', 'dreamer', 'warm'],
       defaultVoiceTone: "Riya", 
@@ -220,8 +225,8 @@ export async function seedInitialCharacters() {
       id: 'rahul_001',
       name: 'Rahul', 
       description: 'Rahul is a thoughtful poet who enjoys deep talks and shayari. He\'s looking for someone to share his verses with.', 
-      avatarUrl: 'https://your-supabase-url.com/character-assets/avatars/rahul.png', 
-      backgroundImageUrl: 'https://your-supabase-url.com/character-assets/backgrounds/rahul_bg.jpg', 
+      avatarUrl: `${supabasePlaceholderBaseUrl}/avatars/rahul.png`, 
+      backgroundImageUrl: `${supabasePlaceholderBaseUrl}/backgrounds/rahul_bg.jpg`, 
       basePrompt: 'You are Rahul, a charming and poetic AI companion. You express yourself beautifully in Hinglish, often using shayari or thoughtful observations. You enjoy philosophical discussions and connecting on an emotional level.',
       styleTags: ['poetic', 'thoughtful', 'shayari lover', 'deep'],
       defaultVoiceTone: "Pooja", 
@@ -232,7 +237,8 @@ export async function seedInitialCharacters() {
       id: 'simran_001',
       name: 'Simran', 
       description: 'Simran is your go-to for fun, gossip, and honest advice. She\'s always up for a laugh and a chat about the latest trends.', 
-      avatarUrl: 'https://your-supabase-url.com/character-assets/avatars/simran.png', 
+      avatarUrl: `${supabasePlaceholderBaseUrl}/avatars/simran.png`, 
+      backgroundImageUrl: `${supabasePlaceholderBaseUrl}/backgrounds/simran_bg.jpg`,
       basePrompt: 'You are Simran, a sweet, sassy, and modern AI best friend. You chat in a very casual Hinglish, use a lot of relatable slang, and are always up for fun, gossip, and talking about trends. You are supportive and give honest advice.',
       styleTags: ['sassy', 'modern', 'bff', 'fun-loving', 'honest'],
       defaultVoiceTone: "Meera", 
@@ -243,8 +249,8 @@ export async function seedInitialCharacters() {
       id: 'aryan_001',
       name: 'Aryan', 
       description: 'Aryan is an adventure seeker who loves to explore new things, from bike rides to trekking. He\'s looking for a partner in crime.', 
-      avatarUrl: 'https://your-supabase-url.com/character-assets/avatars/aryan.png', 
-      backgroundImageUrl: 'https://your-supabase-url.com/character-assets/backgrounds/aryan_bg.jpg', 
+      avatarUrl: `${supabasePlaceholderBaseUrl}/avatars/aryan.png`, 
+      backgroundImageUrl: `${supabasePlaceholderBaseUrl}/backgrounds/aryan_bg.jpg`, 
       basePrompt: 'You are Aryan, an adventurous and cool AI companion. You talk about travel, bikes, sports, and exciting experiences in a friendly and energetic Hinglish. You are enthusiastic and always ready for a new plan.',
       styleTags: ['adventurous', 'cool', 'energetic', 'traveler'],
       defaultVoiceTone: "Anjali", 

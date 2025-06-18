@@ -1,3 +1,4 @@
+
 // src/app/admin/create-character/page.tsx
 'use client';
 
@@ -9,19 +10,19 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Label } from '@/components/ui/label'; // Not directly used, FormLabel is from form component
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { createCharacterAction, type CreateCharacterActionState } from '../actions'; 
 import type { CharacterCreationFormSchema } from '@/lib/types';
-import { Header } from '@/components/layout/header'; // Assuming you have a Header component
+import { Header } from '@/components/layout/header';
 
 const characterFormZodSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.').max(50, 'Name must be 50 characters or less.'),
   description: z.string().min(10, 'Description must be at least 10 characters.').max(500, 'Description must be 500 characters or less.'),
-  avatarUrl: z.string().url('Please enter a valid URL. Placeholder: https://placehold.co/300x300.png'),
-  backgroundImageUrl: z.string().url('Please enter a valid URL. Placeholder: https://placehold.co/600x400.png').optional().or(z.literal('')),
+  avatarUrl: z.string().url('Please enter a valid Supabase public URL. e.g., https://your-project-ref.supabase.co/storage/v1/object/public/character-assets/avatars/char.png'),
+  backgroundImageUrl: z.string().url('Please enter a valid Supabase public URL. e.g., https://your-project-ref.supabase.co/storage/v1/object/public/character-assets/backgrounds/char_bg.jpg').optional().or(z.literal('')),
   basePrompt: z.string().min(20, 'Base prompt must be at least 20 characters.'),
   styleTags: z.string().min(1, 'Please enter at least one style tag (comma-separated).'),
   defaultVoiceTone: z.string().min(2, 'Default voice tone must be at least 2 characters.'),
@@ -132,9 +133,9 @@ export default function CreateCharacterPage() {
                     <FormItem>
                       <FormLabel>Avatar URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://your-supabase-url.com/character-assets/avatars/char.png" {...field} />
+                        <Input placeholder="https://your-project-ref.supabase.co/storage/v1/object/public/character-assets/avatars/char.png" {...field} />
                       </FormControl>
-                      <FormDescription>URL of the character's avatar image (e.g., from Supabase Storage).</FormDescription>
+                      <FormDescription>Public URL of the character's avatar from Supabase Storage.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -146,9 +147,9 @@ export default function CreateCharacterPage() {
                     <FormItem>
                       <FormLabel>Background Image URL (Optional)</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://your-supabase-url.com/character-assets/backgrounds/char_bg.jpg" {...field} />
+                        <Input placeholder="https://your-project-ref.supabase.co/storage/v1/object/public/character-assets/backgrounds/char_bg.jpg" {...field} />
                       </FormControl>
-                       <FormDescription>URL of the character's background image.</FormDescription>
+                       <FormDescription>Public URL of the character's background image from Supabase Storage.</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -204,7 +205,7 @@ export default function CreateCharacterPage() {
                       <FormControl>
                         <Input placeholder="e.g., indian woman" {...field} />
                       </FormControl>
-                      <FormDescription>Short hint (1-2 words) for AI image generation if a placeholder is used.</FormDescription>
+                      <FormDescription>Short hint (1-2 words) for AI image generation if a placeholder is used for the avatar (via placehold.co).</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}

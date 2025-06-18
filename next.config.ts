@@ -23,11 +23,14 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      { // For placeholder Supabase URLs from seed data
+      { 
+        // For Supabase Storage URLs. 
+        // Replace 'your-project-ref.supabase.co' with your actual Supabase project reference + .supabase.co
+        // e.g., if your project ref is 'abcdefg', the hostname is 'abcdefg.supabase.co'
         protocol: 'https',
-        hostname: 'your-supabase-url.com',
+        hostname: 'your-project-ref.supabase.co', // IMPORTANT: Update this placeholder
         port: '',
-        pathname: '/**',
+        pathname: '/storage/v1/object/public/**',
       }
     ],
   },
