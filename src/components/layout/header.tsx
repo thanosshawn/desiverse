@@ -93,17 +93,20 @@ export function Header() {
                 {getThemeIcon()}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-popover text-popover-foreground rounded-xl shadow-2xl border-border bg-opacity-100 data-[state=open]:opacity-100">
+            <DropdownMenuContent
+              align="end"
+              className="w-48 bg-white text-neutral-800 rounded-xl shadow-2xl border-border data-[state=open]:opacity-100"
+            >
               <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-                <DropdownMenuRadioItem value="light" className="cursor-pointer hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
+                <DropdownMenuRadioItem value="light" className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md">
                   <Sun className="mr-2 h-4 w-4" /> Light
                 </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark" className="cursor-pointer hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
+                <DropdownMenuRadioItem value="dark" className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md">
                   <Moon className="mr-2 h-4 w-4" /> Dark
                 </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="pink" className="cursor-pointer hover:!bg-accent/10 focus:!bg-accent/20 rounded-md">
+                <DropdownMenuRadioItem value="pink" className="cursor-pointer hover:!bg-neutral-100 focus:!bg-neutral-200 rounded-md">
                   <Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Pink
                 </DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
