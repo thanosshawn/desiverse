@@ -78,24 +78,6 @@ export interface MessageDocument {
 export const DEFAULT_AVATAR_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
 
-// Zod schema for Character Creation/Validation is REMOVED for this iteration to simplify admin form.
-// Keeping the type for form values structure.
-// export const characterCreationAdminFormSchema = z.object({
-//   name: z.string().min(2, 'Name must be at least 2 characters.').max(50, 'Name must be 50 characters or less.'),
-//   description: z.string().min(10, 'Description must be at least 10 characters.').max(500, 'Description must be 500 characters or less.'),
-//   personalitySnippet: z.string().min(5, 'Personality snippet must be at least 5 characters.').max(100, 'Personality snippet must be 100 characters or less.'),
-//   avatarUrl: z.string().url('Avatar URL must be a valid public URL from Supabase (or other provider).'),
-//   backgroundImageUrl: z.string().url('Background Image URL must be a valid public URL if provided.').optional().or(z.literal('')),
-//   basePrompt: z.string().min(20, 'Base prompt must be at least 20 characters to define personality.'),
-//   styleTags: z.string().min(1, 'Please enter at least one style tag (comma-separated e.g., Romantic, Funny).'),
-//   defaultVoiceTone: z.string().min(2, 'Default voice tone must be at least 2 characters (e.g., Sweet Hinglish).'),
-//   dataAiHint: z.string().max(30, 'AI hint for image generation should be short (max 2 words, e.g., "indian woman").').optional(),
-//   messageBubbleStyle: z.string().optional(),
-//   animatedEmojiResponse: z.string().url("Animated Emoji Response URL must be a valid URL if provided (e.g., Lottie/GIF).").optional().or(z.literal('')),
-//   audioGreetingUrl: z.string().url("Audio Greeting URL must be a valid URL if provided.").optional().or(z.literal('')),
-//   isPremium: z.boolean().optional(),
-// });
-
 // Type for form values, now independent of Zod validation for this form.
 export type CharacterCreationAdminFormValues = {
   name: string;
@@ -118,4 +100,15 @@ export type CharacterCreationAdminFormValues = {
 export interface AdminCredentials {
   username: string;
   password?: string; // Password stored in plain text - VERY INSECURE
+}
+
+// For Chat Streaks
+export interface UserChatStreakData {
+  currentStreak: number;
+  lastChatDate: string; // YYYY-MM-DD format, representing the last day user chatted to maintain/increment streak
+}
+
+export interface StreakUpdateResult {
+  streak: number;
+  status: 'first_ever' | 'continued' | 'maintained_same_day' | 'reset';
 }

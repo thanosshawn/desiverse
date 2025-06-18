@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
-import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName } from '@/lib/types';
+import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult } from '@/lib/types';
 import { handleUserMessageAction } from '../../actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,7 +14,8 @@ import {
   getOrCreateChatSession, 
   getMessagesStream, 
   addMessageToChat,
-  updateChatSessionMetadata
+  updateChatSessionMetadata,
+  updateUserChatStreak // Import the new streak function
 } from '@/lib/firebase/rtdb'; 
 import { Loader2, Star } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
@@ -186,8 +187,37 @@ export default function ChatPage() {
     setCurrentVideoSrc(undefined);
 
     try {
+      // Persist user's message
       await addMessageToChat(user.uid, characterId, userMessageData);
 
+      // Update chat streak after user message is sent
+      try {
+        const streakResult = await updateUserChatStreak(user.uid, characterId);
+        let streakToastMessage = '';
+        switch (streakResult.status) {
+          case 'first_ever':
+            streakToastMessage = `Chat Streak Started! Day ${streakResult.streak}! 💖 Keep it going!`;
+            break;
+          case 'continued':
+            streakToastMessage = `Chat Streak: ${streakResult.streak} day${streakResult.streak > 1 ? 's' : ''}! 🔥 Keep the flame alive!`;
+            break;
+          case 'reset':
+            streakToastMessage = `Streak Reset! Back to Day ${streakResult.streak} 💪 Let's build it up!`;
+            break;
+          case 'maintained_same_day':
+            // Optionally, don't show a toast or show a more subtle one if chatting again on the same day.
+            // For now, no toast for same-day continuation to avoid too many notifications.
+            break;
+        }
+        if (streakToastMessage) {
+          toast({ title: "Chat Streak Update!", description: streakToastMessage, duration: 4000 });
+        }
+      } catch (streakError) {
+        console.error("Error updating chat streak:", streakError);
+        // Not a critical error, so we don't block chat flow, but log it.
+      }
+      
+      // Prepare for AI response
       const optimisticAiLoadingId = addOptimisticMessage({
         sender: 'ai',
         type: 'loading',

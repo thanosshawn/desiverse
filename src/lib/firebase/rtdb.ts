@@ -17,7 +17,7 @@ import {
   runTransaction,
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
-import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials } from '@/lib/types';
+import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult } from '@/lib/types';
 
 // --- User Profile ---
 
@@ -259,6 +259,52 @@ export function getMessagesStream(
   });
 
   return () => off(messagesQuery, 'value', listener); 
+}
+
+// --- Chat Streaks ---
+export async function updateUserChatStreak(userId: string, characterId: string): Promise<StreakUpdateResult> {
+  const streakRef = ref(db, `users/${userId}/userChats/${characterId}/streakData`);
+  const currentDate = new Date();
+  const currentDateString = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD
+
+  const snapshot = await get(streakRef);
+  let currentStreakValue = 0;
+  let status: StreakUpdateResult['status'];
+
+  if (snapshot.exists()) {
+    const streakData = snapshot.val() as UserChatStreakData;
+    const lastChatDateString = streakData.lastChatDate;
+
+    const yesterdayDate = new Date(currentDate);
+    yesterdayDate.setDate(currentDate.getDate() - 1);
+    const yesterdayDateString = yesterdayDate.toISOString().split('T')[0];
+
+    if (lastChatDateString === currentDateString) {
+      // Chatting again on the same day
+      currentStreakValue = streakData.currentStreak;
+      status = 'maintained_same_day';
+    } else if (lastChatDateString === yesterdayDateString) {
+      // Streak continued from yesterday
+      currentStreakValue = streakData.currentStreak + 1;
+      status = 'continued';
+    } else {
+      // Streak broken
+      currentStreakValue = 1;
+      status = 'reset';
+    }
+  } else {
+    // No previous streak data, start a new streak
+    currentStreakValue = 1;
+    status = 'first_ever';
+  }
+
+  const newStreakData: UserChatStreakData = {
+    currentStreak: currentStreakValue,
+    lastChatDate: currentDateString,
+  };
+
+  await set(streakRef, newStreakData);
+  return { streak: currentStreakValue, status };
 }
 
 
