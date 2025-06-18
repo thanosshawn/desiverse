@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext'; // Assuming useAuth is used broadly, otherwise not strictly needed here if only localStorage check
+import { useAuth } from '@/contexts/AuthContext';
 import { getAllCharacters } from '@/lib/firebase/rtdb';
 import type { CharacterMetadata } from '@/lib/types';
 import { Header } from '@/components/layout/header';
@@ -33,21 +33,25 @@ export default function ManageCharactersPage() {
   const { toast } = useToast();
   const [characters, setCharacters] = useState<CharacterMetadata[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [authStatusChecked, setAuthStatusChecked] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-      setIsAdminLoggedIn(loggedIn);
-      if (!loggedIn) {
-        router.replace('/admin/login');
-        toast({ title: 'Unauthorized', description: 'Please login as admin.', variant: 'destructive' });
-      }
+    // This effect runs only on the client
+    const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+    setIsAdminLoggedIn(loggedIn);
+    setAuthStatusChecked(true); // Mark that we've checked localStorage
+
+    if (!loggedIn) {
+      // This part of the effect will also only run client-side
+      router.replace('/admin/login');
+      toast({ title: 'Unauthorized', description: 'Please login as admin.', variant: 'destructive' });
     }
   }, [router, toast]);
 
   useEffect(() => {
-    if (isAdminLoggedIn) {
+    if (isAdminLoggedIn && authStatusChecked) { // Fetch characters only if logged in and auth status is checked
       const fetchCharacters = async () => {
         setIsLoading(true);
         try {
@@ -61,8 +65,10 @@ export default function ManageCharactersPage() {
         }
       };
       fetchCharacters();
+    } else if (authStatusChecked && !isAdminLoggedIn) {
+        setIsLoading(false); // Not logged in, so stop loading state
     }
-  }, [isAdminLoggedIn, toast]);
+  }, [isAdminLoggedIn, authStatusChecked, toast]);
 
   const handleLogout = () => {
     localStorage.removeItem('isAdminLoggedIn');
@@ -72,28 +78,38 @@ export default function ManageCharactersPage() {
 
   const handleDeleteCharacter = async (characterId: string, characterName: string) => {
     // Placeholder for actual delete logic
-    // In a real app, you would call a server action to delete the character from RTDB
     toast({
       title: `Delete Action (Not Implemented)`,
       description: `If implemented, this would delete ${characterName}. This is a placeholder.`,
       variant: 'default'
     });
     console.log(`TODO: Implement delete for character ID: ${characterId}`);
-    // Optimistically remove from UI if needed:
-    // setCharacters(prev => prev.filter(char => char.id !== characterId));
   };
   
-  if (typeof window !== 'undefined' && !isAdminLoggedIn) {
-     return (
+  if (!authStatusChecked) {
+    // Render a consistent loading state for both server and initial client render
+    return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
-             <Header />
-            <p className="text-lg">Redirecting to login...</p>
-            <Loader2 className="h-8 w-8 animate-spin mt-4"/>
+            <Header />
+            <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
+            <p className="text-lg mt-2 text-muted-foreground">Checking admin status...</p>
         </div>
     );
   }
 
+  if (!isAdminLoggedIn) {
+     // This will be rendered client-side if not logged in, after authStatusChecked is true.
+     // The useEffect will handle the redirection.
+    return (
+        <div className="flex flex-col min-h-screen bg-background items-center justify-center">
+             <Header />
+            <p className="text-lg text-muted-foreground">Redirecting to login...</p>
+            <Loader2 className="h-8 w-8 animate-spin mt-4 text-primary"/>
+        </div>
+    );
+  }
 
+  // Main content, rendered only if authStatusChecked is true AND isAdminLoggedIn is true
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
@@ -204,5 +220,3 @@ export default function ManageCharactersPage() {
     </div>
   );
 }
-
-    

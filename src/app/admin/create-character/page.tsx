@@ -1,7 +1,7 @@
 // src/app/admin/create-character/page.tsx
 'use client';
 
-import React, { useEffect, useState, useActionState } from 'react'; // Changed import
+import React, { useEffect, useState, useActionState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -45,19 +45,23 @@ const initialState: CreateCharacterActionState = {
 export default function CreateCharacterPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const [state, formAction] = useActionState(createCharacterAction, initialState); // Changed to useActionState
+  const [state, formAction] = useActionState(createCharacterAction, initialState);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
+  
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [authStatusChecked, setAuthStatusChecked] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
-      setIsAdminLoggedIn(loggedIn);
-      if (!loggedIn) {
-        router.replace('/admin/login');
-        toast({ title: 'Unauthorized', description: 'Please login as admin.', variant: 'destructive' });
-      }
+    // This effect runs only on the client
+    const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
+    setIsAdminLoggedIn(loggedIn);
+    setAuthStatusChecked(true); // Mark that we've checked localStorage
+
+    if (!loggedIn) {
+      // This part of the effect will also only run client-side
+      router.replace('/admin/login');
+      toast({ title: 'Unauthorized', description: 'Please login as admin.', variant: 'destructive' });
     }
   }, [router, toast]);
 
@@ -123,9 +127,11 @@ export default function CreateCharacterPage() {
       }
     } catch (error: any) {
       console.error(`Error uploading ${fileType}:`, error);
+      // Use the detailed error logging from supabase client
+      const errorMessage = error.message || (typeof error === 'object' ? JSON.stringify(error) : 'Failed to upload file.');
       toast({
         title: `Upload Error (${fileType})`,
-        description: error.message || 'Failed to upload file.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -141,16 +147,30 @@ export default function CreateCharacterPage() {
     router.replace('/admin/login');
   };
   
-  if (typeof window !== 'undefined' && !isAdminLoggedIn) {
-     return (
+  if (!authStatusChecked) {
+    // Render a consistent loading state for both server and initial client render
+    return (
+        <div className="flex flex-col min-h-screen bg-background items-center justify-center">
+            <Header />
+            <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
+            <p className="text-lg mt-2 text-muted-foreground">Checking admin status...</p>
+        </div>
+    );
+  }
+
+  if (!isAdminLoggedIn) {
+    // This will be rendered client-side if not logged in, after authStatusChecked is true.
+    // The useEffect will handle the redirection.
+    return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
              <Header />
-            <p className="text-lg">Redirecting to login...</p>
-            <Loader2 className="h-8 w-8 animate-spin mt-4"/>
+            <p className="text-lg text-muted-foreground">Redirecting to login...</p>
+            <Loader2 className="h-8 w-8 animate-spin mt-4 text-primary"/>
         </div>
     );
   }
   
+  // Main content, rendered only if authStatusChecked is true AND isAdminLoggedIn is true
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
@@ -397,5 +417,3 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
-
-    
