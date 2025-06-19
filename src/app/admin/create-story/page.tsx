@@ -2,22 +2,20 @@
 // src/app/admin/create-story/page.tsx
 'use client';
 
-import React, { useEffect, useState, useActionState } from 'react'; // Corrected import
+import React, { useEffect, useState, useActionState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { createStoryAction, type CreateStoryActionState } from '../actions';
 import type { InteractiveStoryAdminFormValues, CharacterMetadata } from '@/lib/types';
 import { Header } from '@/components/layout/header';
-import { uploadCharacterAsset } from '@/lib/supabase/client'; // Re-use for cover image
-import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info, BookOpenCheck, BarChart3, PlusCircle, FileText } from 'lucide-react';
+import { uploadCharacterAsset } from '@/lib/supabase/client'; 
+import { Loader2, LogOut, CheckSquare, ListChecks, BookOpenCheck, BarChart3, PlusCircle, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
 import { getAllCharacters } from '@/lib/firebase/rtdb';
 
@@ -36,7 +34,7 @@ export default function CreateStoryPage() {
       title: 'The Secret of the Lost Temple',
       description: 'An adventurous journey to uncover ancient secrets with your Bae.',
       characterId: '',
-      coverImageUrl: 'https://placehold.co/800x450.png', // Default placeholder for cover
+      coverImageUrl: 'https://placehold.co/800x450.png', 
       tagsString: 'Adventure, Romance, Mystery',
       initialSceneSummary: 'You find a mysterious map hinting at a lost temple. Your Bae looks at you with excitement, ready for an adventure. "Should we follow it?" she asks.',
     },
@@ -68,7 +66,7 @@ export default function CreateStoryPage() {
           const chars = await getAllCharacters();
           setCharacters(chars);
           if (chars.length > 0 && !form.getValues('characterId')) {
-            form.setValue('characterId', chars[0].id); // Set default character if none selected
+            form.setValue('characterId', chars[0].id); 
           }
         } catch (error) {
           toast({ title: 'Error', description: 'Could not load characters.', variant: 'destructive' });
@@ -88,7 +86,6 @@ export default function CreateStoryPage() {
         variant: state.success ? 'default' : 'destructive',
       });
       if (state.success) {
-        // Optionally reset form or redirect
         form.reset({
             title: '',
             description: '',
@@ -107,7 +104,7 @@ export default function CreateStoryPage() {
 
     setIsUploadingCover(true);
     try {
-      const publicUrl = await uploadCharacterAsset(file, 'backgrounds'); // Using 'backgrounds' or create 'story-covers'
+      const publicUrl = await uploadCharacterAsset(file, 'backgrounds'); 
       form.setValue('coverImageUrl', publicUrl, { shouldValidate: true });
       toast({ title: 'Cover Image Uploaded', description: 'Cover image URL populated.' });
     } catch (error: any) {
@@ -156,163 +153,151 @@ export default function CreateStoryPage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
-        <Card className="max-w-3xl mx-auto bg-card/90 backdrop-blur-lg shadow-xl rounded-2xl">
-          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6">
-            <div className="flex-grow">
-              <CardTitle className="text-2xl font-headline text-primary flex items-center">
-                <BookOpenCheck className="mr-2 h-6 w-6" /> Create New Interactive Story
-              </CardTitle>
-              <CardDescription>Define the story's plot, character, and starting point.</CardDescription>
+        <div className="max-w-3xl mx-auto">
+            <div className="mb-6 text-center md:text-left">
+                <h1 className="text-2xl font-headline text-primary mb-1 flex items-center">
+                    <BookOpenCheck className="mr-2 h-6 w-6" /> Create New Interactive Story
+                </h1>
+                <p className="text-muted-foreground text-sm">Define the story's plot, character, and starting point.</p>
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 sm:mt-0 w-full sm:w-auto">
-              <Link href="/admin/create-character" passHref className="w-full sm:w-auto">
-                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new character">
+            <div className="flex flex-wrap items-center gap-2 mb-6 justify-center md:justify-start">
+              <Link href="/admin/create-character" passHref>
+                  <Button variant="outline" size="sm" className="!rounded-lg" title="Create new character">
                       <PlusCircle className="mr-2 h-4 w-4"/> Create Char
                   </Button>
               </Link>
-              <Link href="/admin/manage-characters" passHref className="w-full sm:w-auto">
-                <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing characters">
+              <Link href="/admin/manage-characters" passHref>
+                <Button variant="outline" size="sm" className="!rounded-lg" title="Manage existing characters">
                   <ListChecks className="mr-2 h-4 w-4" /> Manage Chars
                 </Button>
               </Link>
-              <Link href="/admin/create-story" passHref className="w-full sm:w-auto"> {/* Placeholder for Manage Stories */}
-                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing stories (placeholder)">
+              <Link href="/admin/create-story" passHref> 
+                  <Button variant="outline" size="sm" className="!rounded-lg" title="Manage existing stories (placeholder)">
                       <FileText className="mr-2 h-4 w-4"/> Manage Stories
                   </Button>
               </Link>
-              <Link href="/admin/analytics" passHref className="w-full sm:w-auto">
-                 <Button variant="outline" size="sm" className="!rounded-lg w-full" title="View Analytics">
+              <Link href="/admin/analytics" passHref>
+                 <Button variant="outline" size="sm" className="!rounded-lg" title="View Analytics">
                      <BarChart3 className="mr-2 h-4 w-4" /> Analytics
                  </Button>
               </Link>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto" title="Logout from admin">
+              <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg" title="Logout from admin">
                 <LogOut className="mr-2 h-4 w-4" /> Logout
               </Button>
             </div>
-          </CardHeader>
+
           <Form {...form}>
-            <form action={formAction} className="space-y-8">
-              <CardContent className="space-y-6 p-6 pt-0">
-                <div className="space-y-4 pt-4">
-                  <h3 className="text-lg font-semibold text-primary flex items-center"><Info className="mr-2 h-5 w-5 text-accent" />Story Details</h3>
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Story Title</FormLabel>
-                        <FormControl><Input placeholder="e.g., The Midnight Train to Shimla" {...field} className="!rounded-lg" /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Story Description</FormLabel>
-                        <FormControl><Textarea placeholder="A brief summary of what the story is about." {...field} className="!rounded-lg" rows={3} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="characterId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Protagonist Character</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={loadingCharacters}>
-                          <FormControl>
-                            <SelectTrigger className="!rounded-lg">
-                              <SelectValue placeholder="Select a character for this story" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {characters.map(char => (
-                              <SelectItem key={char.id} value={char.id}>{char.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>The AI character who will lead this story.</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <Separator className="my-6" />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-primary flex items-center"><ImagePlus className="mr-2 h-5 w-5 text-accent" />Story Visuals</h3>
+            <form action={formAction} className="space-y-6 p-6 bg-card/80 backdrop-blur-sm shadow-xl rounded-xl">
+              
+              {/* Story Details */}
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cover Image</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        accept="image/png, image/jpeg, image/webp"
-                        onChange={handleCoverImageUpload}
-                        className="mb-2 file:mr-4 file:py-2 file:px-4 file:!rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 !rounded-lg"
-                        disabled={isUploadingCover}
-                      />
-                    </FormControl>
-                    {isUploadingCover && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading cover...</div>}
-                    <FormField
-                      control={form.control}
-                      name="coverImageUrl"
-                      render={({ field }) => (
-                        <>
-                          <FormControl>
-                            <Input placeholder="Supabase Cover Image URL (auto-filled or default)" {...field} value={field.value || ''} disabled={isUploadingCover} className="!rounded-lg" />
-                          </FormControl>
-                          <FormDescription>Public URL from Supabase (e.g., https://placehold.co/800x450.png).</FormDescription>
-                        </>
-                      )}
-                    />
+                    <FormLabel>Story Title</FormLabel>
+                    <FormControl><Input placeholder="e.g., The Midnight Train to Shimla" {...field} className="!rounded-lg" /></FormControl>
+                    <FormMessage />
                   </FormItem>
-                   <FormField
-                    control={form.control}
-                    name="tagsString"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Story Tags</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Adventure, Romance, Mystery" {...field} className="!rounded-lg"/>
-                        </FormControl>
-                        <FormDescription>Comma-separated list of tags for discoverability.</FormDescription>
-                      </FormItem>
-                    )}
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Story Description</FormLabel>
+                    <FormControl><Textarea placeholder="A brief summary of what the story is about." {...field} className="!rounded-lg" rows={3} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="characterId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Protagonist Character</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={loadingCharacters}>
+                      <FormControl>
+                        <SelectTrigger className="!rounded-lg">
+                          <SelectValue placeholder="Select a character for this story" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {characters.map(char => (
+                          <SelectItem key={char.id} value={char.id}>{char.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>The AI character who will lead this story.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              {/* Story Visuals */}
+              <FormItem>
+                <FormLabel>Cover Image</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp"
+                    onChange={handleCoverImageUpload}
+                    className="mb-2 file:mr-4 file:py-2 file:px-4 file:!rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 !rounded-lg"
+                    disabled={isUploadingCover}
                   />
-                </div>
-                <Separator className="my-6" />
+                </FormControl>
+                {isUploadingCover && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading cover...</div>}
+                <FormField
+                  control={form.control}
+                  name="coverImageUrl"
+                  render={({ field }) => (
+                    <>
+                      <FormControl>
+                        <Input placeholder="Supabase Cover Image URL (auto-filled or default)" {...field} value={field.value || ''} disabled={isUploadingCover} className="!rounded-lg" />
+                      </FormControl>
+                      <FormDescription>Public URL from Supabase (e.g., https://placehold.co/800x450.png).</FormDescription>
+                    </>
+                  )}
+                />
+              </FormItem>
+               <FormField
+                control={form.control}
+                name="tagsString"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Story Tags</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Adventure, Romance, Mystery" {...field} className="!rounded-lg"/>
+                    </FormControl>
+                    <FormDescription>Comma-separated list of tags for discoverability.</FormDescription>
+                  </FormItem>
+                )}
+              />
 
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-primary flex items-center"><Brain className="mr-2 h-5 w-5 text-accent" />Story AI Setup</h3>
-                  <FormField
-                    control={form.control}
-                    name="initialSceneSummary"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Initial Scene Prompt / Summary</FormLabel>
-                        <FormControl>
-                          <Textarea rows={5} placeholder="Describe the starting situation. This will be given to the AI to generate the first turn of the story. e.g., You and your Bae, {{characterName}}, are walking through a misty forest when you stumble upon an ancient, glowing amulet..." {...field} className="!rounded-lg"/>
-                        </FormControl>
-                        <FormDescription>The very first prompt for the AI to kick off the story. Be descriptive and engaging!</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter className="p-6">
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground !rounded-xl text-lg py-3 shadow-lg" disabled={isSubmitting}>
-                  {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <CheckSquare className="mr-2 h-5 w-5"/>}
-                  {isSubmitting ? 'Processing...' : 'Create Story'}
-                </Button>
-              </CardFooter>
+              {/* Story AI Setup */}
+              <FormField
+                control={form.control}
+                name="initialSceneSummary"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Initial Scene Prompt / Summary</FormLabel>
+                    <FormControl>
+                      <Textarea rows={5} placeholder="Describe the starting situation. This will be given to the AI to generate the first turn of the story. e.g., You and your Bae, {{characterName}}, are walking through a misty forest when you stumble upon an ancient, glowing amulet..." {...field} className="!rounded-lg"/>
+                    </FormControl>
+                    <FormDescription>The very first prompt for the AI to kick off the story. Be descriptive and engaging!</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground !rounded-xl text-lg py-3 shadow-lg" disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <CheckSquare className="mr-2 h-5 w-5"/>}
+                {isSubmitting ? 'Processing...' : 'Create Story'}
+              </Button>
             </form>
           </Form>
-        </Card>
+        </div>
       </main>
     </div>
   );

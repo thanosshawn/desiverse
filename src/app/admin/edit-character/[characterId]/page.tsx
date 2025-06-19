@@ -2,19 +2,17 @@
 // src/app/admin/edit-character/[characterId]/page.tsx
 'use client';
 
-import React, { useEffect, useState, useActionState } from 'react'; // Corrected: useActionState from React
+import React, { useEffect, useState, useActionState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/header';
-import { Loader2, LogOut, Save, ListChecks, ImagePlus, Brain, Settings2, Info, AlertTriangle, Edit2, BookOpenCheck, FileText, Switch } from 'lucide-react';
+import { Loader2, LogOut, Save, ListChecks, Edit2, BookOpenCheck, FileText } from 'lucide-react';
 import { getCharacterMetadata } from '@/lib/firebase/rtdb';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
 import type { CharacterMetadata, CharacterCreationAdminFormValues } from '@/lib/types';
@@ -47,7 +45,7 @@ export default function EditCharacterPage() {
         messageBubbleStyle: '',
         animatedEmojiResponse: '',
         audioGreetingUrl: '',
-        isPremium: false, // Explicitly default to false
+        isPremium: false,
     }
   });
   const [state, formAction, isPending] = useActionState(updateCharacterAction.bind(null, characterId), initialState);
@@ -179,7 +177,7 @@ export default function EditCharacterPage() {
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
         <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8 flex flex-col items-center justify-center text-center">
-          <AlertTriangle className="h-16 w-16 text-destructive mb-4" />
+          <Edit2 className="h-16 w-16 text-destructive mb-4" />
           <h1 className="text-2xl font-bold text-destructive mb-2">Character Not Found</h1>
           <p className="text-muted-foreground mb-4">The character you are trying to edit does not exist or could not be loaded.</p>
           <Link href="/admin/manage-characters" passHref>
@@ -196,243 +194,227 @@ export default function EditCharacterPage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
-        <Card className="max-w-3xl mx-auto bg-card/90 backdrop-blur-lg shadow-xl rounded-2xl">
-          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6">
-            <div className="flex-grow">
-              <CardTitle className="text-2xl font-headline text-primary flex items-center">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-6 text-center md:text-left">
+            <h1 className="text-2xl font-headline text-primary mb-1 flex items-center">
                 <Edit2 className="mr-2 h-6 w-6" /> Edit Character: {form.getValues('name')}
-              </CardTitle>
-              <CardDescription>Modify the details for this AI character.</CardDescription>
-            </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 sm:mt-0 w-full sm:w-auto">
-              <Link href="/admin/manage-characters" passHref className="w-full sm:w-auto">
-                <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Back to manage characters">
+            </h1>
+            <p className="text-muted-foreground text-sm">Modify the details for this AI character.</p>
+          </div>
+           <div className="flex flex-wrap items-center gap-2 mb-6 justify-center md:justify-start">
+              <Link href="/admin/manage-characters" passHref>
+                <Button variant="outline" size="sm" className="!rounded-lg" title="Back to manage characters">
                   <ListChecks className="mr-2 h-4 w-4" /> Manage All
                 </Button>
               </Link>
-               <Link href="/admin/create-story" passHref className="w-full sm:w-auto">
-                <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new story">
+               <Link href="/admin/create-story" passHref>
+                <Button variant="outline" size="sm" className="!rounded-lg" title="Create new story">
                     <BookOpenCheck className="mr-2 h-4 w-4" /> Create Story
                 </Button>
               </Link>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto" title="Logout from admin">
+              <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg" title="Logout from admin">
                 <LogOut className="mr-2 h-4 w-4" /> Logout
               </Button>
             </div>
-          </CardHeader>
           <Form {...form}>
-            <form action={formAction} className="space-y-8">
-              <CardContent className="space-y-6 p-6 pt-0">
-                <div className="space-y-4 pt-4">
-                  <h3 className="text-lg font-semibold text-primary flex items-center"><Info className="mr-2 h-5 w-5 text-accent" />Basic Information</h3>
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Character Name</FormLabel>
-                        <FormControl><Input {...field} className="!rounded-lg" /></FormControl>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="personalitySnippet"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Personality Snippet</FormLabel>
-                        <FormControl><Input {...field} className="!rounded-lg" /></FormControl>
-                         <FormDescription>A short, catchy tagline displayed on the character selection card.</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Description</FormLabel>
-                        <FormControl><Textarea {...field} className="!rounded-lg" rows={3} /></FormControl>
-                        <FormDescription>Detailed background for the AI's personality and for display (if needed).</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <Separator className="my-6" />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-primary flex items-center"><ImagePlus className="mr-2 h-5 w-5 text-accent" />Visuals</h3>
+            <form action={formAction} className="space-y-6 p-6 bg-card/80 backdrop-blur-sm shadow-xl rounded-xl">
+              
+              {/* Basic Information */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Avatar Image</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        accept="image/png, image/jpeg, image/webp"
-                        onChange={(e) => handleFileUpload(e, 'avatar')}
-                        className="mb-2 file:mr-4 file:py-2 file:px-4 file:!rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 !rounded-lg"
-                        disabled={isUploadingAvatar}
-                      />
-                    </FormControl>
-                    {isUploadingAvatar && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading avatar...</div>}
-                    <FormField
-                      control={form.control}
-                      name="avatarUrl"
-                      render={({ field }) => (
-                        <>
-                          <FormControl><Input {...field} disabled={isUploadingAvatar} className="!rounded-lg" /></FormControl>
-                          <FormDescription>Public URL from Supabase or a placeholder.</FormDescription>
-                        </>
-                      )}
-                    />
+                    <FormLabel>Character Name</FormLabel>
+                    <FormControl><Input {...field} className="!rounded-lg" /></FormControl>
                   </FormItem>
-
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="personalitySnippet"
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Background Image (Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        accept="image/png, image/jpeg, image/webp"
-                        onChange={(e) => handleFileUpload(e, 'background')}
-                        className="mb-2 file:mr-4 file:py-2 file:px-4 file:!rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 !rounded-lg"
-                        disabled={isUploadingBackground}
-                      />
-                    </FormControl>
-                    {isUploadingBackground && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading background...</div>}
-                    <FormField
-                      control={form.control}
-                      name="backgroundImageUrl"
-                      render={({ field }) => (
-                        <>
-                          <FormControl><Input {...field} value={field.value || ''} disabled={isUploadingBackground} className="!rounded-lg"/></FormControl>
-                          <FormDescription>Public URL from Supabase or a placeholder.</FormDescription>
-                        </>
-                      )}
-                    />
+                    <FormLabel>Personality Snippet</FormLabel>
+                    <FormControl><Input {...field} className="!rounded-lg" /></FormControl>
+                     <FormDescription>A short, catchy tagline displayed on the character selection card.</FormDescription>
                   </FormItem>
-                </div>
-                <Separator className="my-6" />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Description</FormLabel>
+                    <FormControl><Textarea {...field} className="!rounded-lg" rows={3} /></FormControl>
+                    <FormDescription>Detailed background for the AI's personality and for display (if needed).</FormDescription>
+                  </FormItem>
+                )}
+              />
 
-                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-primary flex items-center"><Brain className="mr-2 h-5 w-5 text-accent" />AI Personality</h3>
-                  <FormField
-                    control={form.control}
-                    name="basePrompt"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Base Prompt</FormLabel>
-                        <FormControl><Textarea rows={6} {...field} className="!rounded-lg"/></FormControl>
-                        <FormDescription>The core personality instructions for the AI.</FormDescription>
-                      </FormItem>
-                    )}
+              {/* Visuals */}
+              <FormItem>
+                <FormLabel>Avatar Image</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp"
+                    onChange={(e) => handleFileUpload(e, 'avatar')}
+                    className="mb-2 file:mr-4 file:py-2 file:px-4 file:!rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 !rounded-lg"
+                    disabled={isUploadingAvatar}
                   />
-                  <FormField
-                    control={form.control}
-                    name="styleTags"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Style Tags</FormLabel>
-                        <FormControl><Input {...field} className="!rounded-lg"/></FormControl>
-                        <FormDescription>Comma-separated list of tags.</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="defaultVoiceTone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Default Voice Tone</FormLabel>
-                        <FormControl><Input {...field} className="!rounded-lg"/></FormControl>
-                        <FormDescription>Describes the character's voice style for TTS.</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={form.control}
-                    name="dataAiHint"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Image AI Hint</FormLabel>
-                        <FormControl><Input {...field} className="!rounded-lg"/></FormControl>
-                        <FormDescription>Short hint (1-2 words) for placeholder images.</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <Separator className="my-6" />
+                </FormControl>
+                {isUploadingAvatar && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading avatar...</div>}
+                <FormField
+                  control={form.control}
+                  name="avatarUrl"
+                  render={({ field }) => (
+                    <>
+                      <FormControl><Input {...field} disabled={isUploadingAvatar} className="!rounded-lg" /></FormControl>
+                      <FormDescription>Public URL from Supabase or a placeholder.</FormDescription>
+                    </>
+                  )}
+                />
+              </FormItem>
 
-                <div className="space-y-4">
-                   <h3 className="text-lg font-semibold text-primary flex items-center"><Settings2 className="mr-2 h-5 w-5 text-accent" />Advanced Settings</h3>
-                   <FormField
-                    control={form.control}
-                    name="messageBubbleStyle"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Message Bubble Style</FormLabel>
-                        <FormControl><Input {...field} value={field.value || ''} className="!rounded-lg"/></FormControl>
-                        <FormDescription>Custom style identifier for chat messages.</FormDescription>
-                      </FormItem>
-                    )}
+              <FormItem>
+                <FormLabel>Background Image (Optional)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    accept="image/png, image/jpeg, image/webp"
+                    onChange={(e) => handleFileUpload(e, 'background')}
+                    className="mb-2 file:mr-4 file:py-2 file:px-4 file:!rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 !rounded-lg"
+                    disabled={isUploadingBackground}
                   />
-                  <FormField
-                    control={form.control}
-                    name="animatedEmojiResponse"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Animated Emoji/Sticker URL</FormLabel>
-                        <FormControl><Input {...field} value={field.value || ''} className="!rounded-lg"/></FormControl>
-                        <FormDescription>Link to animation for card interactions.</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={form.control}
-                    name="audioGreetingUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Audio Greeting URL</FormLabel>
-                        <FormControl><Input {...field} value={field.value || ''} className="!rounded-lg"/></FormControl>
-                        <FormDescription>Link to brief audio greeting.</FormDescription>
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="isPremium"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
-                          <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="text-sm font-medium">
-                            Premium Character
-                          </FormLabel>
-                          <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground">
-                            Mark this character as premium (requires subscription to chat).
-                          </FormDescription>
-                        </div>
+                </FormControl>
+                {isUploadingBackground && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading background...</div>}
+                <FormField
+                  control={form.control}
+                  name="backgroundImageUrl"
+                  render={({ field }) => (
+                    <>
+                      <FormControl><Input {...field} value={field.value || ''} disabled={isUploadingBackground} className="!rounded-lg"/></FormControl>
+                      <FormDescription>Public URL from Supabase or a placeholder.</FormDescription>
+                    </>
+                  )}
+                />
+              </FormItem>
+              
+              {/* AI Personality */}
+              <FormField
+                control={form.control}
+                name="basePrompt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Base Prompt</FormLabel>
+                    <FormControl><Textarea rows={6} {...field} className="!rounded-lg"/></FormControl>
+                    <FormDescription>The core personality instructions for the AI.</FormDescription>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="styleTags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Style Tags</FormLabel>
+                    <FormControl><Input {...field} className="!rounded-lg"/></FormControl>
+                    <FormDescription>Comma-separated list of tags.</FormDescription>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="defaultVoiceTone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Default Voice Tone</FormLabel>
+                    <FormControl><Input {...field} className="!rounded-lg"/></FormControl>
+                    <FormDescription>Describes the character's voice style for TTS.</FormDescription>
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="dataAiHint"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Image AI Hint</FormLabel>
+                    <FormControl><Input {...field} className="!rounded-lg"/></FormControl>
+                    <FormDescription>Short hint (1-2 words) for placeholder images.</FormDescription>
+                  </FormItem>
+                )}
+              />
+              
+              {/* Advanced Settings */}
+               <FormField
+                control={form.control}
+                name="messageBubbleStyle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Message Bubble Style</FormLabel>
+                    <FormControl><Input {...field} value={field.value || ''} className="!rounded-lg"/></FormControl>
+                    <FormDescription>Custom style identifier for chat messages.</FormDescription>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="animatedEmojiResponse"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Animated Emoji/Sticker URL</FormLabel>
+                    <FormControl><Input {...field} value={field.value || ''} className="!rounded-lg"/></FormControl>
+                    <FormDescription>Link to animation for card interactions.</FormDescription>
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="audioGreetingUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Audio Greeting URL</FormLabel>
+                    <FormControl><Input {...field} value={field.value || ''} className="!rounded-lg"/></FormControl>
+                    <FormDescription>Link to brief audio greeting.</FormDescription>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="isPremium"
+                render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
                         <FormControl>
-                           <input
-                            type="checkbox"
-                            id={`${field.name}-premium-checkbox`}
-                            checked={!!field.value}
-                            onChange={(e) => field.onChange(e.target.checked)}
-                            className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary ml-auto"
-                            aria-describedby={`${field.name}-premium-description`}
-                          />
+                            <input
+                                type="checkbox"
+                                id={`${field.name}-premium-checkbox`}
+                                checked={!!field.value}
+                                onChange={(e) => field.onChange(e.target.checked)}
+                                className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                aria-describedby={`${field.name}-premium-description`}
+                            />
                         </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </CardContent>
-              <CardFooter className="p-6">
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground !rounded-xl text-lg py-3 shadow-lg" disabled={isFormSubmitting}>
-                  {isFormSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Save className="mr-2 h-5 w-5"/>}
-                  {isFormSubmitting ? 'Saving...' : 'Update Character'}
-                </Button>
-              </CardFooter>
+                        <div className="space-y-1 leading-none">
+                            <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="font-medium">
+                                Premium Character
+                            </FormLabel>
+                            <FormDescription id={`${field.name}-premium-description`} className="text-xs">
+                                Mark this character as premium (requires subscription to chat).
+                            </FormDescription>
+                        </div>
+                    </FormItem>
+                )}
+                />
+              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground !rounded-xl text-lg py-3 shadow-lg" disabled={isFormSubmitting}>
+                {isFormSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <Save className="mr-2 h-5 w-5"/>}
+                {isFormSubmitting ? 'Saving...' : 'Update Character'}
+              </Button>
             </form>
           </Form>
-        </Card>
+        </div>
       </main>
     </div>
   );
