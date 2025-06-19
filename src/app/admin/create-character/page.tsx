@@ -1,3 +1,4 @@
+
 // src/app/admin/create-character/page.tsx
 'use client';
 
@@ -372,21 +373,21 @@ export default function CreateCharacterPage() {
                     control={form.control}
                     name="isPremium"
                     render={({ field }) => (
-                      <FormItem className="rounded-lg border p-3 shadow-sm space-y-1.5">
-                        <div className="flex flex-row items-center justify-between">
-                          <FormLabel htmlFor={`${field.name}-premium-switch`} className="text-sm font-medium">
+                      <FormItem className="space-y-1.5 py-2">
+                        <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                          <FormLabel htmlFor={`${field.name}-premium-switch`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                             Premium Character
                           </FormLabel>
                           <FormControl>
                             <Switch
                               id={`${field.name}-premium-switch`}
-                              checked={field.value}
+                              checked={!!field.value} 
                               onCheckedChange={field.onChange}
                               aria-describedby={`${field.name}-premium-description`}
                             />
                           </FormControl>
                         </div>
-                        <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground">
+                        <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground px-1">
                           Mark this character as premium (requires subscription to chat).
                         </FormDescription>
                       </FormItem>
@@ -407,3 +408,5 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
+
+    

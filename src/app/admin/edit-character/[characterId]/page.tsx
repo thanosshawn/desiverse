@@ -1,3 +1,4 @@
+
 // src/app/admin/edit-character/[characterId]/page.tsx
 'use client';
 
@@ -32,7 +33,23 @@ export default function EditCharacterPage() {
   const params = useParams();
   const characterId = params.characterId as string;
 
-  const form = useForm<CharacterCreationAdminFormValues>();
+  const form = useForm<CharacterCreationAdminFormValues>({
+     defaultValues: {
+        name: '',
+        description: '',
+        personalitySnippet: '',
+        avatarUrl: '',
+        backgroundImageUrl: '',
+        basePrompt: '',
+        styleTags: '',
+        defaultVoiceTone: '',
+        dataAiHint: '',
+        messageBubbleStyle: '',
+        animatedEmojiResponse: '',
+        audioGreetingUrl: '',
+        isPremium: false, // Important: Initialize as boolean
+    }
+  });
   const [state, formAction, isPending] = useActionState(updateCharacterAction.bind(null, characterId), initialState);
 
   const [isLoadingCharacter, setIsLoadingCharacter] = useState(true);
@@ -63,7 +80,7 @@ export default function EditCharacterPage() {
         if (charData) {
           form.reset({
             ...charData,
-            styleTags: charData.styleTags.join(', '), // Convert array to comma-separated string for input
+            styleTags: charData.styleTags.join(', '),
             backgroundImageUrl: charData.backgroundImageUrl || '',
             messageBubbleStyle: charData.messageBubbleStyle || '',
             animatedEmojiResponse: charData.animatedEmojiResponse || '',
@@ -92,12 +109,8 @@ export default function EditCharacterPage() {
         description: state.message,
         variant: state.success ? 'default' : 'destructive',
       });
-      if (state.success) {
-        // Optionally redirect or clear form, but for edit, usually stay on page
-        // router.push('/admin/manage-characters');
-      }
     }
-  }, [state, toast, router]);
+  }, [state, toast]);
 
   const handleFileUpload = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -382,21 +395,21 @@ export default function EditCharacterPage() {
                     control={form.control}
                     name="isPremium"
                     render={({ field }) => (
-                      <FormItem className="rounded-lg border p-3 shadow-sm space-y-1.5">
-                        <div className="flex flex-row items-center justify-between">
-                          <FormLabel htmlFor={`${field.name}-premium-switch`} className="text-sm font-medium">
+                      <FormItem className="space-y-1.5 py-2">
+                        <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                          <FormLabel htmlFor={`${field.name}-premium-switch`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                             Premium Character
                           </FormLabel>
                           <FormControl>
                             <Switch
                               id={`${field.name}-premium-switch`}
-                              checked={field.value}
+                              checked={!!field.value}
                               onCheckedChange={field.onChange}
                               aria-describedby={`${field.name}-premium-description`}
                             />
                           </FormControl>
                         </div>
-                        <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground">
+                        <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground px-1">
                           Mark this character as premium (requires subscription to chat).
                         </FormDescription>
                       </FormItem>
@@ -417,3 +430,5 @@ export default function EditCharacterPage() {
     </div>
   );
 }
+
+    
