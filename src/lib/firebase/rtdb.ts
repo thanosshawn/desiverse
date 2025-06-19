@@ -17,6 +17,7 @@ import {
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
 import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult, InteractiveStory, UserStoryProgress } from '@/lib/types';
+import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
 
 // --- User Profile ---
 
@@ -449,52 +450,101 @@ export async function addInteractiveStory(storyId: string, data: Omit<Interactiv
 
 export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
   const storiesRef = ref(db, 'interactiveStories');
-  const snapshot = await get(query(storiesRef, orderByChild('createdAt'))); // Order by creation time
+  const snapshot = await get(query(storiesRef, orderByChild('createdAt')));
   const stories: InteractiveStory[] = [];
   if (snapshot.exists()) {
     snapshot.forEach((childSnapshot) => {
-      stories.push({ id: childSnapshot.key!, ...childSnapshot.val() } as InteractiveStory);
+      const val = childSnapshot.val();
+      const key = childSnapshot.key;
+      // Add checks for essential fields to ensure data integrity before pushing
+      if (key && val && typeof val === 'object' && 
+          val.title && typeof val.title === 'string' &&
+          val.characterId && typeof val.characterId === 'string' &&
+          val.initialSceneSummary && typeof val.initialSceneSummary === 'string'
+      ) {
+        stories.push({
+          id: key,
+          title: val.title,
+          description: val.description || '',
+          characterId: val.characterId,
+          characterNameSnapshot: val.characterNameSnapshot || 'Unknown Character',
+          characterAvatarSnapshot: val.characterAvatarSnapshot || DEFAULT_AVATAR_DATA_URI,
+          coverImageUrl: val.coverImageUrl || null,
+          tags: Array.isArray(val.tags) ? val.tags.filter((tag: any) => typeof tag === 'string') : [],
+          initialSceneSummary: val.initialSceneSummary,
+          createdAt: typeof val.createdAt === 'number' ? val.createdAt : 0,
+          updatedAt: typeof val.updatedAt === 'number' ? val.updatedAt : undefined,
+        } as InteractiveStory);
+      } else {
+        console.warn(`Skipping malformed story data for key: ${key}. Received:`, val);
+      }
     });
   }
-  return stories.reverse(); // To get newest first
+  return stories.reverse(); // To get newest first, assuming createdAt is a positive timestamp
 }
+
 
 export async function getInteractiveStory(storyId: string): Promise<InteractiveStory | null> {
   const storyRef = ref(db, `interactiveStories/${storyId}`);
   const snapshot = await get(storyRef);
-  return snapshot.exists() ? ({ id: snapshot.key!, ...snapshot.val() } as InteractiveStory) : null;
+  if (snapshot.exists()) {
+      const val = snapshot.val();
+      const key = snapshot.key;
+       if (key && val && typeof val === 'object' && 
+          val.title && typeof val.title === 'string' &&
+          val.characterId && typeof val.characterId === 'string' &&
+          val.initialSceneSummary && typeof val.initialSceneSummary === 'string'
+      ) {
+        return {
+          id: key,
+          title: val.title,
+          description: val.description || '',
+          characterId: val.characterId,
+          characterNameSnapshot: val.characterNameSnapshot || 'Unknown Character',
+          characterAvatarSnapshot: val.characterAvatarSnapshot || DEFAULT_AVATAR_DATA_URI,
+          coverImageUrl: val.coverImageUrl || null,
+          tags: Array.isArray(val.tags) ? val.tags.filter((tag: any) => typeof tag === 'string') : [],
+          initialSceneSummary: val.initialSceneSummary,
+          createdAt: typeof val.createdAt === 'number' ? val.createdAt : 0,
+          updatedAt: typeof val.updatedAt === 'number' ? val.updatedAt : undefined,
+        } as InteractiveStory;
+      } else {
+        console.warn(`Malformed story data fetched for ID: ${storyId}. Received:`, val);
+        return null;
+      }
+  }
+  return null;
 }
 
 // --- User Story Progress ---
 export async function getUserStoryProgress(userId: string, storyId: string): Promise<UserStoryProgress | null> {
-  const progressRef = ref(db, `userStoryProgress/${userId}/${storyId}`);
+  const progressRef = ref(db, `users/${userId}/userStoryProgress/${storyId}`); // Corrected path
   const snapshot = await get(progressRef);
   return snapshot.exists() ? (snapshot.val() as UserStoryProgress) : null;
 }
 
 export async function updateUserStoryProgress(userId: string, storyId: string, data: Partial<Omit<UserStoryProgress, 'userId' | 'storyId'>> & { lastPlayed?: number | object }): Promise<void> {
-  const progressRef = ref(db, `userStoryProgress/${userId}/${storyId}`);
+  const progressRef = ref(db, `users/${userId}/userStoryProgress/${storyId}`); // Corrected path
   const updateData = {
     ...data,
-    userId, // ensure these are present
+    userId, 
     storyId,
     lastPlayed: data.lastPlayed || rtdbServerTimestamp(),
   };
-  // If it's a new progress, 'set' will create it. If existing, 'update' merges.
-  // Using 'update' is generally safer if you only want to modify specific fields.
-  // However, for progress, we often overwrite the entire currentTurnContext.
-  // Let's ensure all necessary fields are present for a 'set' operation if creating new.
+  
   const snapshot = await get(progressRef);
   if (snapshot.exists()) {
     await update(progressRef, updateData);
   } else {
-    await set(progressRef, {
+    // Ensure all required fields for UserStoryProgress are present when creating new
+    const newProgressData: UserStoryProgress = {
         userId,
         storyId,
         currentTurnContext: data.currentTurnContext || { summaryOfCurrentSituation: 'Initial state', previousUserChoice: 'Let us begin!' },
-        storyTitleSnapshot: data.storyTitleSnapshot || 'Unknown Story',
-        characterIdSnapshot: data.characterIdSnapshot || 'unknown_char',
+        storyTitleSnapshot: data.storyTitleSnapshot || 'Unknown Story', // Ensure this is set
+        characterIdSnapshot: data.characterIdSnapshot || 'unknown_char', // Ensure this is set
         lastPlayed: updateData.lastPlayed,
-    });
+    };
+    await set(progressRef, newProgressData);
   }
 }
