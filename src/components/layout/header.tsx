@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Send, Gem } from 'lucide-react';
+import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Send, Gem, BookHeart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge'; 
 import {
   DropdownMenu,
@@ -81,6 +81,11 @@ export function Header() {
           </div>
         </div>
         <nav className="flex items-center space-x-1 md:space-x-2">
+          <Link href="/stories" passHref>
+            <Button variant="ghost" className={`hover:bg-primary-foreground/10 rounded-lg px-3 py-2 text-sm ${pathname === '/stories' ? 'bg-primary-foreground/20' : ''}`} title="Interactive Stories">
+                <BookHeart className="h-5 w-5 mr-1.5 hidden sm:inline-block" /> Stories
+            </Button>
+          </Link>
           <Link href="https://t.me/desibaecommunity" target="_blank" passHref>
             <Button variant="ghost" className="hover:bg-primary-foreground/10 rounded-lg px-3 py-2 text-sm" title="Join Telegram Group">
               <Send className="h-5 w-5 mr-1.5" /> Join Group
@@ -152,6 +157,11 @@ export function Header() {
                   <DropdownMenuItem asChild className="cursor-pointer rounded-md">
                     <Link href="/">
                       <MessageSquareText className="mr-2 h-4 w-4 text-neutral-600" /> Characters
+                    </Link>
+                  </DropdownMenuItem>
+                   <DropdownMenuItem asChild className="cursor-pointer rounded-md">
+                    <Link href="/stories">
+                      <BookHeart className="mr-2 h-4 w-4 text-neutral-600" /> Stories
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className="cursor-pointer rounded-md">

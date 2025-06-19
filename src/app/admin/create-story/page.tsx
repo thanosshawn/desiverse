@@ -1,7 +1,8 @@
+
 // src/app/admin/create-story/page.tsx
 'use client';
 
-import React, { useEffect, useState, useActionState } from 'react';
+import React, { useEffect, useState, useActionState } from 'react'; // Corrected import
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +15,7 @@ import { createStoryAction, type CreateStoryActionState } from '../actions';
 import type { InteractiveStoryAdminFormValues, CharacterMetadata } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client'; // Re-use for cover image
-import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info, BookOpenCheck, BarChart3, PlusCircle } from 'lucide-react';
+import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info, BookOpenCheck, BarChart3, PlusCircle, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
@@ -88,7 +89,7 @@ export default function CreateStoryPage() {
       });
       if (state.success) {
         // Optionally reset form or redirect
-        form.reset({ // Reset with some defaults, maybe not all
+        form.reset({
             title: '',
             description: '',
             characterId: characters.length > 0 ? characters[0].id : '',
@@ -106,15 +107,14 @@ export default function CreateStoryPage() {
 
     setIsUploadingCover(true);
     try {
-      // Using 'backgrounds' as a generic folder, or create a 'story-covers' one
-      const publicUrl = await uploadCharacterAsset(file, 'backgrounds');
+      const publicUrl = await uploadCharacterAsset(file, 'backgrounds'); // Using 'backgrounds' or create 'story-covers'
       form.setValue('coverImageUrl', publicUrl, { shouldValidate: true });
       toast({ title: 'Cover Image Uploaded', description: 'Cover image URL populated.' });
     } catch (error: any) {
       toast({ title: 'Upload Error', description: error.message, variant: 'destructive' });
     } finally {
       setIsUploadingCover(false);
-      if (event.target) event.target.value = ''; // Clear file input
+      if (event.target) event.target.value = '';
     }
   };
 
@@ -174,6 +174,11 @@ export default function CreateStoryPage() {
                 <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing characters">
                   <ListChecks className="mr-2 h-4 w-4" /> Manage Chars
                 </Button>
+              </Link>
+              <Link href="/admin/create-story" passHref className="w-full sm:w-auto"> {/* Placeholder for Manage Stories */}
+                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing stories (placeholder)">
+                      <FileText className="mr-2 h-4 w-4"/> Manage Stories
+                  </Button>
               </Link>
               <Link href="/admin/analytics" passHref className="w-full sm:w-auto">
                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="View Analytics">

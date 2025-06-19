@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Loader2, BookHeart, Sparkles, Filter } from 'lucide-react';
+import { Loader2, BookHeart, Sparkles, Filter, History } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import type { InteractiveStory, CharacterMetadata } from '@/lib/types';
@@ -13,7 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'; // useRouter for navigation
 
 const tagColors: Record<string, string> = {
   "Adventure": "bg-sky-500 hover:bg-sky-600",
@@ -22,14 +22,68 @@ const tagColors: Record<string, string> = {
   "Thriller": "bg-red-500 hover:bg-red-600",
   "Sci-Fi": "bg-indigo-500 hover:bg-indigo-600",
   "Fantasy": "bg-emerald-500 hover:bg-emerald-600",
-  "Comedy": "bg-yellow-500 hover:bg-yellow-600 text-black",
+  "Comedy": "bg-yellow-500 hover:bg-yellow-600 text-black", // Ensure contrast for yellow
   "Drama": "bg-slate-500 hover:bg-slate-600",
+  "Heartwarming": "bg-rose-400 hover:bg-rose-500",
+  "Hinglish": "bg-orange-500 hover:bg-orange-600",
+};
+
+
+// New Story Card Component
+interface StoryCardProps {
+  story: InteractiveStory;
+  character?: CharacterMetadata; // Character can be undefined if not found
+}
+
+const StoryCard: React.FC<StoryCardProps> = ({ story, character }) => {
+  const { user } = useAuth(); // Get user for login check on play button
+
+  return (
+    <Card key={story.id} className="bg-card shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-300 flex flex-col group hover:shadow-primary/30 animate-fade-in">
+      <CardHeader className="p-0 relative w-full aspect-[16/9]">
+        <Image
+          src={story.coverImageUrl || `https://placehold.co/600x338.png?text=${encodeURIComponent(story.title)}`}
+          alt={story.title}
+          fill
+          className="object-cover group-hover:brightness-110 transition-all duration-300"
+          data-ai-hint={story.tags?.join(' ') || 'story cover'}
+          sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
+        />
+      </CardHeader>
+      <CardContent className="p-5 flex flex-col flex-grow">
+        <CardTitle className="text-xl text-primary mb-1 font-headline line-clamp-2">{story.title}</CardTitle>
+        <CardDescription className="text-sm text-muted-foreground mb-2 line-clamp-3 flex-grow">{story.description}</CardDescription>
+        <p className="text-xs text-muted-foreground/80 mb-3">
+          With: <span className="font-semibold text-accent">{story.characterNameSnapshot || character?.name || 'Mysterious Bae'}</span>
+        </p>
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {story.tags?.slice(0, 4).map(tag => (
+            <Badge
+              key={tag}
+              variant="default"
+              className={`text-xs px-2 py-0.5 rounded-full font-medium ${tagColors[tag] || 'bg-secondary'} ${tag === 'Comedy' ? 'text-black' : 'text-secondary-foreground'}`}
+            >
+              {tag}
+            </Badge>
+          ))}
+        </div>
+        <Link href={user ? `/story/${story.id}` : `/login?redirect=/story/${story.id}`} passHref className="mt-auto">
+          <Button
+            variant="default"
+            className="w-full text-primary-foreground rounded-xl text-base py-2.5 shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 group-hover:animate-heartbeat bg-gradient-to-br from-rose-400 via-orange-300 to-amber-300 hover:from-rose-500 hover:via-orange-400 hover:to-amber-400 hover:shadow-orange-500/50"
+          >
+            <BookHeart className="mr-2 h-5 w-5" /> Play Story
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
 };
 
 
 function StoryListingContent() {
   const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
+  // const router = useRouter(); No longer needed directly here
   const [stories, setStories] = useState<InteractiveStory[]>([]);
   const [characters, setCharacters] = useState<Record<string, CharacterMetadata>>({});
   const [loadingData, setLoadingData] = useState(true);
@@ -58,7 +112,7 @@ function StoryListingContent() {
         setLoadingData(false);
       }
     }
-    if (!authLoading) { // Fetch data only after auth state is resolved
+    if (!authLoading) {
         fetchData();
     }
   }, [authLoading]);
@@ -71,9 +125,10 @@ function StoryListingContent() {
 
   const filteredStories = useMemo(() => {
     return stories.filter(story => {
+      const characterName = story.characterNameSnapshot || characters[story.characterId]?.name || '';
       const matchesSearchTerm = story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                 story.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                (characters[story.characterId]?.name.toLowerCase().includes(searchTerm.toLowerCase()));
+                                (characterName.toLowerCase().includes(searchTerm.toLowerCase()));
       const matchesTags = selectedTags.length === 0 || selectedTags.every(tag => story.tags?.includes(tag));
       return matchesSearchTerm && matchesTags;
     });
@@ -85,7 +140,7 @@ function StoryListingContent() {
     );
   };
 
-  if (authLoading) { // Show loader if auth is still loading
+  if (authLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
@@ -131,7 +186,7 @@ function StoryListingContent() {
                 onClick={() => toggleTag(tag)}
                 className={`rounded-full text-xs px-3 py-1 transition-all duration-200 ease-in-out transform hover:scale-105
                             ${selectedTags.includes(tag) ?
-                              `${tagColors[tag] || 'bg-primary'} text-primary-foreground shadow-md` :
+                              `${tagColors[tag] || 'bg-primary'} ${tag === 'Comedy' ? 'text-black' : 'text-primary-foreground'} shadow-md` :
                               'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/70 bg-background/50'
                             }`}
               >
@@ -159,41 +214,7 @@ function StoryListingContent() {
         ) : filteredStories.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 md:gap-8">
             {filteredStories.map((story) => (
-              <Card key={story.id} className="bg-card shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-300 flex flex-col group hover:shadow-primary/30 animate-fade-in">
-                <CardHeader className="p-0 relative w-full aspect-[16/9]">
-                  <Image
-                    src={story.coverImageUrl || `https://placehold.co/600x338.png?text=${encodeURIComponent(story.title)}`}
-                    alt={story.title}
-                    fill
-                    className="object-cover group-hover:brightness-110 transition-all duration-300"
-                    sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
-                  />
-                </CardHeader>
-                <CardContent className="p-5 flex flex-col flex-grow">
-                  <CardTitle className="text-xl text-primary mb-1 font-headline line-clamp-2">{story.title}</CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground mb-2 line-clamp-3 flex-grow">{story.description}</CardDescription>
-                   <p className="text-xs text-muted-foreground/80 mb-3">With: <span className="font-semibold text-accent">{characters[story.characterId]?.name || 'Mysterious Bae'}</span></p>
-                  <div className="flex flex-wrap gap-1.5 mb-4">
-                    {story.tags?.slice(0, 4).map(tag => (
-                      <Badge
-                        key={tag}
-                        variant="default"
-                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${tagColors[tag] || 'bg-secondary'} text-secondary-foreground`}
-                      >
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  <Link href={user ? `/story/${story.id}` : `/login?redirect=/story/${story.id}`} passHref className="mt-auto">
-                    <Button
-                      variant="default"
-                      className="w-full text-primary-foreground rounded-xl text-base py-2.5 shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 group-hover:animate-heartbeat bg-gradient-to-br from-rose-400 via-orange-300 to-amber-300 hover:from-rose-500 hover:via-orange-400 hover:to-amber-400 hover:shadow-orange-500/50"
-                    >
-                      <BookHeart className="mr-2 h-5 w-5" /> Play Story
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
+              <StoryCard key={story.id} story={story} character={characters[story.characterId]} />
             ))}
           </div>
         ) : (

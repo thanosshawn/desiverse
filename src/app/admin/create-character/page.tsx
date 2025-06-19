@@ -2,7 +2,7 @@
 // src/app/admin/create-character/page.tsx
 'use client';
 
-import React, { useEffect, useState, useActionState } from 'react';
+import React, { useEffect, useState, useActionState } from 'react'; // Corrected: useActionState from React
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,11 +14,12 @@ import { createCharacterAction, type CreateCharacterActionState } from '../actio
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
-import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info, RefreshCw, BarChart3, BookOpenCheck, FileText } from 'lucide-react';
+import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info, RefreshCw, BarChart3, BookOpenCheck, FileText, Switch } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
 import { generateRandomCharacterDefaults } from '@/lib/admin/utils';
+
 
 const initialState: CreateCharacterActionState = {
   message: '',
@@ -265,7 +266,7 @@ export default function CreateCharacterPage() {
                       render={({ field }) => (
                         <>
                           <FormControl>
-                            <Input placeholder="Supabase Background URL (auto-filled or default)" {...field} disabled={isUploadingBackground} className="!rounded-lg"/>
+                            <Input placeholder="Supabase Background URL (auto-filled or default)" {...field} value={field.value || ''} disabled={isUploadingBackground} className="!rounded-lg"/>
                           </FormControl>
                           <FormDescription>Public URL from Supabase or a placeholder (e.g., https://placehold.co/1200x800.png).</FormDescription>
                         </>
@@ -354,7 +355,7 @@ export default function CreateCharacterPage() {
                       <FormItem>
                         <FormLabel>Animated Emoji/Sticker URL (for card hover)</FormLabel>
                         <FormControl>
-                          <Input placeholder="URL to Lottie/GIF e.g. https://placehold.co/100x100.gif" {...field} className="!rounded-lg"/>
+                          <Input placeholder="URL to Lottie/GIF e.g. https://placehold.co/100x100.gif" {...field} value={field.value || ''} className="!rounded-lg"/>
                         </FormControl>
                         <FormDescription>Link to a small animation displayed on character card interactions.</FormDescription>
                       </FormItem>
@@ -367,7 +368,7 @@ export default function CreateCharacterPage() {
                       <FormItem>
                         <FormLabel>Audio Greeting URL (for card hover)</FormLabel>
                         <FormControl>
-                          <Input placeholder="URL to short audio clip (e.g., .mp3)" {...field} className="!rounded-lg"/>
+                          <Input placeholder="URL to short audio clip (e.g., .mp3)" {...field} value={field.value || ''} className="!rounded-lg"/>
                         </FormControl>
                          <FormDescription>Link to a brief audio greeting for character card interactions.</FormDescription>
                       </FormItem>
@@ -377,25 +378,25 @@ export default function CreateCharacterPage() {
                     control={form.control}
                     name="isPremium"
                     render={({ field }) => (
-                      <FormItem className="space-y-1.5 py-2">
-                        <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                           <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="text-sm font-medium">
                             Premium Character
                           </FormLabel>
-                          <FormControl>
-                             <input
-                              type="checkbox"
-                              id={`${field.name}-premium-checkbox`}
-                              checked={!!field.value}
-                              onChange={(e) => field.onChange(e.target.checked)}
-                              className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                              aria-describedby={`${field.name}-premium-description`}
-                            />
-                          </FormControl>
+                          <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground">
+                            Mark this character as premium (requires subscription to chat).
+                          </FormDescription>
                         </div>
-                        <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground px-1">
-                          Mark this character as premium (requires subscription to chat).
-                        </FormDescription>
+                        <FormControl>
+                           <input
+                            type="checkbox"
+                            id={`${field.name}-premium-checkbox`}
+                            checked={!!field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                            className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary ml-auto"
+                            aria-describedby={`${field.name}-premium-description`}
+                          />
+                        </FormControl>
                       </FormItem>
                     )}
                   />
@@ -414,3 +415,4 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
+

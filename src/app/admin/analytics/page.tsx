@@ -131,12 +131,11 @@ export default function AnalyticsPage() {
                       <BookOpenCheck className="mr-2 h-4 w-4"/> Create Story
                   </Button>
               </Link>
-              {/* Placeholder for Manage Stories Link */}
-              {/* <Link href="/admin/manage-stories" passHref className="w-full sm:w-auto">
-                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing stories">
+              <Link href="/admin/create-story" passHref className="w-full sm:w-auto"> {/* Placeholder for Manage Stories */}
+                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing stories (placeholder)">
                       <FileText className="mr-2 h-4 w-4"/> Manage Stories
                   </Button>
-              </Link> */}
+              </Link>
               <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto" title="Logout from admin">
                 <LogOut className="mr-2 h-4 w-4" /> Logout
               </Button>

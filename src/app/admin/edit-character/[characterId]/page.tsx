@@ -2,7 +2,7 @@
 // src/app/admin/edit-character/[characterId]/page.tsx
 'use client';
 
-import React, { useEffect, useState, useActionState } from 'react';
+import React, { useEffect, useState, useActionState } from 'react'; // Corrected: useActionState from React
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -14,11 +14,12 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/header';
-import { Loader2, LogOut, Save, ListChecks, ImagePlus, Brain, Settings2, Info, AlertTriangle, Edit2, BookOpenCheck, FileText } from 'lucide-react';
+import { Loader2, LogOut, Save, ListChecks, ImagePlus, Brain, Settings2, Info, AlertTriangle, Edit2, BookOpenCheck, FileText, Switch } from 'lucide-react';
 import { getCharacterMetadata } from '@/lib/firebase/rtdb';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
 import type { CharacterMetadata, CharacterCreationAdminFormValues } from '@/lib/types';
 import { updateCharacterAction, type UpdateCharacterActionState } from '../../actions';
+
 
 const initialState: UpdateCharacterActionState = {
   message: '',
@@ -33,7 +34,7 @@ export default function EditCharacterPage() {
   const characterId = params.characterId as string;
 
   const form = useForm<CharacterCreationAdminFormValues>({
-     defaultValues: { // Ensure all fields have a default, especially booleans
+     defaultValues: {
         name: '',
         description: '',
         personalitySnippet: '',
@@ -46,7 +47,7 @@ export default function EditCharacterPage() {
         messageBubbleStyle: '',
         animatedEmojiResponse: '',
         audioGreetingUrl: '',
-        isPremium: false,
+        isPremium: false, // Explicitly default to false
     }
   });
   const [state, formAction, isPending] = useActionState(updateCharacterAction.bind(null, characterId), initialState);
@@ -84,7 +85,7 @@ export default function EditCharacterPage() {
             messageBubbleStyle: charData.messageBubbleStyle || '',
             animatedEmojiResponse: charData.animatedEmojiResponse || '',
             audioGreetingUrl: charData.audioGreetingUrl || '',
-            isPremium: charData.isPremium || false, // Ensure boolean
+            isPremium: charData.isPremium || false,
           });
         } else {
           setCharacterNotFound(true);
@@ -302,7 +303,7 @@ export default function EditCharacterPage() {
                       name="backgroundImageUrl"
                       render={({ field }) => (
                         <>
-                          <FormControl><Input {...field} disabled={isUploadingBackground} className="!rounded-lg"/></FormControl>
+                          <FormControl><Input {...field} value={field.value || ''} disabled={isUploadingBackground} className="!rounded-lg"/></FormControl>
                           <FormDescription>Public URL from Supabase or a placeholder.</FormDescription>
                         </>
                       )}
@@ -368,7 +369,7 @@ export default function EditCharacterPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Message Bubble Style</FormLabel>
-                        <FormControl><Input {...field} className="!rounded-lg"/></FormControl>
+                        <FormControl><Input {...field} value={field.value || ''} className="!rounded-lg"/></FormControl>
                         <FormDescription>Custom style identifier for chat messages.</FormDescription>
                       </FormItem>
                     )}
@@ -379,7 +380,7 @@ export default function EditCharacterPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Animated Emoji/Sticker URL</FormLabel>
-                        <FormControl><Input {...field} className="!rounded-lg"/></FormControl>
+                        <FormControl><Input {...field} value={field.value || ''} className="!rounded-lg"/></FormControl>
                         <FormDescription>Link to animation for card interactions.</FormDescription>
                       </FormItem>
                     )}
@@ -390,7 +391,7 @@ export default function EditCharacterPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Audio Greeting URL</FormLabel>
-                        <FormControl><Input {...field} className="!rounded-lg"/></FormControl>
+                        <FormControl><Input {...field} value={field.value || ''} className="!rounded-lg"/></FormControl>
                         <FormDescription>Link to brief audio greeting.</FormDescription>
                       </FormItem>
                     )}
@@ -399,25 +400,25 @@ export default function EditCharacterPage() {
                     control={form.control}
                     name="isPremium"
                     render={({ field }) => (
-                       <FormItem className="space-y-1.5 py-2">
-                        <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                           <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="text-sm font-medium">
                             Premium Character
                           </FormLabel>
-                          <FormControl>
-                            <input
-                              type="checkbox"
-                              id={`${field.name}-premium-checkbox`}
-                              checked={!!field.value} // Ensure boolean
-                              onChange={(e) => field.onChange(e.target.checked)}
-                              className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                              aria-describedby={`${field.name}-premium-description`}
-                            />
-                          </FormControl>
+                          <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground">
+                            Mark this character as premium (requires subscription to chat).
+                          </FormDescription>
                         </div>
-                        <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground px-1">
-                          Mark this character as premium (requires subscription to chat).
-                        </FormDescription>
+                        <FormControl>
+                           <input
+                            type="checkbox"
+                            id={`${field.name}-premium-checkbox`}
+                            checked={!!field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                            className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary ml-auto"
+                            aria-describedby={`${field.name}-premium-description`}
+                          />
+                        </FormControl>
                       </FormItem>
                     )}
                   />

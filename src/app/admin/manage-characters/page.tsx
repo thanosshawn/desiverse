@@ -124,6 +124,11 @@ export default function ManageCharactersPage() {
                     <BookOpenCheck className="mr-2 h-4 w-4" /> Create Story
                 </Button>
               </Link>
+              <Link href="/admin/create-story" passHref className="w-full sm:w-auto"> {/* Placeholder for Manage Stories */}
+                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing stories (placeholder)">
+                      <FileText className="mr-2 h-4 w-4"/> Manage Stories
+                  </Button>
+              </Link>
               <Link href="/admin/analytics" passHref className="w-full sm:w-auto">
                 <Button variant="outline" size="sm" className="!rounded-lg w-full" title="View Analytics">
                     <BarChart3 className="mr-2 h-4 w-4" /> Analytics

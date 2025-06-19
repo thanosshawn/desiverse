@@ -164,7 +164,6 @@ export const StoryTurnInputSchema = z.object({
   }),
   story: z.object({
     title: z.string().describe("The title of the interactive story."),
-    // episodeNumber: z.number().describe("The current episode number of the story.").optional(), // Simplified for now
   }),
   user: z.object({
     name: z.string().describe("The user's name."),
@@ -177,8 +176,9 @@ export const StoryTurnInputSchema = z.object({
 export type StoryTurnInput = z.infer<typeof StoryTurnInputSchema>;
 
 export const StoryTurnOutputSchema = z.object({
-  narrationForThisTurn: z.string().describe("The AI character's story narration for the current turn, continuing from the user's choice. Should be in Hinglish, immersive, romantic, and emotional, with emojis."),
-  personalQuestion: z.string().describe("A personal question or action point for the user related to the current story moment."),
+  narrationForThisTurn: z.string().describe("The AI character's story narration for the current turn, continuing from the user's choice. Should be in Hinglish, immersive, romantic, and emotional, with emojis. This narration should also include any personal question for the user if applicable, integrated naturally within the text."),
+  // personalQuestion field can be removed if integrated into narrationForThisTurn.
+  // personalQuestion: z.string().optional().describe("An optional personal question or action point for the user related to the current story moment, if distinct from the main narration."),
   choiceA: z.string().describe("The text for the first choice (Option A) for the user to continue the story."),
   choiceB: z.string().describe("The text for the second choice (Option B) for the user to continue the story."),
 });
