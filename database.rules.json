@@ -117,7 +117,7 @@
     "interactiveStories": {
       ".read": "auth != null",
       ".write": false, // Writes typically handled by admin server actions
-      ".indexOn": "createdAt", // Index for ordering stories by creation date
+      ".indexOn": ["createdAt"], // Index for ordering stories by creation date
       "$storyId": {
         ".validate": "newData.hasChildren(['id', 'title', 'description', 'characterId', 'characterNameSnapshot', 'characterAvatarSnapshot', 'tags', 'initialSceneSummary', 'createdAt', 'updatedAt'])",
         "id": { ".validate": "newData.isString() && newData.val() == $storyId" },
