@@ -134,7 +134,7 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
       {!isUser && (
         <Avatar className="flex-shrink-0 w-8 h-8 rounded-full shadow-sm self-end mb-1">
             <AvatarImage src={aiAvatarUrl} alt={message.characterName || 'AI'} />
-            <AvatarFallback className="bg-pink-500/90 text-white text-xs">
+            <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
               {message.characterName ? getInitials(message.characterName) : <Bot size={16}/>}
             </AvatarFallback>
         </Avatar>
@@ -163,4 +163,3 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
     </div>
   );
 }
-
