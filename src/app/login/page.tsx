@@ -1,8 +1,7 @@
-
 // src/app/login/page.tsx - Dedicated Login Page
 'use client';
 
-import React, { useEffect, useState, Suspense, use } from 'react'; // Added use
+import React, { useEffect, useState, Suspense, use } from 'react'; 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -15,7 +14,7 @@ function LoginFormComponent() {
   const { toast } = useToast();
   const router = useRouter();
   const searchParamsFromHook = useSearchParams();
-  const actualSearchParams = use(searchParamsFromHook); // Unwrap searchParams
+  const actualSearchParams = use(searchParamsFromHook); 
   const { user, loading: authLoading, signInWithGoogle, signInAnonymously } = useAuth();
   const [isProviderLoading, setIsProviderLoading] = useState(false);
 
@@ -104,4 +103,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-

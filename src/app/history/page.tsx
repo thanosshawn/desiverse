@@ -54,7 +54,7 @@ export default function ChatHistoryPage() {
     } else if (!authLoading && !user) {
       setLoadingSessions(false);
     }
-  }, [user, authLoading, toast]); // Added toast to dependencies
+  }, [user, authLoading, toast]); 
 
   const filteredSessions = chatSessions.filter(session =>
     session.characterName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -85,15 +85,17 @@ export default function ChatHistoryPage() {
 
   const handleDeleteChat = async (characterId: string) => {
     if(!user) return;
-    console.log(`Placeholder: Delete chat with ${characterId}`);
-    // Note: Full deletion from RTDB is not implemented here, this is visual only for now.
-    // To implement full deletion, a new function in rtdb.ts would be needed.
+    // Placeholder for actual deletion from RTDB.
+    // For now, visually remove and show toast.
+    // A function in rtdb.ts like `deleteUserChatSession(userId, characterId)` would be needed.
+    const characterName = chatSessions.find(s => s.characterId === characterId)?.characterName || 'this character';
     setChatSessions(prev => prev.filter(s => s.characterId !== characterId));
     toast({
       title: "Chat Removed (Visually)",
-      description: `Chat with ${chatSessions.find(s=>s.characterId === characterId)?.characterName} removed from list. Full delete not yet implemented.`,
+      description: `Chat with ${characterName} removed from list. Full delete functionality is not yet implemented.`,
       variant: "default"
     });
+    // console.log(`TODO: Implement full RTDB deletion for chat with ${characterId}`);
   };
 
 

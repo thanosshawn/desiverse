@@ -1,4 +1,3 @@
-
 // src/components/layout/header.tsx
 'use client';
 
@@ -61,7 +60,7 @@ export function Header() {
   const isPremiumUser = userProfile?.subscriptionTier === 'premium' || userProfile?.subscriptionTier === 'spicy';
 
   return (
-    <header className="bg-gradient-to-br from-pink-400 via-rose-400 via-fuchsia-300 to-orange-300 text-primary-foreground p-3 md:p-4 shadow-lg sticky top-0 z-50 h-16 md:h-18 flex items-center">
+    <header className="bg-gradient-to-br from-primary via-pink-400 to-accent text-primary-foreground p-3 md:p-4 shadow-lg sticky top-0 z-50 h-16 md:h-18 flex items-center">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center gap-4">
           <Link href="/" passHref>
@@ -95,16 +94,16 @@ export function Header() {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-48 rounded-xl shadow-2xl" // bg-white text-neutral-800 border-neutral-200 now comes from base
+              className="w-48 rounded-xl shadow-2xl" 
             >
               <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
                 <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md">
-                  <Sun className="mr-2 h-4 w-4 text-neutral-600" /> Light
+                  <Sun className="mr-2 h-4 w-4" /> Light
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md">
-                  <Moon className="mr-2 h-4 w-4 text-neutral-600" /> Dark
+                  <Moon className="mr-2 h-4 w-4" /> Dark
                 </DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md">
                   <Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Pink

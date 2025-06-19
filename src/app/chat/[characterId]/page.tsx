@@ -1,4 +1,3 @@
-
 // src/app/chat/[characterId]/page.tsx
 'use client';
 
@@ -27,7 +26,6 @@ export default function ChatPage() {
   const router = useRouter();
 
   const paramsFromHook = useParams();
-  // const actualParams = use(paramsFromHook as any); // Reverted: Caused "unsupported type" error
   const characterId = paramsFromHook.characterId as string;
 
 
@@ -53,37 +51,52 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (currentCharacterMeta?.backgroundImageUrl) {
-      document.body.style.backgroundImage = `linear-gradient(rgba(var(--background-rgb),0.7), rgba(var(--background-rgb),0.7)), url(${currentCharacterMeta.backgroundImageUrl})`;
+      const root = document.documentElement;
+      const rootStyle = getComputedStyle(root);
+      const bgHslString = rootStyle.getPropertyValue('--background').trim();
+      const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\))?/);
+      let overlayColor = 'rgba(255, 255, 255, 0.7)'; // Default light overlay
+
+      if (hslMatch && hslMatch.length >= 4) {
+        overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, 0.7)`;
+      } else {
+        console.warn("Could not parse HSL from --background for chat overlay. Using default. Raw value:", bgHslString);
+      }
+
+      document.body.style.backgroundImage = `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`;
       document.body.style.backgroundSize = 'cover';
       document.body.style.backgroundPosition = 'center';
       document.body.style.backgroundRepeat = 'no-repeat';
       document.body.style.backgroundAttachment = 'fixed';
     } else {
-      document.body.style.backgroundImage = '';
+      document.body.style.backgroundImage = ''; // Clear if no char background
     }
 
-    const rootStyle = getComputedStyle(document.documentElement);
-    let bgRgb = '330 50% 98%';
-    const bgHslRaw = rootStyle.getPropertyValue('--background').trim();
-    const bgHslMatch = bgHslRaw.match(/hsl\(([^)]+)\)/);
-
-    if (bgHslMatch && bgHslMatch[1]) {
-        const [h, s, l] = bgHslMatch[1].split(/[\s,]+/).map(v => v.trim());
-        bgRgb = `${h}, ${s}, ${l}`;
+    // For loading state, if characterMeta is available early
+    if (pageLoading && currentCharacterMeta?.backgroundImageUrl) {
+       const root = document.documentElement;
+       const rootStyle = getComputedStyle(root);
+       const bgHslString = rootStyle.getPropertyValue('--background').trim();
+       const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\))?/);
+       let overlayColor = 'rgba(255, 255, 255, 0.7)';
+        if (hslMatch && hslMatch.length >= 4) {
+            overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, 0.7)`;
+        }
+      document.documentElement.style.setProperty('--chat-page-initial-bg-image', `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`);
     } else {
-         console.warn("Could not parse HSL from --background. Using default for overlay.");
+      document.documentElement.style.removeProperty('--chat-page-initial-bg-image');
     }
-    document.documentElement.style.setProperty('--background-rgb', bgRgb);
 
 
-    return () => {
+    return () => { // Cleanup styles on component unmount
       document.body.style.backgroundImage = '';
       document.body.style.backgroundSize = '';
       document.body.style.backgroundPosition = '';
       document.body.style.backgroundRepeat = '';
       document.body.style.backgroundAttachment = '';
+      document.documentElement.style.removeProperty('--chat-page-initial-bg-image');
     };
-  }, [currentCharacterMeta?.backgroundImageUrl]);
+  }, [currentCharacterMeta?.backgroundImageUrl, pageLoading]);
 
 
   useEffect(() => {
@@ -120,6 +133,7 @@ export default function ChatPage() {
         toast({ title: 'Error Initializing Chat', description: error.message, variant: 'destructive' });
         router.push('/');
       }
+      // Page loading will be set to false in the messages stream effect
     };
 
     initializeChat();
@@ -149,18 +163,18 @@ export default function ChatPage() {
           if (doc.messageType === 'gift_sent' && doc.sentGiftId) {
             baseMessage.sentGift = {
                 id: doc.sentGiftId,
-                name: doc.text.includes("sent a") ? doc.text.split("sent a ")[1].split(" to")[0] : "a gift",
-                iconName: 'Gift',
-                description: "A lovely gift",
-                aiReactionPrompt: ""
+                name: doc.text.includes("sent a") ? doc.text.split("sent a ")[1].split(" to")[0] : "a gift", // Basic parsing
+                iconName: 'Gift', // Default, ideally stored or mapped
+                description: "A lovely gift", // Default
+                aiReactionPrompt: "" // Default
             };
           }
           return baseMessage;
         });
         setMessages(uiMessages);
-        if(pageLoading) setPageLoading(false);
+        if(pageLoading) setPageLoading(false); // Set page loading to false after first messages are loaded
       },
-      50
+      50 // Limit messages
     );
 
     const unsubscribeStreak = getStreakDataStream(user.uid, characterId, setCurrentStreakData);
@@ -217,7 +231,7 @@ export default function ChatPage() {
     }
 
     setIsLoadingMessage(true);
-    setCurrentVideoSrc(undefined);
+    setCurrentVideoSrc(undefined); // Clear previous video
 
     try {
       const userMessageData: Omit<MessageDocument, 'timestamp'> = {
@@ -228,6 +242,7 @@ export default function ChatPage() {
       };
       await addMessageToChat(user.uid, characterId, userMessageData);
 
+      // Update chat streak
       try {
         const streakResult = await updateUserChatStreak(user.uid, characterId);
         let streakToastMessage = '';
@@ -235,10 +250,11 @@ export default function ChatPage() {
           case 'first_ever': streakToastMessage = `Chat Streak Started! Day ${streakResult.streak}! 💖 Keep it going!`; break;
           case 'continued': streakToastMessage = `Chat Streak: ${streakResult.streak} day${streakResult.streak > 1 ? 's' : ''}! 🔥 Keep the flame alive!`; break;
           case 'reset': streakToastMessage = `Streak Reset! Back to Day ${streakResult.streak} 💪 Let's build it up!`; break;
-          case 'maintained_same_day': break;
+          case 'maintained_same_day': break; // No toast if just chatting more on the same day
         }
         if (streakToastMessage) toast({ title: "Chat Streak Update!", description: streakToastMessage, duration: 4000 });
       } catch (streakError) { console.error("Error updating chat streak:", streakError); }
+
 
       const optimisticAiLoadingId = addOptimisticMessage({
         sender: 'ai',
@@ -247,14 +263,15 @@ export default function ChatPage() {
         characterName: currentCharacterMeta.name as CharacterName,
       });
 
+      // Fetch AI response
       const aiResponse = await handleUserMessageAction(
         userInput,
-        messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({
-            id: m.rtdbKey || m.id,
+        messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({ // Use current messages state
+            id: m.rtdbKey || m.id, // Ensure a unique ID is available
             sender: m.sender,
             content: m.content,
-            timestamp: m.timestamp.getTime(),
-        })).slice(-10),
+            timestamp: m.timestamp.getTime(), // Pass timestamp as number
+        })).slice(-10), // Send last 10 messages for context
         currentCharacterMeta,
         user.uid,
         characterId,
@@ -273,6 +290,7 @@ export default function ChatPage() {
         });
         toast({ title: 'AI Error', description: aiResponse.error || "Failed to get AI response.", variant: 'destructive' });
       } else {
+        // Add AI's message to RTDB
         const aiMessageData: Omit<MessageDocument, 'timestamp'> = {
           sender: 'ai',
           text: aiResponse.text,
@@ -283,11 +301,12 @@ export default function ChatPage() {
         await addMessageToChat(user.uid, characterId, aiMessageData);
 
         if (aiResponse.videoDataUri) {
-          setCurrentVideoSrc(aiResponse.videoDataUri);
+          setCurrentVideoSrc(aiResponse.videoDataUri); // For ChatAvatar if it handles video
         }
       }
     } catch (error: any) {
       console.error("Send message error:", error);
+      // Ensure loading indicators are cleaned up on error
       removeOptimisticMessage(messages.find(m => m.type === 'loading')?.id || '');
       addOptimisticMessage({
         sender: 'ai',
@@ -304,7 +323,7 @@ export default function ChatPage() {
   const toggleFavoriteChat = async () => {
     if (!user || !characterId) return;
     const newFavoriteStatus = !isFavorite;
-    setIsFavorite(newFavoriteStatus);
+    setIsFavorite(newFavoriteStatus); // Optimistic update
     try {
       await updateChatSessionMetadata(user.uid, characterId, { isFavorite: newFavoriteStatus });
       toast({
@@ -313,18 +332,20 @@ export default function ChatPage() {
       });
     } catch (error) {
       console.error("Error updating favorite status:", error);
-      setIsFavorite(!newFavoriteStatus);
+      setIsFavorite(!newFavoriteStatus); // Revert on error
       toast({ title: 'Error', description: 'Could not update favorite status.', variant: 'destructive' });
     }
   };
 
   const bondPercentage = useMemo(() => {
     if (!currentCharacterMeta || !currentStreakData) return 0;
+    // Calculate bond based on number of messages and streak length
     const numMessages = messages.filter(m => m.type !== 'loading' && m.type !== 'error' && m.sender === 'user').length;
     const streakValue = currentStreakData?.currentStreak || 0;
 
-    const messageScore = Math.min(numMessages / 50, 1) * 50;
-    const streakScore = Math.min(streakValue / 7, 1) * 50;
+    // Example weighting: 50 points from messages (1 pt per message, max 50), 50 from streak (e.g., ~7 pts per day, max 50 for 7 days)
+    const messageScore = Math.min(numMessages / 50, 1) * 50; // Max 50 points from 50 messages
+    const streakScore = Math.min(streakValue / 7, 1) * 50;   // Max 50 points from a 7-day streak
     return Math.max(0, Math.min(100, Math.round(messageScore + streakScore)));
   }, [messages, currentStreakData, currentCharacterMeta]);
 
@@ -332,14 +353,14 @@ export default function ChatPage() {
   if (authLoading || pageLoading || !currentCharacterMeta || !currentChatSessionMeta) {
     const initialBackgroundStyle = currentCharacterMeta?.backgroundImageUrl
     ? {
-        backgroundImage: `linear-gradient(rgba(var(--background-rgb),0.7), rgba(var(--background-rgb),0.7)), url(${currentCharacterMeta.backgroundImageUrl})`,
+        backgroundImage: `var(--chat-page-initial-bg-image, var(--background))`, // Use CSS var or fallback
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed',
       }
     : {
-        background: 'var(--background)',
+        background: 'var(--background)', // Standard theme background
     };
     return (
       <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={initialBackgroundStyle}>
@@ -383,4 +404,3 @@ export default function ChatPage() {
     </div>
   );
 }
-

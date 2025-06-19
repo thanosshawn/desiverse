@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle } from 'lucide-react';
 import type { CharacterMetadata } from '@/lib/types';
 import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
+import React from 'react';
 
 interface CharacterCardProps {
   character: CharacterMetadata;
@@ -17,7 +18,8 @@ interface CharacterCardProps {
   tagColors: Record<string, string>;
 }
 
-export function CharacterCard({ character, user, tagColors }: CharacterCardProps) {
+// Wrap with React.memo for potential performance optimization if props are stable
+const CharacterCardComponent = ({ character, user, tagColors }: CharacterCardProps) => {
   const isValidAvatarUrl = character.avatarUrl && (character.avatarUrl.startsWith('http') || character.avatarUrl.startsWith('data:'));
   const avatarSrc = isValidAvatarUrl ? character.avatarUrl : DEFAULT_AVATAR_DATA_URI;
 
@@ -43,12 +45,21 @@ export function CharacterCard({ character, user, tagColors }: CharacterCardProps
         <CardTitle className="text-2xl text-primary mb-1.5 font-headline">{character.name}</CardTitle>
         <CardDescription className="text-sm text-muted-foreground mb-3 flex-grow min-h-[3em] line-clamp-2">{character.personalitySnippet}</CardDescription>
         <div className="flex flex-wrap gap-1.5 justify-center mb-4">
-          {character.styleTags.slice(0,3).map(tag => (
-              <Badge key={tag} variant="secondary" className={`text-xs px-2 py-0.5 rounded-md ${tagColors[tag]?.replace('bg-', 'bg-opacity-20 border border-').replace('hover:','text-').replace('500','400') || 'bg-secondary/70 text-secondary-foreground'}`}>{tag}</Badge>
+          {character.styleTags.slice(0, 3).map(tag => (
+            <Badge
+              key={tag}
+              variant="default" // Use default variant for solid background
+              className={`text-xs px-2.5 py-1 rounded-full font-medium ${tagColors[tag] || 'bg-primary'} text-primary-foreground`}
+            >
+              {tag}
+            </Badge>
           ))}
         </div>
         <Link href={user ? `/chat/${character.id}` : `/login?redirect=/chat/${character.id}`} passHref className="mt-auto">
-          <Button variant="default" className="w-full text-primary-foreground rounded-xl text-base py-3 shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 group-hover:animate-heartbeat bg-gradient-to-br from-rose-400 via-orange-300 to-amber-300 hover:from-rose-500 hover:via-orange-400 hover:to-amber-400 hover:shadow-orange-500/50">
+          <Button
+            variant="default"
+            className="w-full text-primary-foreground rounded-xl text-base py-3 shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 group-hover:animate-heartbeat bg-gradient-to-br from-rose-400 via-orange-300 to-amber-300 hover:from-rose-500 hover:via-orange-400 hover:to-amber-400 hover:shadow-orange-500/50"
+          >
             <MessageCircle className="mr-2 h-5 w-5" /> Chat with {character.name}
           </Button>
         </Link>
@@ -56,3 +67,5 @@ export function CharacterCard({ character, user, tagColors }: CharacterCardProps
     </Card>
   );
 }
+
+export const CharacterCard = React.memo(CharacterCardComponent);

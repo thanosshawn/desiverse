@@ -11,7 +11,7 @@ import { getAllCharacters } from '@/lib/firebase/rtdb';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
-import { CharacterCard } from '@/components/character/character-card'; // New Import
+import { CharacterCard } from '@/components/character/character-card'; 
 
 const tagColors: Record<string, string> = {
   "Romantic": "bg-pink-500 hover:bg-pink-600",
@@ -22,6 +22,15 @@ const tagColors: Record<string, string> = {
   "Flirty": "bg-rose-500 hover:bg-rose-600",
   "Witty": "bg-teal-500 hover:bg-teal-600",
   "Cultured": "bg-indigo-500 hover:bg-indigo-600",
+  "Techie": "bg-sky-500 hover:bg-sky-600",
+  "Foodie": "bg-lime-500 hover:bg-lime-600",
+  "Philosophical": "bg-slate-500 hover:bg-slate-600",
+  "Traveler": "bg-cyan-500 hover:bg-cyan-600",
+  "Musician": "bg-violet-500 hover:bg-violet-600",
+  "Artist": "bg-emerald-500 hover:bg-emerald-600",
+  "Poetic": "bg-fuchsia-500 hover:bg-fuchsia-600",
+  "Intellectual": "bg-blue-500 hover:bg-blue-600",
+  "Spiritual": "bg-amber-500 hover:bg-amber-600",
 };
 
 export default function CharacterSelectionPage() {
@@ -115,7 +124,11 @@ export default function CharacterSelectionPage() {
                 variant={selectedTags.includes(tag) ? "default" : "outline"}
                 size="sm"
                 onClick={() => toggleTag(tag)}
-                className={`rounded-full text-xs px-3 py-1 transition-all duration-200 ease-in-out transform hover:scale-105 ${selectedTags.includes(tag) ? `${tagColors[tag] || 'bg-primary text-primary-foreground'}` : 'border-primary/50 text-primary hover:bg-primary/10'}`}
+                className={`rounded-full text-xs px-3 py-1 transition-all duration-200 ease-in-out transform hover:scale-105 
+                            ${selectedTags.includes(tag) ? 
+                              `${tagColors[tag] || 'bg-primary'} text-primary-foreground shadow-md` : 
+                              'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/70 bg-background/50'
+                            }`}
               >
                 {tag}
               </Button>
@@ -158,8 +171,8 @@ export default function CharacterSelectionPage() {
 
         <div className="mt-16 text-center">
             <Link href="/admin/login" passHref>
-              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-primary rounded-lg">
-                <Edit className="mr-2 h-4 w-4" /> Admin Panel
+              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-primary rounded-lg text-xs">
+                <Edit className="mr-1.5 h-3.5 w-3.5" /> Admin Panel
               </Button>
             </Link>
         </div>
