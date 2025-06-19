@@ -6,7 +6,7 @@ import React, { useEffect, useState, useActionState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button'; // Kept for action buttons outside the form
 import { useToast } from '@/hooks/use-toast';
-import { createStoryAction, type CreateStoryActionState } from '../../actions';
+import { createStoryAction, type CreateStoryActionState } from '../actions'; // CORRECTED PATH
 import type { InteractiveStoryAdminFormValues, CharacterMetadata } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
@@ -36,7 +36,7 @@ export default function CreateStoryPage() {
     },
   });
 
-  const [state, formAction] = useActionState(createStoryAction, initialState);
+  const [state, formAction, isPending] = useActionState(createStoryAction, initialState);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [characters, setCharacters] = useState<CharacterMetadata[]>([]);
   const [loadingCharacters, setLoadingCharacters] = useState(true);
@@ -100,7 +100,7 @@ export default function CreateStoryPage() {
 
     setIsUploadingCover(true);
     try {
-      const publicUrl = await uploadCharacterAsset(file, 'backgrounds');
+      const publicUrl = await uploadCharacterAsset(file, 'backgrounds'); // Assuming covers go to 'backgrounds' or similar
       form.setValue('coverImageUrl', publicUrl, { shouldValidate: true });
       toast({ title: 'Cover Image Uploaded', description: 'Cover image URL populated.' });
     } catch (error: any) {
@@ -143,7 +143,7 @@ export default function CreateStoryPage() {
     );
   }
 
-  const isSubmitting = form.formState.isSubmitting || isUploadingCover;
+  const isSubmitting = isPending || isUploadingCover;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -186,19 +186,19 @@ export default function CreateStoryPage() {
               {state.message && (
                 <p style={{ color: state.success ? 'green' : 'red' }}>{state.message}</p>
               )}
-              {state.errors?.characterId && <p style={{color: 'red'}}>{state.errors.characterId.join(', ')}</p>}
+              {state.errors?.characterId && <p style={{color: 'red', fontSize: '0.8rem'}}>{state.errors.characterId.join(', ')}</p>}
 
 
               <div>
                 <label htmlFor="title" style={{ display: 'block', marginBottom: '5px' }}>Story Title</label>
                 <input type="text" id="title" {...form.register("title")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
-                {form.formState.errors.title && <p style={{color: 'red', fontSize: '0.8rem'}}>{form.formState.errors.title.message}</p>}
+                {state.errors?.title && <p style={{color: 'red', fontSize: '0.8rem'}}>{state.errors.title.join(', ')}</p>}
               </div>
 
               <div>
                 <label htmlFor="description" style={{ display: 'block', marginBottom: '5px' }}>Story Description</label>
                 <textarea id="description" {...form.register("description")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} rows={3}></textarea>
-                 {form.formState.errors.description && <p style={{color: 'red', fontSize: '0.8rem'}}>{form.formState.errors.description.message}</p>}
+                 {state.errors?.description && <p style={{color: 'red', fontSize: '0.8rem'}}>{state.errors.description.join(', ')}</p>}
               </div>
 
               <div>
@@ -215,7 +215,7 @@ export default function CreateStoryPage() {
                   ))}
                 </select>
                 <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>The AI character who will lead this story.</p>
-                {form.formState.errors.characterId && <p style={{color: 'red', fontSize: '0.8rem'}}>{form.formState.errors.characterId.message}</p>}
+                 {state.errors?.characterId && <p style={{color: 'red', fontSize: '0.8rem'}}>{state.errors.characterId.join(', ')}</p>}
               </div>
 
               <div>
@@ -243,7 +243,7 @@ export default function CreateStoryPage() {
                 <label htmlFor="initialSceneSummary" style={{ display: 'block', marginBottom: '5px' }}>Initial Scene Prompt / Summary</label>
                 <textarea id="initialSceneSummary" {...form.register("initialSceneSummary")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} rows={5}></textarea>
                 <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>The very first prompt for the AI to kick off the story. Be descriptive and engaging!</p>
-                {form.formState.errors.initialSceneSummary && <p style={{color: 'red', fontSize: '0.8rem'}}>{form.formState.errors.initialSceneSummary.message}</p>}
+                {state.errors?.initialSceneSummary && <p style={{color: 'red', fontSize: '0.8rem'}}>{state.errors.initialSceneSummary.join(', ')}</p>}
               </div>
 
               <button type="submit" disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: isSubmitting ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isSubmitting ? 'not-allowed' : 'pointer', width: '100%', fontSize: '1rem' }}>
@@ -255,5 +255,3 @@ export default function CreateStoryPage() {
     </div>
   );
 }
-
-    

@@ -6,7 +6,7 @@ import React, { useEffect, useState, useActionState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button'; // Kept for action buttons outside the form
 import { useToast } from '@/hooks/use-toast';
-import { createCharacterAction, type CreateCharacterActionState } from '../../actions';
+import { createCharacterAction, type CreateCharacterActionState } from '../actions'; // CORRECTED PATH
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
@@ -29,7 +29,7 @@ export default function CreateCharacterPage() {
     defaultValues: generateRandomCharacterDefaults(),
   });
 
-  const [state, formAction] = useActionState(createCharacterAction, initialState);
+  const [state, formAction, isPending] = useActionState(createCharacterAction, initialState);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
 
@@ -131,7 +131,7 @@ export default function CreateCharacterPage() {
     );
   }
 
-  const isSubmitting = form.formState.isSubmitting || isUploadingAvatar || isUploadingBackground;
+  const isSubmitting = isPending || isUploadingAvatar || isUploadingBackground;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -268,17 +268,19 @@ export default function CreateCharacterPage() {
                 <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Link to a brief audio greeting for character card interactions.</p>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', border: '1px solid #eee', borderRadius: '4px' }}>
-                <input
-                  type="checkbox"
-                  id="isPremium"
-                  {...form.register("isPremium")}
-                  style={{ width: '16px', height: '16px' }}
-                />
-                <div>
-                  <label htmlFor="isPremium" style={{ fontWeight: '500' }}>Premium Character</label>
-                  <p style={{ fontSize: '0.8rem', color: '#666' }}>Mark this character as premium (requires subscription to chat).</p>
+              <div style={{ padding: '10px 0px' }}> {/* Adjusted padding for checkbox container */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', border: '1px solid #ddd', borderRadius: '4px' }}>
+                  <input
+                    type="checkbox"
+                    id="isPremium"
+                    {...form.register("isPremium")}
+                    style={{ width: '16px', height: '16px', marginRight: '8px', accentColor: 'var(--primary)' }}
+                    checked={!!form.watch("isPremium")}
+                    onChange={e => form.setValue("isPremium", e.target.checked)}
+                  />
+                  <label htmlFor="isPremium" style={{ fontWeight: '500', flexGrow: 1, fontSize: '0.9rem' }}>Premium Character</label>
                 </div>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px', paddingLeft: '10px' }}>Mark this character as premium (requires subscription to chat).</p>
               </div>
 
               <button type="submit" disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: isSubmitting ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isSubmitting ? 'not-allowed' : 'pointer', width: '100%', fontSize: '1rem' }}>
@@ -290,5 +292,3 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
-
-    
