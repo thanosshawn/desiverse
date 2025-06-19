@@ -1,4 +1,3 @@
-
 // src/app/admin/create-character/page.tsx
 'use client';
 
@@ -14,7 +13,7 @@ import { createCharacterAction, type CreateCharacterActionState } from '../actio
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
-import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info, RefreshCw } from 'lucide-react';
+import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info, RefreshCw, BarChart3 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
@@ -147,7 +146,7 @@ export default function CreateCharacterPage() {
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6">
             <div className="flex-grow">
                 <CardTitle className="text-2xl font-headline text-primary">Create New AI Character</CardTitle>
-                <CardDescription>Autofilled with random data. Click <RefreshCw className="inline h-4 w-4 text-accent align-middle"/> to regenerate.</CardDescription>
+                <CardDescription>Autofilled with random data. Click <RefreshCw className="inline h-4 w-4 text-accent align-middle cursor-pointer" onClick={handleRegenerateDefaults} title="Regenerate autofill data"/> to regenerate.</CardDescription>
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 sm:mt-0 w-full sm:w-auto">
                 <Button variant="outline" size="sm" onClick={handleRegenerateDefaults} className="!rounded-lg w-full sm:w-auto" title="Regenerate autofill data">
@@ -156,6 +155,11 @@ export default function CreateCharacterPage() {
                 <Link href="/admin/manage-characters" passHref className="w-full sm:w-auto">
                     <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing characters">
                         <ListChecks className="mr-2 h-4 w-4" /> Manage
+                    </Button>
+                </Link>
+                 <Link href="/admin/analytics" passHref className="w-full sm:w-auto">
+                    <Button variant="outline" size="sm" className="!rounded-lg w-full" title="View Analytics">
+                        <BarChart3 className="mr-2 h-4 w-4" /> Analytics
                     </Button>
                 </Link>
                 <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto" title="Logout from admin">
@@ -400,5 +404,3 @@ export default function CreateCharacterPage() {
     </div>
   );
 }
-
-    

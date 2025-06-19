@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, LogOut, Edit, Trash2, PlusCircle, Eye } from 'lucide-react';
+import { Loader2, LogOut, Edit, Trash2, PlusCircle, Eye, BarChart3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -112,18 +112,23 @@ export default function ManageCharactersPage() {
       <Header />
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
         <Card className="max-w-4xl mx-auto bg-card/90 backdrop-blur-lg shadow-xl rounded-2xl">
-          <CardHeader className="flex flex-row justify-between items-center p-6">
+          <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6">
             <div>
               <CardTitle className="text-2xl font-headline text-primary">Manage AI Characters</CardTitle>
               <CardDescription>View, edit, or delete existing characters.</CardDescription>
             </div>
-            <div className="space-x-2">
-               <Link href="/admin/create-character" passHref>
-                <Button variant="outline" size="sm" className="!rounded-lg">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Create New
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 sm:mt-0 w-full sm:w-auto">
+               <Link href="/admin/create-character" passHref className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new character">
+                  <PlusCircle className="mr-2 h-4 w-4" /> Create
                 </Button>
               </Link>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg">
+              <Link href="/admin/analytics" passHref className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="!rounded-lg w-full" title="View Analytics">
+                    <BarChart3 className="mr-2 h-4 w-4" /> Analytics
+                </Button>
+              </Link>
+              <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto" title="Logout from admin">
                 <LogOut className="mr-2 h-4 w-4" /> Logout
               </Button>
             </div>

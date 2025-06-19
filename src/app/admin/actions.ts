@@ -3,10 +3,12 @@
 
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { addCharacter, getAdminCredentials } from '@/lib/firebase/rtdb';
+import { addCharacter, getAdminCredentials, getAllCharacters } from '@/lib/firebase/rtdb'; // Added getAllCharacters
 import type { CharacterMetadata } from '@/lib/types';
 // Zod schema for validation is removed from this action
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
+import { ref, get } from 'firebase/database'; // Added for RTDB access
+import { db } from '@/lib/firebase/config'; // Added for RTDB instance
 
 
 export interface CreateCharacterActionState {
@@ -155,5 +157,53 @@ export async function loginAdminAction(
       message: `Login failed: ${errorMessage}`,
       errors: null,
     };
+  }
+}
+
+// --- Character Usage Stats Action ---
+export interface CharacterUsageStat {
+  name: string;
+  count: number;
+  fill?: string; // For chart color, optional
+}
+
+export async function getCharacterUsageStats(): Promise<CharacterUsageStat[]> {
+  try {
+    const usersRef = ref(db, 'users');
+    const usersSnapshot = await get(usersRef);
+    const characterCounts: Record<string, number> = {};
+
+    if (usersSnapshot.exists()) {
+      usersSnapshot.forEach(userSnap => {
+        // Check if userChats exists before trying to access its children
+        if (userSnap.hasChild('userChats')) {
+          const userChats = userSnap.child('userChats').val();
+          if (userChats) {
+            Object.keys(userChats).forEach(characterId => {
+              // Ensure characterId is a valid key (not a prototype property)
+              if (Object.prototype.hasOwnProperty.call(userChats, characterId)) {
+                characterCounts[characterId] = (characterCounts[characterId] || 0) + 1;
+              }
+            });
+          }
+        }
+      });
+    }
+
+    const allCharacters = await getAllCharacters(); // Assumes this function correctly fetches all characters
+    
+    const stats = allCharacters
+      .map(char => ({
+        name: char.name,
+        count: characterCounts[char.id] || 0,
+        // Example: could assign different fill colors based on character or count
+        // fill: char.name === 'Riya' ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-2))', 
+      }))
+      .sort((a, b) => b.count - a.count); // Sort by most used
+
+    return stats;
+  } catch (error) {
+    console.error("Error fetching character usage stats:", error);
+    return []; // Return empty array on error
   }
 }
