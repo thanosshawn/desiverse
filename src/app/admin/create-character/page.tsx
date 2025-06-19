@@ -4,20 +4,16 @@
 
 import React, { useEffect, useState, useActionState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Button } from '@/components/ui/button'; // Kept for action buttons outside the form
 import { useToast } from '@/hooks/use-toast';
-import { createCharacterAction, type CreateCharacterActionState } from '../actions';
+import { createCharacterAction, type CreateCharacterActionState } from '../../actions';
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
-import { Loader2, LogOut, CheckSquare, ListChecks, RefreshCw, BarChart3, BookOpenCheck, FileText } from 'lucide-react';
+import { Loader2, LogOut, ListChecks, RefreshCw, BarChart3, BookOpenCheck, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { generateRandomCharacterDefaults } from '@/lib/admin/utils';
-
 
 const initialState: CreateCharacterActionState = {
   message: '',
@@ -113,11 +109,11 @@ export default function CreateCharacterPage() {
 
   if (!authStatusChecked) {
     return (
-        <div className="flex flex-col min-h-screen bg-background items-center justify-center">
+        <div className="flex flex-col min-h-screen">
             <Header />
             <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8 flex flex-col items-center justify-center">
               <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
-              <p className="text-lg mt-2 text-muted-foreground">Checking admin status...</p>
+              <p className="text-lg mt-2">Checking admin status...</p>
             </main>
         </div>
     );
@@ -125,10 +121,10 @@ export default function CreateCharacterPage() {
 
   if (!isAdminLoggedIn) {
     return (
-        <div className="flex flex-col min-h-screen bg-background items-center justify-center">
+        <div className="flex flex-col min-h-screen">
              <Header />
             <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8 flex flex-col items-center justify-center">
-              <p className="text-lg text-muted-foreground">Redirecting to login...</p>
+              <p className="text-lg">Redirecting to login...</p>
               <Loader2 className="h-8 w-8 animate-spin mt-4 text-primary"/>
             </main>
         </div>
@@ -138,271 +134,161 @@ export default function CreateCharacterPage() {
   const isSubmitting = form.formState.isSubmitting || isUploadingAvatar || isUploadingBackground;
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
+    <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-6 text-center md:text-left">
             <h1 className="text-2xl font-headline text-primary mb-1">Create New AI Character</h1>
-            <p className="text-muted-foreground text-sm">
-                Autofilled with random data. Click 
-                <RefreshCw 
-                    className="inline h-4 w-4 text-accent align-middle cursor-pointer mx-1" 
-                    onClick={handleRegenerateDefaults} 
+            <p className="text-sm">
+                Autofilled with random data. Click
+                <RefreshCw
+                    className="inline h-4 w-4 text-accent align-middle cursor-pointer mx-1"
+                    onClick={handleRegenerateDefaults}
                     title="Regenerate autofill data"
-                /> 
+                />
                 to regenerate.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 mb-6 justify-center md:justify-start">
-              <Button variant="outline" size="sm" onClick={handleRegenerateDefaults} className="!rounded-lg" title="Regenerate autofill data">
+              <Button variant="outline" size="sm" onClick={handleRegenerateDefaults} title="Regenerate autofill data">
                   <RefreshCw className="mr-2 h-4 w-4" /> Regenerate
               </Button>
               <Link href="/admin/manage-characters" passHref>
-                  <Button variant="outline" size="sm" className="!rounded-lg" title="Manage existing characters">
+                  <Button variant="outline" size="sm" title="Manage existing characters">
                       <ListChecks className="mr-2 h-4 w-4" /> Manage Chars
                   </Button>
               </Link>
               <Link href="/admin/create-story" passHref>
-                  <Button variant="outline" size="sm" className="!rounded-lg" title="Create new story">
+                  <Button variant="outline" size="sm" title="Create new story">
                       <BookOpenCheck className="mr-2 h-4 w-4" /> Create Story
                   </Button>
               </Link>
                <Link href="/admin/analytics" passHref>
-                  <Button variant="outline" size="sm" className="!rounded-lg" title="View Analytics">
+                  <Button variant="outline" size="sm" title="View Analytics">
                       <BarChart3 className="mr-2 h-4 w-4" /> Analytics
                   </Button>
               </Link>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg" title="Logout from admin">
+              <Button variant="outline" size="sm" onClick={handleLogout} title="Logout from admin">
                   <LogOut className="mr-2 h-4 w-4" /> Logout
               </Button>
           </div>
 
-          <Form {...form}>
-            <form action={formAction} className="space-y-6 p-6 bg-card/80 backdrop-blur-sm shadow-xl rounded-xl">
-              
-              {/* Basic Information */}
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Character Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Simran Kaur" {...field} className="!rounded-lg" />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="personalitySnippet"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Personality Snippet (for character card)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Poetic & Shy Chai Lover ☕" {...field} className="!rounded-lg" />
-                    </FormControl>
-                     <FormDescription>A short, catchy tagline displayed on the character selection card.</FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Description (for AI context, can be longer)</FormLabel>
-                    <FormControl>
-                      <Textarea placeholder="A shy, poetic girl from Delhi who loves chai, long walks, and Bollywood movies from the 90s..." {...field} className="!rounded-lg" rows={3} />
-                    </FormControl>
-                     <FormDescription>Detailed background for the AI's personality and for display (if needed).</FormDescription>
-                  </FormItem>
-                )}
-              />
+            <form action={formAction} className="space-y-4" style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', background: '#f9f9f9' }}>
+              {state.message && (
+                <p style={{ color: state.success ? 'green' : 'red' }}>{state.message}</p>
+              )}
 
-              {/* Visuals */}
-              <FormItem>
-                <FormLabel>Avatar Image</FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="image/png, image/jpeg, image/webp"
-                    onChange={(e) => handleFileUpload(e, 'avatar')}
-                    className="mb-2 file:mr-4 file:py-2 file:px-4 file:!rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 !rounded-lg"
-                    disabled={isUploadingAvatar}
-                  />
-                </FormControl>
-                {isUploadingAvatar && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading avatar...</div>}
-                <FormField
-                  control={form.control}
-                  name="avatarUrl"
-                  render={({ field }) => (
-                    <>
-                      <FormControl>
-                        <Input placeholder="Supabase Avatar URL (auto-filled on upload or use default)" {...field} disabled={isUploadingAvatar} className="!rounded-lg" />
-                      </FormControl>
-                      <FormDescription>Public URL from Supabase or a placeholder (e.g., https://placehold.co/400x600.png).</FormDescription>
-                    </>
-                  )}
-                />
-              </FormItem>
+              <div>
+                <label htmlFor="name" style={{ display: 'block', marginBottom: '5px' }}>Character Name</label>
+                <input type="text" id="name" {...form.register("name")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+              </div>
 
-              <FormItem>
-                <FormLabel>Background Image (Optional for Chat)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="file"
-                    accept="image/png, image/jpeg, image/webp"
-                    onChange={(e) => handleFileUpload(e, 'background')}
-                    className="mb-2 file:mr-4 file:py-2 file:px-4 file:!rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 !rounded-lg"
-                    disabled={isUploadingBackground}
-                  />
-                </FormControl>
-                {isUploadingBackground && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading background...</div>}
-                <FormField
-                  control={form.control}
-                  name="backgroundImageUrl"
-                  render={({ field }) => (
-                    <>
-                      <FormControl>
-                        <Input placeholder="Supabase Background URL (auto-filled or default)" {...field} value={field.value || ''} disabled={isUploadingBackground} className="!rounded-lg"/>
-                      </FormControl>
-                      <FormDescription>Public URL from Supabase or a placeholder (e.g., https://placehold.co/1200x800.png).</FormDescription>
-                    </>
-                  )}
-                />
-              </FormItem>
-              
-              {/* AI Personality */}
-              <FormField
-                control={form.control}
-                name="basePrompt"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Base Prompt (AI Personality Core)</FormLabel>
-                    <FormControl>
-                      <Textarea rows={6} placeholder="You are [Name], a [adjectives] AI companion from [City/Region] who loves [hobbies/interests]. Your personality is [traits like flirty, shy, witty]. You speak in Hinglish, often using phrases like 'yaar', 'kya scene hai', 'टेंशन नहीं लेने का'. You are empathetic and engaging. You sometimes use Bollywood references..." {...field} className="!rounded-lg"/>
-                    </FormControl>
-                    <FormDescription>The core personality instructions for the AI. Be descriptive!</FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="styleTags"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Style Tags (for filtering & AI context)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Romantic, Shy, Bollywood, Funny, Bold" {...field} className="!rounded-lg"/>
-                    </FormControl>
-                    <FormDescription>Comma-separated list of tags for discoverability and AI prompt refinement.</FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="defaultVoiceTone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Default Voice Tone (for future TTS)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., Sweet and playful Hinglish" {...field} className="!rounded-lg"/>
-                    </FormControl>
-                     <FormDescription>Describes the character's voice style for text-to-speech generation.</FormDescription>
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="dataAiHint"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Image AI Hint (for avatar placeholders)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., indian woman smile" {...field} className="!rounded-lg"/>
-                    </FormControl>
-                    <FormDescription>Short hint (1-2 words) if using a generic placeholder image for the avatar.</FormDescription>
-                  </FormItem>
-                )}
-              />
-              
-              {/* Advanced Settings */}
-               <FormField
-                control={form.control}
-                name="messageBubbleStyle"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Message Bubble Style</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., rani-pink-bubble (CSS class or key)" {...field} className="!rounded-lg"/>
-                    </FormControl>
-                     <FormDescription>Custom style identifier for this character's chat messages (e.g., a CSS class).</FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="animatedEmojiResponse"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Animated Emoji/Sticker URL (for card hover)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="URL to Lottie/GIF e.g. https://placehold.co/100x100.gif" {...field} value={field.value || ''} className="!rounded-lg"/>
-                    </FormControl>
-                    <FormDescription>Link to a small animation displayed on character card interactions.</FormDescription>
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="audioGreetingUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Audio Greeting URL (for card hover)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="URL to short audio clip (e.g., .mp3)" {...field} value={field.value || ''} className="!rounded-lg"/>
-                    </FormControl>
-                     <FormDescription>Link to a brief audio greeting for character card interactions.</FormDescription>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="isPremium"
-                render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm">
-                        <FormControl>
-                            <input
-                                type="checkbox"
-                                id={`${field.name}-premium-checkbox`}
-                                checked={!!field.value}
-                                onChange={(e) => field.onChange(e.target.checked)}
-                                className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                                aria-describedby={`${field.name}-premium-description`}
-                            />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                            <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="font-medium">
-                                Premium Character
-                            </FormLabel>
-                            <FormDescription id={`${field.name}-premium-description`} className="text-xs">
-                                Mark this character as premium (requires subscription to chat).
-                            </FormDescription>
-                        </div>
-                    </FormItem>
-                )}
-                />
+              <div>
+                <label htmlFor="personalitySnippet" style={{ display: 'block', marginBottom: '5px' }}>Personality Snippet (for character card)</label>
+                <input type="text" id="personalitySnippet" {...form.register("personalitySnippet")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>A short, catchy tagline displayed on the character selection card.</p>
+              </div>
 
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground !rounded-xl text-lg py-3 shadow-lg" disabled={isSubmitting}>
-                {isSubmitting ? <Loader2 className="mr-2 h-5 w-5 animate-spin"/> : <CheckSquare className="mr-2 h-5 w-5"/>}
-                {isSubmitting ? 'Processing...' : 'Create Character'}
-              </Button>
+              <div>
+                <label htmlFor="description" style={{ display: 'block', marginBottom: '5px' }}>Full Description (for AI context, can be longer)</label>
+                <textarea id="description" {...form.register("description")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} rows={3}></textarea>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Detailed background for the AI's personality and for display (if needed).</p>
+              </div>
+
+              <div>
+                <label htmlFor="avatarFile" style={{ display: 'block', marginBottom: '5px' }}>Avatar Image</label>
+                <input
+                  type="file"
+                  id="avatarFile"
+                  accept="image/png, image/jpeg, image/webp"
+                  onChange={(e) => handleFileUpload(e, 'avatar')}
+                  disabled={isUploadingAvatar}
+                  style={{ marginBottom: '5px' }}
+                />
+                {isUploadingAvatar && <p style={{ fontSize: '0.8rem', color: '#666' }}><Loader2 className="inline mr-1 h-4 w-4 animate-spin" />Uploading avatar...</p>}
+                <input type="text" {...form.register("avatarUrl")} placeholder="Supabase Avatar URL (auto-filled or default)" readOnly={isUploadingAvatar} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#eee' }} />
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Public URL from Supabase or a placeholder (e.g., https://placehold.co/400x600.png).</p>
+              </div>
+
+              <div>
+                <label htmlFor="backgroundFile" style={{ display: 'block', marginBottom: '5px' }}>Background Image (Optional for Chat)</label>
+                <input
+                  type="file"
+                  id="backgroundFile"
+                  accept="image/png, image/jpeg, image/webp"
+                  onChange={(e) => handleFileUpload(e, 'background')}
+                  disabled={isUploadingBackground}
+                  style={{ marginBottom: '5px' }}
+                />
+                {isUploadingBackground && <p style={{ fontSize: '0.8rem', color: '#666' }}><Loader2 className="inline mr-1 h-4 w-4 animate-spin" />Uploading background...</p>}
+                <input type="text" {...form.register("backgroundImageUrl")} placeholder="Supabase Background URL (auto-filled or default)" readOnly={isUploadingBackground} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#eee' }} />
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Public URL from Supabase or a placeholder (e.g., https://placehold.co/1200x800.png).</p>
+              </div>
+
+              <div>
+                <label htmlFor="basePrompt" style={{ display: 'block', marginBottom: '5px' }}>Base Prompt (AI Personality Core)</label>
+                <textarea id="basePrompt" {...form.register("basePrompt")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} rows={6}></textarea>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>The core personality instructions for the AI. Be descriptive!</p>
+              </div>
+
+              <div>
+                <label htmlFor="styleTags" style={{ display: 'block', marginBottom: '5px' }}>Style Tags (for filtering & AI context)</label>
+                <input type="text" id="styleTags" {...form.register("styleTags")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Comma-separated list of tags for discoverability and AI prompt refinement.</p>
+              </div>
+
+              <div>
+                <label htmlFor="defaultVoiceTone" style={{ display: 'block', marginBottom: '5px' }}>Default Voice Tone (for future TTS)</label>
+                <input type="text" id="defaultVoiceTone" {...form.register("defaultVoiceTone")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Describes the character's voice style for text-to-speech generation.</p>
+              </div>
+
+              <div>
+                <label htmlFor="dataAiHint" style={{ display: 'block', marginBottom: '5px' }}>Image AI Hint (for avatar placeholders)</label>
+                <input type="text" id="dataAiHint" {...form.register("dataAiHint")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Short hint (1-2 words) if using a generic placeholder image for the avatar.</p>
+              </div>
+
+              <div>
+                <label htmlFor="messageBubbleStyle" style={{ display: 'block', marginBottom: '5px' }}>Message Bubble Style</label>
+                <input type="text" id="messageBubbleStyle" {...form.register("messageBubbleStyle")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Custom style identifier for this character's chat messages (e.g., a CSS class).</p>
+              </div>
+
+              <div>
+                <label htmlFor="animatedEmojiResponse" style={{ display: 'block', marginBottom: '5px' }}>Animated Emoji/Sticker URL (for card hover)</label>
+                <input type="text" id="animatedEmojiResponse" {...form.register("animatedEmojiResponse")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Link to a small animation displayed on character card interactions.</p>
+              </div>
+
+              <div>
+                <label htmlFor="audioGreetingUrl" style={{ display: 'block', marginBottom: '5px' }}>Audio Greeting URL (for card hover)</label>
+                <input type="text" id="audioGreetingUrl" {...form.register("audioGreetingUrl")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Link to a brief audio greeting for character card interactions.</p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', border: '1px solid #eee', borderRadius: '4px' }}>
+                <input
+                  type="checkbox"
+                  id="isPremium"
+                  {...form.register("isPremium")}
+                  style={{ width: '16px', height: '16px' }}
+                />
+                <div>
+                  <label htmlFor="isPremium" style={{ fontWeight: '500' }}>Premium Character</label>
+                  <p style={{ fontSize: '0.8rem', color: '#666' }}>Mark this character as premium (requires subscription to chat).</p>
+                </div>
+              </div>
+
+              <button type="submit" disabled={isSubmitting} style={{ padding: '10px 20px', backgroundColor: isSubmitting ? '#ccc' : '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: isSubmitting ? 'not-allowed' : 'pointer', width: '100%', fontSize: '1rem' }}>
+                {isSubmitting ? <><Loader2 className="inline mr-2 h-5 w-5 animate-spin"/>Processing...</> : 'Create Character'}
+              </button>
             </form>
-          </Form>
         </div>
       </main>
     </div>
   );
 }
+
+    
