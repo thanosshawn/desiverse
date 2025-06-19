@@ -1,19 +1,21 @@
+
 // src/components/chat/chat-page-header.tsx
 'use client';
 
 import React from 'react';
-import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; // Correct type for App Router's router
+import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime'; 
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Star } from 'lucide-react';
 import { BondMeter } from '@/components/chat/bond-meter';
-import type { CharacterMetadata } from '@/lib/types';
+import type { CharacterMetadata, UserChatStreakData } from '@/lib/types';
 
 interface ChatPageHeaderProps {
   characterMeta: CharacterMetadata;
   isFavorite: boolean;
   toggleFavoriteChat: () => void;
   bondPercentage: number;
-  router: AppRouterInstance; // Use the App Router's router type
+  currentStreakData: UserChatStreakData | null; 
+  router: AppRouterInstance; 
 }
 
 export function ChatPageHeader({
@@ -21,6 +23,7 @@ export function ChatPageHeader({
   isFavorite,
   toggleFavoriteChat,
   bondPercentage,
+  currentStreakData, 
   router,
 }: ChatPageHeaderProps) {
   return (
@@ -39,7 +42,9 @@ export function ChatPageHeader({
       <BondMeter
         characterName={characterMeta.name}
         bondPercentage={bondPercentage}
+        streakData={currentStreakData} 
       />
     </div>
   );
 }
+

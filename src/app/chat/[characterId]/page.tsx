@@ -1,7 +1,8 @@
+
 // src/app/chat/[characterId]/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef, useMemo, use } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'; // Removed 'use'
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
@@ -26,7 +27,6 @@ export default function ChatPage() {
   const router = useRouter();
 
   const paramsFromHook = useParams();
-  // const actualParams = use(paramsFromHook as any); // Reverted due to runtime error
   const characterId = paramsFromHook.characterId as string;
 
 
@@ -219,7 +219,7 @@ export default function ChatPage() {
       addOptimisticMessage({
         sender: 'user',
         type: 'gift_sent',
-        content: userMessageText, // This content is for the user's own message bubble
+        content: userMessageText, 
         sentGift: gift,
       });
       messageTypeForRtdb = 'gift_sent';
@@ -234,28 +234,37 @@ export default function ChatPage() {
     }
 
     setIsLoadingMessage(true);
-    setCurrentVideoSrc(undefined); // Clear previous video
+    setCurrentVideoSrc(undefined); 
 
     try {
       const userMessageData: Omit<MessageDocument, 'timestamp'> = {
         sender: 'user',
-        text: userMessageText, // For RTDB, this includes the "You sent..." part if a gift.
+        text: userMessageText, 
         messageType: messageTypeForRtdb,
         sentGiftId: sentGiftIdForRtdb || null,
       };
       await addMessageToChat(user.uid, characterId, userMessageData);
 
-      // Update chat streak
       try {
         const streakResult = await updateUserChatStreak(user.uid, characterId);
         let streakToastMessage = '';
+        let toastTitle = "Chat Streak Update!";
         switch (streakResult.status) {
-          case 'first_ever': streakToastMessage = `Chat Streak Started! Day ${streakResult.streak}! 💖 Keep it going!`; break;
-          case 'continued': streakToastMessage = `Chat Streak: ${streakResult.streak} day${streakResult.streak > 1 ? 's' : ''}! 🔥 Keep the flame alive!`; break;
-          case 'reset': streakToastMessage = `Streak Reset! Back to Day ${streakResult.streak} 💪 Let's build it up!`; break;
-          case 'maintained_same_day': break; // No toast if just chatting more on the same day
+          case 'first_ever': 
+            streakToastMessage = `Pehli mulaqat aur streak shuru! Day ${streakResult.streak}! 💖 Keep it going!`; 
+            toastTitle = "New Chat Streak Started! ✨";
+            break;
+          case 'continued': 
+            streakToastMessage = `Streak jaari hai: ${streakResult.streak} din! 🔥 Keep the flame alive!`; 
+            toastTitle = `Chat Streak: Day ${streakResult.streak}! 🎉`;
+            break;
+          case 'reset': 
+            streakToastMessage = `Streak toot gayi! 💔 Koi baat nahi, naya din, nayi shuruaat! Day ${streakResult.streak} 💪`; 
+            toastTitle = "Chat Streak Reset! 🔁";
+            break;
+          case 'maintained_same_day': break; 
         }
-        if (streakToastMessage) toast({ title: "Chat Streak Update!", description: streakToastMessage, duration: 4000 });
+        if (streakToastMessage) toast({ title: toastTitle, description: streakToastMessage, duration: 4000 });
       } catch (streakError) { console.error("Error updating chat streak:", streakError); }
 
 
@@ -266,9 +275,8 @@ export default function ChatPage() {
         characterName: currentCharacterMeta.name as CharacterName,
       });
 
-      // Fetch AI response
       const aiResponse = await handleUserMessageAction(
-        userInput, // Original user input if any, empty if only gift
+        userInput, 
         messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({ 
             id: m.rtdbKey || m.id, 
             sender: m.sender,
@@ -279,7 +287,7 @@ export default function ChatPage() {
         user.uid,
         characterId,
         userDisplayName, 
-        giftReactionPromptForAI // Pass the specific reaction prompt for the gift
+        giftReactionPromptForAI 
       );
 
       removeOptimisticMessage(optimisticAiLoadingId);
@@ -382,6 +390,7 @@ export default function ChatPage() {
         isFavorite={isFavorite}
         toggleFavoriteChat={toggleFavoriteChat}
         bondPercentage={bondPercentage}
+        currentStreakData={currentStreakData}
         router={router}
       />
       <main className="flex-grow overflow-hidden">
@@ -402,3 +411,4 @@ export default function ChatPage() {
     </div>
   );
 }
+

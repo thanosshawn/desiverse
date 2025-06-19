@@ -1,3 +1,4 @@
+
 // src/app/settings/page.tsx
 'use client';
 
@@ -41,7 +42,7 @@ export default function SettingsPage() {
   const { user, userProfile, loading: authLoading, signOut } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const { theme, setTheme, themes: availableThemes } = useTheme();
+  const { theme, setTheme } = useTheme(); // Removed themes: availableThemes
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -63,13 +64,14 @@ export default function SettingsPage() {
         avatarUrl: userProfile.avatarUrl || '',
         selectedTheme: userProfile.selectedTheme || theme || 'light',
       });
-      if(userProfile.selectedTheme && userProfile.selectedTheme !== theme){
-        setTheme(userProfile.selectedTheme);
-      }
-    } else if (theme) {
+      // Theme is applied via AuthContext now, no need to call setTheme here
+      // directly from userProfile if it differs from current 'theme',
+      // as AuthContext handles initial theme setting.
+      // The Select component will reflect 'theme' from useTheme().
+    } else if (theme && mounted) { // Ensure mounted before using theme in form
         form.setValue('selectedTheme', theme as 'light' | 'dark' | 'pink');
     }
-  }, [userProfile, form, theme, setTheme]);
+  }, [userProfile, form, theme, mounted]); // Added mounted to dependency
   
 
   const onSubmit = async (data: SettingsFormValues) => {
@@ -80,11 +82,13 @@ export default function SettingsPage() {
     setIsSaving(true);
     try {
       const updateData: Partial<UserProfile> = {};
-      if (data.name && data.name !== userProfile?.name) updateData.name = data.name;
+      if (data.name !== undefined && data.name !== (userProfile?.name || '')) updateData.name = data.name;
       if (data.avatarUrl !== (userProfile?.avatarUrl || '')) updateData.avatarUrl = data.avatarUrl || null;
-      if (data.selectedTheme && data.selectedTheme !== userProfile?.selectedTheme) {
+      
+      // Only update selectedTheme if it has actually changed and is different from current userProfile theme
+      if (data.selectedTheme && data.selectedTheme !== (userProfile?.selectedTheme || theme)) {
         updateData.selectedTheme = data.selectedTheme;
-        setTheme(data.selectedTheme); 
+        setTheme(data.selectedTheme); // Apply theme immediately on client
       }
 
 
@@ -189,9 +193,9 @@ export default function SettingsPage() {
                              <Select 
                                 onValueChange={(value) => {
                                   field.onChange(value);
-                                  setTheme(value); 
+                                  // setTheme(value); // Let onSubmit handle the theme update for consistency
                                 }} 
-                                value={field.value}
+                                value={field.value} // This should reflect the form's current value for theme
                                 disabled={!mounted}
                              >
                                 <FormControl>
@@ -266,3 +270,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+
