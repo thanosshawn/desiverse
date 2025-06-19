@@ -297,17 +297,22 @@ export async function createStoryAction(
   const data: InteractiveStoryAdminFormValues = {
     title: formData.get('title') as string || 'Untitled Story',
     description: formData.get('description') as string || 'An exciting adventure awaits!',
-    characterId: formData.get('characterId') as string,
+    characterId: formData.get('characterId') as string, // This comes from the Select component
     coverImageUrl: formData.get('coverImageUrl') as string || null,
     tagsString: formData.get('tagsString') as string || '',
     initialSceneSummary: formData.get('initialSceneSummary') as string || 'The story begins...',
   };
 
+  if (!data.characterId) {
+    return {
+      message: 'A character must be selected for the story.',
+      success: false,
+      errors: { characterId: ['Please select a character.'] }
+    };
+  }
+
   if (!data.title.trim()) {
     return { message: 'Story title is required.', success: false, errors: { title: ['Title cannot be empty.'] } };
-  }
-  if (!data.characterId) {
-    return { message: 'A character must be selected for the story.', success: false, errors: { characterId: ['Please select a character.'] } };
   }
   if (!data.initialSceneSummary.trim()) {
     return { message: 'Initial scene summary/prompt is required.', success: false, errors: { initialSceneSummary: ['Initial prompt cannot be empty.'] } };
@@ -315,7 +320,7 @@ export async function createStoryAction(
 
   const characterSnap = await getCharacterMetadata(data.characterId);
   if (!characterSnap) {
-    return { message: `Selected character (ID: ${data.characterId}) not found.`, success: false };
+    return { message: `Selected character (ID: ${data.characterId}) not found. Ensure the character exists.`, success: false, errors: { characterId: ['Selected character not found.'] } };
   }
 
   const storyId = `${data.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${uuidv4().substring(0, 6)}`;
