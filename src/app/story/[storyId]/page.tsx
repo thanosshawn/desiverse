@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { InteractiveStory, UserStoryProgress, StoryTurnOutput, CharacterMetadata } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { getInteractiveStory, getUserStoryProgress, getCharacterMetadata } from '@/lib/firebase/rtdb';
+import { getInteractiveStory, getUserStoryProgress, getCharacterMetadata } from '@/lib/firebase/rtdb'; // Removed updateUserStoryProgress
 import { handleStoryChoiceAction } from '../actions';
 import { Loader2, Drama, MessageCircle, Send, BookHeart } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
@@ -38,7 +38,7 @@ function StoryPlayerContent() {
       const storyData = await getInteractiveStory(storyId);
       if (!storyData) {
         toast({ title: 'Error', description: 'Story not found.', variant: 'destructive' });
-        router.push('/stories'); // Redirect to stories list if story not found
+        router.push('/stories');
         return;
       }
       setStory(storyData);
@@ -54,26 +54,18 @@ function StoryPlayerContent() {
       const progressData = await getUserStoryProgress(user.uid, storyId);
       setUserProgress(progressData);
 
-      // Initial AI turn generation
       let initialSummary: string;
       let initialUserChoice: string;
 
       if (progressData?.currentTurnContext?.summaryOfCurrentSituation) {
         initialSummary = progressData.currentTurnContext.summaryOfCurrentSituation;
-        // For subsequent turns, the "previousUserChoice" is the one that LED to the current summary.
-        // If we are re-loading a saved state, the user *just* made a choice that resulted in `initialSummary`.
-        // For the VERY first call to AI after loading, this means the `previousUserChoice` stored in progress is correct.
         initialUserChoice = progressData.currentTurnContext.previousUserChoice;
       } else {
         initialSummary = storyData.initialSceneSummary;
-        initialUserChoice = "Let's begin the story!"; // This is for the absolute first turn of the story.
+        initialUserChoice = "Let's begin the story!";
       }
       
-      // Only call AI if there's no current AI turn (e.g., first load or if state was lost)
-      // OR if the progressData indicates we should fetch the *next* turn based on a stored user choice.
-      // This logic might need refinement if we want to avoid re-fetching the same turn if the user navigates away and back.
-      // For now, assume we always fetch an AI turn on load if one isn't already set.
-      if (!currentAiTurn) {
+      if (!currentAiTurn) { // Only call AI if not already loaded
         const aiResponse = await handleStoryChoiceAction(user.uid, userProfile?.name || user.displayName || 'Adventurer', storyId, initialUserChoice);
         if (aiResponse.error || !aiResponse.aiResponse) {
           toast({ title: 'AI Error', description: aiResponse.error || 'Could not start story.', variant: 'destructive' });
@@ -88,7 +80,7 @@ function StoryPlayerContent() {
     } finally {
       setIsLoading(false);
     }
-  }, [storyId, user, userProfile, router, toast, currentAiTurn]); // Added currentAiTurn to dependencies
+  }, [storyId, user, userProfile, router, toast, currentAiTurn]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -102,31 +94,21 @@ function StoryPlayerContent() {
     if (!user || !story || isProcessingChoice || !currentAiTurn) return;
     setIsProcessingChoice(true);
     try {
-      // The summary of the current situation is the narration the AI just gave.
-      const summaryForNextTurn = currentAiTurn.narrationForThisTurn;
-      
-      // Update user progress with the choice they just made AND the summary that LED to this choice
-      const currentProgressForUpdate: UserStoryProgress = {
-          userId: user.uid,
-          storyId: story.id,
-          currentTurnContext: {
-              summaryOfCurrentSituation: summaryForNextTurn, // This will be the context for the *next* AI turn
-              previousUserChoice: choiceText, // The choice the user just made
-          },
-          storyTitleSnapshot: story.title,
-          characterIdSnapshot: story.characterId,
-      };
-      await updateUserStoryProgress(user.uid, story.id, currentProgressForUpdate);
-      setUserProgress(currentProgressForUpdate); // Optimistically update UI progress
+      // Server action will fetch current progress, generate AI turn, and update progress.
+      const result = await handleStoryChoiceAction(
+        user.uid,
+        userProfile?.name || user.displayName || 'Adventurer',
+        story.id,
+        choiceText // The choice the user just made
+      );
 
-
-      const result = await handleStoryChoiceAction(user.uid, userProfile?.name || user.displayName || 'Adventurer', story.id, choiceText);
       if (result.error || !result.aiResponse) {
         toast({ title: 'AI Error', description: result.error || 'Could not process choice.', variant: 'destructive' });
-        // Potentially revert optimistic update or show error state in UI
       } else {
         setCurrentAiTurn(result.aiResponse);
-        if(result.nextProgress) setUserProgress(result.nextProgress); // Update with confirmed progress from server
+        if (result.nextProgress) {
+          setUserProgress(result.nextProgress); // Update client state with progress from server
+        }
       }
     } catch (error: any) {
       toast({ title: 'Error', description: 'Failed to process choice.', variant: 'destructive' });
@@ -182,7 +164,6 @@ function StoryPlayerContent() {
                 {currentAiTurn.narrationForThisTurn}
               </ReactMarkdown>
             </div>
-            {/* The personal question is now expected to be part of narrationForThisTurn */}
           </CardContent>
           <CardFooter className="p-4 md:p-6 border-t border-border/50">
             {isProcessingChoice ? (

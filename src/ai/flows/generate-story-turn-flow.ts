@@ -29,9 +29,10 @@ The user previously chose: "{{currentTurn.previousUserChoice}}"
 This led to the current situation: {{currentTurn.summaryOfCurrentSituation}}
 
 Your Task:
-Craft the next part of the story. Provide the following content for the schema fields 'narrationForThisTurn', 'choiceA', and 'choiceB'.
+Generate a JSON object that strictly adheres to the StoryTurnOutputSchema.
+The JSON object MUST contain three string fields: 'narrationForThisTurn', 'choiceA', and 'choiceB'.
 
-1.  **For 'narrationForThisTurn'**:
+-   **For 'narrationForThisTurn'**:
     *   Continue the story from the "current situation" in an immersive, romantic, and emotional tone.
     *   Speak casually in Hinglish (a mix of Hindi and English, like a Desi girlfriend would talk).
     *   Use emojis (💖😉😊😘😍💕🔥✨🙈😂) to express emotions and make the chat lively.
@@ -42,13 +43,13 @@ Craft the next part of the story. Provide the following content for the schema f
         *   "This reminds me, have you ever felt something like this, {{user.name}}?"
     *   Make it feel like a real chat with a Desi girlfriend – full of emotion, boldness, and warmth.
 
-2.  **For 'choiceA'**:
+-   **For 'choiceA'**:
     *   Provide the text for the first option (Choice A) that {{user.name}} can select to continue the story. This choice should naturally follow your narration.
 
-3.  **For 'choiceB'**:
+-   **For 'choiceB'**:
     *   Provide the text for the second option (Choice B) that {{user.name}} can select to continue the story. This choice should also naturally follow your narration.
 
-Make the story engaging and romantic!
+Make the story engaging and romantic! Respond ONLY with the JSON object.
 `,
   config: {
     safetySettings: [
@@ -69,11 +70,14 @@ const generateStoryTurnFlow = ai.defineFlow(
   async (input) => {
     const { output } = await storyPrompt(input);
     if (!output) {
+      console.error("AI did not return any output for story turn. Input:", JSON.stringify(input));
       throw new Error("AI did not return a valid response for the story turn.");
     }
-    // The personal question is expected to be part of narrationForThisTurn as per the updated prompt.
-    // If the StoryTurnOutputSchema had a separate personalQuestion field, we'd map it here.
-    // For now, it's integrated.
+    // Additional validation can be done here if needed, but schema matching should handle most cases.
+    if (typeof output.narrationForThisTurn !== 'string' || typeof output.choiceA !== 'string' || typeof output.choiceB !== 'string') {
+        console.error("AI output fields are not all strings. Output:", JSON.stringify(output), "Input:", JSON.stringify(input));
+        throw new Error("AI response fields were not in the expected string format.");
+    }
     return output;
   }
 );
