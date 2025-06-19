@@ -1,3 +1,4 @@
+
 // src/app/admin/edit-character/[characterId]/page.tsx
 'use client';
 
@@ -18,7 +19,7 @@ import { Loader2, LogOut, Save, ListChecks, ImagePlus, Brain, Settings2, Info, A
 import { getCharacterMetadata } from '@/lib/firebase/rtdb';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
 import type { CharacterMetadata, CharacterCreationAdminFormValues } from '@/lib/types';
-import { updateCharacterAction, type UpdateCharacterActionState } from '../actions';
+import { updateCharacterAction, type UpdateCharacterActionState } from '../../actions';
 
 const initialState: UpdateCharacterActionState = {
   message: '',
@@ -407,3 +408,4 @@ export default function EditCharacterPage() {
     </div>
   );
 }
+
