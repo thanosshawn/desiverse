@@ -9,7 +9,7 @@ import React from 'react';
 
 interface ChatLayoutProps {
   messages: ChatMessageUI[];
-  onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request') => void;
+  onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request', gift?: any) => void; // gift type updated
   isLoading: boolean;
   currentCharacterName: CharacterName;
   currentCharacterAvatar: string; 
@@ -17,7 +17,7 @@ interface ChatLayoutProps {
   characterMessageBubbleStyle?: string;
   characterIsPremium?: boolean;
   userSubscriptionTier?: UserProfile['subscriptionTier'];
-  userDisplayName?: string; // Added prop
+  userDisplayName?: string; 
 }
 
 export function ChatLayout({
@@ -30,7 +30,7 @@ export function ChatLayout({
   characterMessageBubbleStyle,
   characterIsPremium,
   userSubscriptionTier,
-  userDisplayName, // Destructure prop
+  userDisplayName, 
 }: ChatLayoutProps) {
   
   const latestAiVideoSrcForAvatar = currentVideoMessageSrc;
@@ -55,7 +55,7 @@ export function ChatLayout({
             messages={messages} 
             characterBubbleStyle={characterMessageBubbleStyle}
             aiAvatarUrl={currentCharacterAvatar} 
-            userDisplayName={userDisplayName} // Pass down
+            userDisplayName={userDisplayName} 
         />
         <ChatInput 
             onSendMessage={onSendMessage} 

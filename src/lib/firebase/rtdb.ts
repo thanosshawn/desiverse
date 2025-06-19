@@ -1,4 +1,3 @@
-
 // src/lib/firebase/rtdb.ts
 import {
   ref,
@@ -218,14 +217,19 @@ export async function addMessageToChat(
   const newMessageRef = push(messagesRef); 
 
   const finalMessageData: MessageDocument = {
-    ...messageData,
-    timestamp: typeof messageData.timestamp === 'number' ? messageData.timestamp : (messageData.timestamp || rtdbServerTimestamp()), 
+    sender: messageData.sender,
+    text: messageData.text,
+    messageType: messageData.messageType,
+    timestamp: typeof messageData.timestamp === 'number' ? messageData.timestamp : (messageData.timestamp || rtdbServerTimestamp()),
+    audioUrl: messageData.audioUrl || null,
+    videoUrl: messageData.videoUrl || null,
+    sentGiftId: messageData.sentGiftId || null, // Ensure sentGiftId is saved
   } as MessageDocument; 
   
   await set(newMessageRef, finalMessageData);
 
   const chatMetadataUpdates: Partial<UserChatSessionMetadata> & {lastMessageTimestamp?: object} = {
-    lastMessageText: messageData.text.substring(0, 100),
+    lastMessageText: messageData.text.substring(0, 100), // Keep last message text concise
     lastMessageTimestamp: finalMessageData.timestamp, 
   };
   await updateChatSessionMetadata(userId, characterId, chatMetadataUpdates);

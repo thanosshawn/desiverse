@@ -74,12 +74,17 @@ export default function ManageCharactersPage() {
   };
 
   const handleDeleteCharacter = async (characterId: string, characterName: string) => {
+    // In a real app, you would call a Firebase function here to delete from RTDB.
+    // For this prototype, we'll just show a toast.
+    // Example: await deleteCharacterFromDB(characterId);
+    // setCharacters(prev => prev.filter(char => char.id !== characterId));
     toast({
-      title: `Delete Action (Not Implemented)`,
-      description: `If implemented, this would delete ${characterName}. This is a placeholder.`,
-      variant: 'default'
+      title: `Deletion Action (Simulated for ${characterName})`,
+      description: `If fully implemented, this would delete '${characterName}' (ID: ${characterId}) from the database. This is a placeholder action.`,
+      variant: 'default',
+      duration: 5000,
     });
-    console.log(`TODO: Implement delete for character ID: ${characterId}`);
+    console.log(`TODO: Implement RTDB delete for character ID: ${characterId}, Name: ${characterName}`);
   };
   
   if (!authStatusChecked) {
@@ -172,7 +177,7 @@ export default function ManageCharactersPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Button variant="outline" size="icon" title="Edit Character (Not Implemented)" className="hover:text-primary rounded-md">
+                        <Button variant="outline" size="icon" title="Edit Character (Not Implemented)" className="hover:text-primary rounded-md opacity-50 cursor-not-allowed">
                           <Edit className="h-4 w-4" />
                         </Button>
                         <AlertDialog>
@@ -186,7 +191,7 @@ export default function ManageCharactersPage() {
                               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 This action cannot be undone. This will permanently delete the
-                                character &quot;{char.name}&quot; and all associated data.
+                                character &quot;{char.name}&quot; and all associated data. (Deletion is simulated in this prototype)
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

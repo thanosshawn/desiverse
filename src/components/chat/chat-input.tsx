@@ -1,4 +1,3 @@
-
 // src/components/chat/chat-input.tsx
 'use client';
 
@@ -14,7 +13,7 @@ import { virtualGifts } from '@/lib/gifts';
 import * as Icons from 'lucide-react'; 
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { isFeatureLocked, getFeatureLockDetails } from '@/lib/premium'; // New imports
+import { isFeatureLocked, getFeatureLockDetails } from '@/lib/premium'; 
 
 interface ChatInputProps {
   onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request', gift?: VirtualGift) => void; 
@@ -67,10 +66,14 @@ export function ChatInput({
 
      if (inputValue.trim() && !isLoading) {
       onSendMessage(inputValue.trim(), type);
-      setInputValue('');
+      setInputValue(''); 
     } else if (!isLoading) {
-      const messageContent = inputValue.trim() || (type === 'audio_request' ? `Send me a voice message, ${characterName}!` : `Show me a video, ${characterName}!`);
-      onSendMessage(messageContent, type);
+      // If no input value, send a default request message.
+      // The actual content for the AI is now handled by the AI flow, so this input is more for the user's record.
+      const defaultRequestText = type === 'audio_request' 
+        ? `Sent a request for a voice message to ${characterName}.` 
+        : `Sent a request for a video reply to ${characterName}.`;
+      onSendMessage(defaultRequestText, type); // User's message text
       setInputValue(''); 
     }
     setShowEmojiPicker(false); 
@@ -101,9 +104,8 @@ export function ChatInput({
 
   const handleSendGift = (gift: VirtualGift) => {
     const isThisGiftLocked = isFeatureLocked(
-        'premium_gift', // Assumes all gifts are premium if user is free
+        'premium_gift', 
         userSubscriptionTier
-        // If gifts had individual premium flags: { giftIsPremium: gift.isPremium }
     );
 
     if (isThisGiftLocked) {
@@ -122,7 +124,7 @@ export function ChatInput({
   const voiceButtonTitle = isVoiceChatLocked 
     ? getFeatureLockDetails('premium_voice_message', { characterName }).title 
     : "Request voice message";
-  const voiceButtonDisabled = isLoading || isVoiceChatLocked; // Simpler disabled logic
+  const voiceButtonDisabled = isLoading; // Removed direct lock check here, handled in handleSpecialRequest
 
   const renderGiftIcon = (iconName: keyof typeof Icons) => {
     const IconComponent = Icons[iconName] as LucideIcon;
@@ -187,7 +189,7 @@ export function ChatInput({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-            className="w-80 p-2 border-border shadow-xl mb-2 rounded-xl"
+            className="w-80 p-2 border-border shadow-xl bg-white mb-2 rounded-xl"
             side="top" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()}
@@ -196,12 +198,12 @@ export function ChatInput({
           <div className="space-y-2">
             <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 px-2 pt-1">Send a Virtual Gift to {characterName}</p>
             {virtualGifts.map((gift) => {
-                const isThisSpecificGiftLocked = isFeatureLocked('premium_gift', userSubscriptionTier); // Assuming all gifts are premium
+                const isThisSpecificGiftLocked = isFeatureLocked('premium_gift', userSubscriptionTier);
                 return (
                     <Button
                         key={gift.id}
                         variant="ghost"
-                        className="w-full justify-start h-auto p-2 text-left !rounded-md text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 focus:bg-neutral-100 focus:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 dark:focus:bg-neutral-800 dark:focus:text-neutral-100"
+                        className="w-full justify-start h-auto p-2 text-left !rounded-md text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 focus:bg-neutral-100 focus:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-neutral-100 dark:focus:bg-neutral-700 dark:focus:text-neutral-100"
                         onClick={() => handleSendGift(gift)}
                         title={isThisSpecificGiftLocked ? getFeatureLockDetails('premium_gift', { itemName: gift.name, characterName }).title : `Send ${gift.name}`}
                     >
@@ -269,7 +271,7 @@ export function ChatInput({
           variant="ghost" 
           size="icon" 
           onClick={() => handleSpecialRequest('audio_request')} 
-          disabled={voiceButtonDisabled}
+          disabled={voiceButtonDisabled} //isLoading is now the primary control here for the button state
           aria-label={voiceButtonTitle}
           className={`rounded-full p-2.5 aspect-square ${isVoiceChatLocked ? 'text-amber-500 hover:text-amber-600 cursor-pointer' : voiceButtonDisabled ? 'text-muted-foreground/70 cursor-not-allowed' : 'text-primary hover:text-primary/80'}`}
           title={voiceButtonTitle}
@@ -291,4 +293,3 @@ export function ChatInput({
     </form>
   );
 }
-

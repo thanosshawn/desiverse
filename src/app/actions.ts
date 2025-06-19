@@ -1,4 +1,3 @@
-
 // src/app/actions.ts
 'use server';
 
@@ -25,17 +24,21 @@ export async function handleUserMessageAction(
   chatHistory: AIActionInputMessage[], 
   characterMeta: CharacterMetadata, 
   userId: string, 
-  chatId: string,
+  chatId: string, // Though not directly used here, good to keep for potential future use like session logging
   userDisplayName: string, 
-  giftReactionPrompt?: string 
+  giftReactionPrompt?: string // Optional prompt for reacting to a gift
 ): Promise<AIResponse> {
   try {
+    // Format previous messages for the AI, including sender's actual name
     const formattedPreviousMessages = chatHistory
       .map(msg => ({
         sender: msg.sender === 'user' ? userDisplayName : characterMeta.name,
         content: msg.content,
-      }));
+      }))
+      .slice(-10); // Send last 10 messages for context
 
+    // Construct the user preferences string for the AI
+    // This string now includes the user's name and context about the gift if sent
     let userPreferencesForAI = `User is interacting with ${characterMeta.name}. User's name is ${userDisplayName}.
     Character's persona: ${characterMeta.basePrompt}.
     Style tags: ${characterMeta.styleTags.join(', ')}.
@@ -52,7 +55,7 @@ export async function handleUserMessageAction(
     const personalizedMessage = await personalizeDailyMessage({
       userName: userDisplayName, 
       userPreferences: userPreferencesForAI, 
-      previousMessages: formattedPreviousMessages, // Pass the formatted array
+      previousMessages: formattedPreviousMessages, 
       basePrompt: characterMeta.basePrompt, 
       styleTags: characterMeta.styleTags,   
     });
@@ -64,6 +67,14 @@ export async function handleUserMessageAction(
     const aiTextResponse = personalizedMessage.message;
     let response: AIResponse = { text: aiTextResponse };
     
+    // TODO: Here you could conditionally call voice/video generation flows
+    // For example, if user requested it or based on AI's response intent.
+    // const shouldGenerateAudio = ...;
+    // if (shouldGenerateAudio) {
+    //   const audioResponse = await generatePersonalizedVoiceMessage({ messageText: aiTextResponse, characterStyle: characterMeta.name as any });
+    //   response.audioDataUri = audioResponse.audioDataUri;
+    // }
+
     return response;
 
   } catch (error) {

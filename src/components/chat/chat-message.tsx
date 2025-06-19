@@ -2,7 +2,7 @@
 'use client';
 
 import type { ChatMessageUI, VirtualGift } from '@/lib/types'; 
-import { cn, getInitials } from '@/lib/utils'; // Import getInitials
+import { cn, getInitials } from '@/lib/utils'; 
 import { Bot, User, AlertTriangle, Loader2, Gift as GiftIconLucide } from 'lucide-react'; 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -13,7 +13,7 @@ interface ChatMessageProps {
   message: ChatMessageUI;
   characterBubbleStyle?: string;
   aiAvatarUrl: string; 
-  userDisplayName?: string; // Added prop
+  userDisplayName?: string; 
 }
 
 export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDisplayName }: ChatMessageProps) {
@@ -35,20 +35,22 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
   const getBubbleStyle = () => {
     if (isUser) {
       if (message.type === 'gift_sent') {
-        return 'bg-amber-400 dark:bg-amber-500 text-black dark:text-white rounded-br-none shadow-lg'; 
+        // Distinct style for "gift sent" messages
+        return 'bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-400 text-black dark:text-neutral-800 rounded-br-none shadow-lg border border-amber-500/50'; 
       }
       return 'bg-primary text-primary-foreground rounded-br-none';
     }
     
-    if (characterBubbleStyle && characterBubbleStyle.includes('pink')) {
+    // AI message bubble styles
+    if (characterBubbleStyle && characterBubbleStyle.includes('pink')) { // Example custom style
         return 'bg-gradient-to-br from-pink-500 to-rose-400 text-white rounded-bl-none shadow-md';
     }
-    return 'bg-card text-card-foreground rounded-bl-none shadow-md';
+    return 'bg-card text-card-foreground rounded-bl-none shadow-md'; // Default AI bubble
   };
 
   const renderGiftIcon = (gift: VirtualGift) => {
     const IconComponent = Icons[gift.iconName] as React.ElementType;
-    return IconComponent ? <IconComponent className="h-4 w-4 inline-block mr-1.5 text-current" /> : <GiftIconLucide className="h-4 w-4 inline-block mr-1.5 text-current"/>;
+    return IconComponent ? <IconComponent className="h-5 w-5 inline-block mr-2 text-current flex-shrink-0" /> : <GiftIconLucide className="h-5 w-5 inline-block mr-2 text-current flex-shrink-0"/>;
   };
 
   const renderContent = () => {
@@ -56,14 +58,26 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
       case 'text':
         return <p className="whitespace-pre-wrap">{message.content}</p>;
       case 'gift_sent':
+        // Display the gift icon, name, and any accompanying user text
         return (
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
                 {message.sentGift && renderGiftIcon(message.sentGift)}
-                <p className="whitespace-pre-wrap italic">{message.content}</p>
+                <div className="flex-grow">
+                    <p className="whitespace-pre-wrap italic font-medium">
+                        Sent {message.sentGift?.name || 'a gift'}
+                        {message.sentGift?.name && message.content.includes(message.sentGift.name) && message.content.split(message.sentGift.name)[1] ? 
+                         `${message.content.split(message.sentGift.name)[1].split('.')[0]}.` : '.'}
+                    </p>
+                    {message.sentGift && message.content.includes("You also said:") && (
+                        <p className="whitespace-pre-wrap text-sm opacity-90 mt-1">
+                           "{message.content.split('You also said: "')[1]?.slice(0,-1)}"
+                        </p>
+                    )}
+                </div>
             </div>
         );
       
-      case 'gift_received': 
+      case 'gift_received': // Placeholder for AI receiving a gift, if needed for special UI
         return <p className="whitespace-pre-wrap">{message.content}</p>;
       case 'audio':
         return (
@@ -138,9 +152,9 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
           </p>
         )}
       </div>
-       {isUser && message.type !== 'gift_sent' && ( 
+       {isUser && ( 
          <Avatar className="flex-shrink-0 w-8 h-8 rounded-full shadow-sm self-end mb-1">
-            {/* <AvatarImage src={userAvatarUrl} alt={userDisplayName || 'User'} /> Future: if user can set avatar */}
+            {/* Future: if user can set avatar from UserProfile.avatarUrl */}
             <AvatarFallback className="bg-accent text-accent-foreground text-xs">
               {userDisplayName ? getInitials(userDisplayName) : <User size={16}/>}
             </AvatarFallback>

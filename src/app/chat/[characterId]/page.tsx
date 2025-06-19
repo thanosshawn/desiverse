@@ -1,7 +1,7 @@
 // src/app/chat/[characterId]/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, use } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
@@ -26,6 +26,7 @@ export default function ChatPage() {
   const router = useRouter();
 
   const paramsFromHook = useParams();
+  // const actualParams = use(paramsFromHook as any); // Reverted due to runtime error
   const characterId = paramsFromHook.characterId as string;
 
 
@@ -161,12 +162,12 @@ export default function ChatPage() {
             videoSrc: doc.videoUrl || undefined,
           };
           if (doc.messageType === 'gift_sent' && doc.sentGiftId) {
-            baseMessage.sentGift = {
+            baseMessage.sentGift = { // This part needs to be robust. For now, assumes gift store is client-side only
                 id: doc.sentGiftId,
                 name: doc.text.includes("sent a") ? doc.text.split("sent a ")[1].split(" to")[0] : "a gift", // Basic parsing
                 iconName: 'Gift', // Default, ideally stored or mapped
                 description: "A lovely gift", // Default
-                aiReactionPrompt: "" // Default
+                aiReactionPrompt: "", // Default
             };
           }
           return baseMessage;
@@ -211,17 +212,19 @@ export default function ChatPage() {
     let userMessageText = userInput;
     let messageTypeForRtdb: MessageDocument['messageType'] = 'text';
     let sentGiftIdForRtdb: string | undefined = undefined;
+    let giftReactionPromptForAI: string | undefined = undefined;
 
     if (gift) {
       userMessageText = `You sent ${gift.name} to ${currentCharacterMeta.name}. ${userInput ? `You also said: "${userInput}"` : ''}`;
       addOptimisticMessage({
         sender: 'user',
         type: 'gift_sent',
-        content: userMessageText,
+        content: userMessageText, // This content is for the user's own message bubble
         sentGift: gift,
       });
       messageTypeForRtdb = 'gift_sent';
       sentGiftIdForRtdb = gift.id;
+      giftReactionPromptForAI = gift.aiReactionPrompt;
     } else {
        addOptimisticMessage({
         sender: 'user',
@@ -236,7 +239,7 @@ export default function ChatPage() {
     try {
       const userMessageData: Omit<MessageDocument, 'timestamp'> = {
         sender: 'user',
-        text: userMessageText,
+        text: userMessageText, // For RTDB, this includes the "You sent..." part if a gift.
         messageType: messageTypeForRtdb,
         sentGiftId: sentGiftIdForRtdb || null,
       };
@@ -265,18 +268,18 @@ export default function ChatPage() {
 
       // Fetch AI response
       const aiResponse = await handleUserMessageAction(
-        userInput,
-        messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({ // Use current messages state
-            id: m.rtdbKey || m.id, // Ensure a unique ID is available
+        userInput, // Original user input if any, empty if only gift
+        messages.filter(m => m.type !== 'loading' && m.type !== 'error').map(m => ({ 
+            id: m.rtdbKey || m.id, 
             sender: m.sender,
             content: m.content,
-            timestamp: m.timestamp.getTime(), // Pass timestamp as number
-        })).slice(-10), // Send last 10 messages for context
+            timestamp: m.timestamp.getTime(), 
+        })), 
         currentCharacterMeta,
         user.uid,
         characterId,
-        userDisplayName, // Pass the actual user's display name
-        gift?.aiReactionPrompt
+        userDisplayName, 
+        giftReactionPromptForAI // Pass the specific reaction prompt for the gift
       );
 
       removeOptimisticMessage(optimisticAiLoadingId);
@@ -290,7 +293,6 @@ export default function ChatPage() {
         });
         toast({ title: 'AI Error', description: aiResponse.error || "Failed to get AI response.", variant: 'destructive' });
       } else {
-        // Add AI's message to RTDB
         const aiMessageData: Omit<MessageDocument, 'timestamp'> = {
           sender: 'ai',
           text: aiResponse.text,
@@ -301,12 +303,11 @@ export default function ChatPage() {
         await addMessageToChat(user.uid, characterId, aiMessageData);
 
         if (aiResponse.videoDataUri) {
-          setCurrentVideoSrc(aiResponse.videoDataUri); // For ChatAvatar if it handles video
+          setCurrentVideoSrc(aiResponse.videoDataUri); 
         }
       }
     } catch (error: any) {
       console.error("Send message error:", error);
-      // Ensure loading indicators are cleaned up on error
       removeOptimisticMessage(messages.find(m => m.type === 'loading')?.id || '');
       addOptimisticMessage({
         sender: 'ai',
@@ -323,7 +324,7 @@ export default function ChatPage() {
   const toggleFavoriteChat = async () => {
     if (!user || !characterId) return;
     const newFavoriteStatus = !isFavorite;
-    setIsFavorite(newFavoriteStatus); // Optimistic update
+    setIsFavorite(newFavoriteStatus); 
     try {
       await updateChatSessionMetadata(user.uid, characterId, { isFavorite: newFavoriteStatus });
       toast({
@@ -332,20 +333,17 @@ export default function ChatPage() {
       });
     } catch (error) {
       console.error("Error updating favorite status:", error);
-      setIsFavorite(!newFavoriteStatus); // Revert on error
+      setIsFavorite(!newFavoriteStatus); 
       toast({ title: 'Error', description: 'Could not update favorite status.', variant: 'destructive' });
     }
   };
 
   const bondPercentage = useMemo(() => {
     if (!currentCharacterMeta || !currentStreakData) return 0;
-    // Calculate bond based on number of messages and streak length
     const numMessages = messages.filter(m => m.type !== 'loading' && m.type !== 'error' && m.sender === 'user').length;
     const streakValue = currentStreakData?.currentStreak || 0;
-
-    // Example weighting: 50 points from messages (1 pt per message, max 50), 50 from streak (e.g., ~7 pts per day, max 50 for 7 days)
-    const messageScore = Math.min(numMessages / 50, 1) * 50; // Max 50 points from 50 messages
-    const streakScore = Math.min(streakValue / 7, 1) * 50;   // Max 50 points from a 7-day streak
+    const messageScore = Math.min(numMessages / 50, 1) * 50; 
+    const streakScore = Math.min(streakValue / 7, 1) * 50;   
     return Math.max(0, Math.min(100, Math.round(messageScore + streakScore)));
   }, [messages, currentStreakData, currentCharacterMeta]);
 
@@ -353,14 +351,14 @@ export default function ChatPage() {
   if (authLoading || pageLoading || !currentCharacterMeta || !currentChatSessionMeta) {
     const initialBackgroundStyle = currentCharacterMeta?.backgroundImageUrl
     ? {
-        backgroundImage: `var(--chat-page-initial-bg-image, var(--background))`, // Use CSS var or fallback
+        backgroundImage: `var(--chat-page-initial-bg-image, var(--background))`, 
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed',
       }
     : {
-        background: 'var(--background)', // Standard theme background
+        background: 'var(--background)', 
     };
     return (
       <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={initialBackgroundStyle}>
