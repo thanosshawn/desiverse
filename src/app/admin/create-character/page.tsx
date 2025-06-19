@@ -372,20 +372,23 @@ export default function CreateCharacterPage() {
                     control={form.control}
                     name="isPremium"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                        <div className="space-y-0.5">
-                          <FormLabel className="text-base">Premium Character</FormLabel>
-                          <FormDescription>
-                            Mark this character as premium (requires subscription to chat).
-                          </FormDescription>
+                      <FormItem className="rounded-lg border p-3 shadow-sm space-y-1.5">
+                        <div className="flex flex-row items-center justify-between">
+                          <FormLabel htmlFor={`${field.name}-premium-switch`} className="text-sm font-medium">
+                            Premium Character
+                          </FormLabel>
+                          <FormControl>
+                            <Switch
+                              id={`${field.name}-premium-switch`}
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              aria-describedby={`${field.name}-premium-description`}
+                            />
+                          </FormControl>
                         </div>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            name={field.name}
-                          />
-                        </FormControl>
+                        <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground">
+                          Mark this character as premium (requires subscription to chat).
+                        </FormDescription>
                       </FormItem>
                     )}
                   />
