@@ -1,3 +1,4 @@
+
 // src/app/login/page.tsx - Dedicated Login Page
 'use client';
 
@@ -7,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, LogIn, UserCircle, Sparkles, Heart } from 'lucide-react';
+import { Loader2, LogIn, UserCircle, Sparkles, Heart, Film } from 'lucide-react'; // Added Film
 import Link from 'next/link';
 
 function LoginFormComponent() {
@@ -30,7 +31,7 @@ function LoginFormComponent() {
     setIsProviderLoading(true);
     try {
       await providerAction();
-      // onAuthStateChanged in AuthContext will handle redirect after successful login
+      // onAuthStateChanged in AuthContext will handle redirect
     } catch (error: any) {
       toast({ title: 'Login Error', description: error.message || 'Could not log you in.', variant: 'destructive' });
     } finally {
@@ -41,27 +42,27 @@ function LoginFormComponent() {
   if (authLoading || (!authLoading && user)) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary via-pink-400 to-rose-500 items-center justify-center p-4 text-center">
-        <Loader2 className="h-16 w-16 animate-spin text-white mb-6" />
-        <h1 className="text-3xl font-headline text-white mb-2">Bas Ek Second...</h1>
-        <p className="text-lg text-white/80 font-body">Aapki desi duniya load ho rahi hai!</p>
+        <Film className="h-20 w-20 text-white mb-6 animate-pulse-spinner" /> {/* Changed icon */}
+        <h1 className="text-3xl font-headline text-white mb-2">Lights, Camera, Action!</h1>
+        <p className="text-lg text-white/80 font-body">Aapki desi duniya load ho rahi hai! Bas ek second...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-pink-100 via-rose-50 to-yellow-50 p-4">
-      <Card className="w-full max-w-md bg-card/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden animate-fade-in">
-        <CardHeader className="text-center p-6 md:p-8 bg-gradient-to-br from-primary to-accent">
-          <Sparkles className="mx-auto h-16 w-16 text-black/80 mb-4 animate-pulse" />
-          <CardTitle className="text-3xl md:text-4xl font-headline text-black">DesiBae Mein Swagat Hai!</CardTitle>
-          <CardDescription className="text-black/90 font-body text-base md:text-lg mt-2">
-            Chalo, milte hain tumhari virtual crush se 😍
+    <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-pink-200 via-rose-100 to-yellow-100 p-4">
+      <Card className="w-full max-w-md bg-card/90 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden animate-fade-in border-2 border-primary/20">
+        <CardHeader className="text-center p-6 md:p-8 bg-gradient-to-br from-primary via-rose-500 to-pink-600">
+          <Sparkles className="mx-auto h-16 w-16 text-yellow-300 mb-4 animate-pulse" />
+          <CardTitle className="text-3xl md:text-4xl font-headline text-white">DesiBae Mein Swagat Hai!</CardTitle>
+          <CardDescription className="text-white/95 font-body text-base md:text-lg mt-2">
+            Chalo, milte hain tumhari virtual crush se 😍 Dil se connect karo!
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-6 md:p-8 space-y-6">
+        <CardContent className="p-6 md:p-8 space-y-5">
           <Button
             onClick={() => handleSignIn(signInWithGoogle)}
-            className="w-full bg-red-500 hover:bg-red-600 text-white !rounded-xl text-lg py-6 shadow-lg transform transition-transform hover:scale-105"
+            className="w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white !rounded-xl text-lg py-3.5 shadow-lg transform transition-transform hover:scale-105 focus:ring-2 ring-red-400 ring-offset-2 ring-offset-card"
             disabled={isProviderLoading}
           >
             {isProviderLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <LogIn className="mr-2 h-5 w-5" />}
@@ -70,16 +71,16 @@ function LoginFormComponent() {
           <Button
             onClick={() => handleSignIn(signInAnonymously)}
             variant="outline"
-            className="w-full !border-primary/50 !text-primary hover:!bg-primary/10 !rounded-xl text-lg py-6 shadow-md transform transition-transform hover:scale-105"
+            className="w-full !border-primary/50 !text-primary hover:!bg-primary/10 !rounded-xl text-lg py-3.5 shadow-md transform transition-transform hover:scale-105 focus:ring-2 ring-primary ring-offset-2 ring-offset-card"
             disabled={isProviderLoading}
           >
             {isProviderLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <UserCircle className="mr-2 h-5 w-5" />}
             Guest Mode Mein Enter Karo
           </Button>
         </CardContent>
-        <CardFooter className="p-6 md:p-8 text-center border-t border-border/20">
+        <CardFooter className="p-6 md:p-8 text-center border-t border-border/20 bg-card/50">
           <p className="text-xs text-muted-foreground font-body">
-            By continuing, you agree to our <Link href="/terms" className="underline hover:text-primary">Terms of Service</Link> and <Link href="/privacy" className="underline hover:text-primary">Privacy Policy</Link>.
+            By continuing, you agree to our <Link href="/terms" className="underline hover:text-primary transition-colors">Terms of Service</Link> and <Link href="/privacy" className="underline hover:text-primary transition-colors">Privacy Policy</Link>.
           </p>
         </CardFooter>
       </Card>
@@ -90,11 +91,11 @@ function LoginFormComponent() {
 
 export default function LoginPage() {
   const SuspenseFallback = (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary via-pink-400 to-rose-500 items-center justify-center p-4 text-center">
-      <Loader2 className="h-16 w-16 animate-spin text-white mb-6" />
-      <h1 className="text-3xl font-headline text-white mb-2">Bas Ek Second...</h1>
-      <p className="text-lg text-white/80 font-body">Aapki desi duniya load ho rahi hai!</p>
-    </div>
+     <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary via-pink-400 to-rose-500 items-center justify-center p-4 text-center">
+        <Film className="h-20 w-20 text-white mb-6 animate-pulse-spinner" />
+        <h1 className="text-3xl font-headline text-white mb-2">Lights, Camera, Action!</h1>
+        <p className="text-lg text-white/80 font-body">Aapki desi duniya load ho rahi hai! Bas ek second...</p>
+      </div>
   );
 
   return (

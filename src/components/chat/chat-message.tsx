@@ -1,17 +1,19 @@
+
 // src/components/chat/chat-message.tsx
 'use client';
 
 import type { ChatMessageUI, VirtualGift } from '@/lib/types'; 
 import { cn, getInitials } from '@/lib/utils'; 
-import { Bot, User, AlertTriangle, Loader2, Gift as GiftIconLucide } from 'lucide-react'; 
+import { Bot, User, AlertTriangle, Loader2, Gift as GiftIconLucide, Sparkles } from 'lucide-react'; 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; 
 import * as Icons from 'lucide-react'; 
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessageProps {
   message: ChatMessageUI;
-  characterBubbleStyle?: string;
+  characterBubbleStyle?: string; // This can be used for very specific per-character styling if needed
   aiAvatarUrl: string; 
   userDisplayName?: string; 
 }
@@ -27,64 +29,73 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
         new Date(message.timestamp).toLocaleTimeString([], { 
           hour: '2-digit',
           minute: '2-digit',
+          hour12: true,
         })
       );
     }
   }, [message.timestamp]);
 
   const getBubbleStyle = () => {
+    // Base classes for all bubbles
+    let baseClasses = 'p-3 md:p-4 rounded-2xl shadow-md break-words text-sm md:text-base transition-all duration-300 ease-in-out';
+    
     if (isUser) {
       if (message.type === 'gift_sent') {
-        // Distinct style for "gift sent" messages
-        return 'bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-400 text-black rounded-br-none shadow-lg border border-amber-500/50'; 
+        return `${baseClasses} bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 text-black rounded-br-none shadow-lg border border-amber-500/30`; 
       }
-      return 'bg-primary text-primary-foreground rounded-br-none';
+      // User's regular text message: gradient from primary color
+      return `${baseClasses} bg-gradient-to-br from-primary via-rose-500 to-pink-600 text-primary-foreground rounded-br-none group-hover:shadow-lg`;
     }
     
     // AI message bubble styles
-    if (characterBubbleStyle && characterBubbleStyle.includes('pink')) { // Example custom style
-        return 'bg-gradient-to-br from-pink-500 to-rose-400 text-white rounded-bl-none shadow-md';
+    // Example for a specific character style if provided
+    if (characterBubbleStyle && characterBubbleStyle.includes('pink-glow')) { 
+        return `${baseClasses} bg-gradient-to-br from-pink-500 via-rose-400 to-fuchsia-500 text-white rounded-bl-none shadow-glow-primary`;
     }
-    return 'bg-card text-card-foreground rounded-bl-none shadow-md'; // Default AI bubble
+    // Default AI bubble: subtle gradient on card background
+    return `${baseClasses} bg-card text-card-foreground rounded-bl-none shadow-soft-lg border border-border/50 group-hover:border-accent/50`;
   };
 
   const renderGiftIcon = (gift: VirtualGift) => {
     const IconComponent = Icons[gift.iconName] as React.ElementType;
-    return IconComponent ? <IconComponent className="h-5 w-5 inline-block mr-2 text-current flex-shrink-0" /> : <GiftIconLucide className="h-5 w-5 inline-block mr-2 text-current flex-shrink-0"/>;
+    // Use a specific color for gift icons, perhaps from accent or secondary
+    return IconComponent ? <IconComponent className="h-6 w-6 inline-block mr-2 text-amber-600 flex-shrink-0" /> : <GiftIconLucide className="h-6 w-6 inline-block mr-2 text-amber-600 flex-shrink-0"/>;
   };
 
   const renderContent = () => {
     switch (message.type) {
       case 'text':
-        return <p className="whitespace-pre-wrap">{message.content}</p>;
-      case 'gift_sent':
-        // Display the gift icon, name, and any accompanying user text
         return (
-            <div className="flex items-center gap-2">
+          <ReactMarkdown
+            components={{
+              p: ({node, ...props}) => <p className="mb-0 last:mb-0" {...props} />, // Remove default margins
+            }}
+          >
+            {message.content}
+          </ReactMarkdown>
+        );
+      case 'gift_sent':
+        return (
+            <div className="flex items-center gap-2.5">
                 {message.sentGift && renderGiftIcon(message.sentGift)}
                 <div className="flex-grow">
-                    <p className="whitespace-pre-wrap italic font-medium">
-                        Sent {message.sentGift?.name || 'a gift'}
-                        {message.sentGift?.name && message.content.includes(message.sentGift.name) && message.content.split(message.sentGift.name)[1] ? 
-                         `${message.content.split(message.sentGift.name)[1].split('.')[0]}.` : '.'}
+                    <p className="font-semibold">
+                        You sent {message.sentGift?.name || 'a gift'}!
                     </p>
                     {message.sentGift && message.content.includes("You also said:") && (
-                        <p className="whitespace-pre-wrap text-sm opacity-90 mt-1">
+                        <p className="text-sm opacity-80 mt-1 italic">
                            "{message.content.split('You also said: "')[1]?.slice(0,-1)}"
                         </p>
                     )}
                 </div>
             </div>
         );
-      
-      case 'gift_received': // Placeholder for AI receiving a gift, if needed for special UI
-        return <p className="whitespace-pre-wrap">{message.content}</p>;
       case 'audio':
         return (
-          <div className="space-y-1.5">
-            {message.content && message.content !== "[Playing audio...]" && <p className="text-sm italic opacity-90">{message.content}</p> }
+          <div className="space-y-2">
+            {message.content && message.content !== "[Playing audio...]" && <p className="text-sm italic opacity-80 mb-1">{message.content}</p> }
             {message.audioSrc && (
-              <audio controls src={message.audioSrc} className="w-full max-w-xs h-10 rounded-lg">
+              <audio controls src={message.audioSrc} className="w-full max-w-xs h-10 rounded-lg shadow-inner bg-black/10">
                 Your browser does not support the audio element.
               </audio>
             )}
@@ -92,31 +103,31 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
         );
       case 'video': 
         return (
-           <div className="space-y-1.5">
-            {message.content && message.content !== "[Playing video...]" && <p className="text-sm italic opacity-90">{message.content}</p>}
+           <div className="space-y-2">
+            {message.content && message.content !== "[Playing video...]" && <p className="text-sm italic opacity-80 mb-1">{message.content}</p>}
             {message.videoSrc ? (
-              <video controls src={message.videoSrc} className="w-full max-w-xs rounded-xl aspect-video shadow-lg" muted={false} playsInline>
+              <video controls src={message.videoSrc} className="w-full max-w-xs rounded-xl aspect-video shadow-lg bg-black/20" muted={false} playsInline>
                 Your browser does not support the video tag.
               </video>
             ) : (
               message.content.startsWith('data:image') ? 
-              <Image src={message.content} alt="User uploaded image" width={200} height={150} className="rounded-xl object-cover shadow-lg" />
+              <Image src={message.content} alt="User uploaded image" width={240} height={180} className="rounded-xl object-cover shadow-lg" />
               : null 
             )}
           </div>
         );
       case 'loading':
         return (
-          <div className="flex items-center space-x-2 text-current opacity-80">
-            <Loader2 className="h-5 w-5 animate-spin" />
-            <span className="text-sm">{message.content || 'Thinking...'}</span>
+          <div className="flex items-center space-x-2.5 text-current opacity-80">
+            <Sparkles className="h-5 w-5 animate-pulse-spinner text-primary" />
+            <span className="text-sm italic">{message.content || 'Soch rahi hoon...'}</span>
           </div>
         );
       case 'error':
         return (
-          <div className="flex items-center space-x-2 text-destructive-foreground bg-destructive/80 px-3 py-2 rounded-lg">
+          <div className="flex items-center space-x-2.5 text-destructive-foreground bg-destructive/90 px-3.5 py-2.5 rounded-lg shadow-md">
             <AlertTriangle className="h-5 w-5" />
-            <span className="text-sm">{message.content || 'An error occurred.'}</span>
+            <span className="text-sm font-medium">{message.content || 'Oops, kuch gadbad ho gayi!'}</span>
           </div>
         );
       default:
@@ -127,36 +138,38 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
   return (
     <div
       className={cn(
-        'flex items-end space-x-2 group animate-slide-in-from-bottom max-w-[85%] sm:max-w-[75%] md:max-w-[70%]',
-        isUser ? 'justify-end self-end' : 'justify-start self-start'
+        'flex items-end space-x-2.5 group animate-fade-in max-w-[80%] sm:max-w-[70%] md:max-w-[65%]',
+        isUser ? 'justify-end self-end ml-auto' : 'justify-start self-start mr-auto'
       )}
     >
       {!isUser && (
-        <Avatar className="flex-shrink-0 w-8 h-8 rounded-full shadow-sm self-end mb-1">
+        <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-accent/30 group-hover:border-accent transition-all">
             <AvatarImage src={aiAvatarUrl} alt={message.characterName || 'AI'} />
-            <AvatarFallback className="bg-secondary text-secondary-foreground text-xs">
-              {message.characterName ? getInitials(message.characterName) : <Bot size={16}/>}
+            <AvatarFallback className="bg-accent/20 text-accent text-sm font-semibold">
+              {message.characterName ? getInitials(message.characterName) : <Bot size={18}/>}
             </AvatarFallback>
         </Avatar>
       )}
       <div
         className={cn(
-          'p-3 rounded-2xl shadow-lg break-words text-sm md:text-base',
           getBubbleStyle()
         )}
       >
         {renderContent()}
         {clientFormattedTimestamp && message.type !== 'loading' && message.type !== 'error' && (
-          <p className={cn("text-xs mt-1.5 text-right opacity-70", isUser ? "text-current/70" : "text-current/70")}>
+          <p className={cn(
+              "text-xs mt-1.5 text-right opacity-60", 
+              isUser ? "text-primary-foreground/70" : "text-muted-foreground/80"
+          )}>
             {clientFormattedTimestamp}
           </p>
         )}
       </div>
        {isUser && ( 
-         <Avatar className="flex-shrink-0 w-8 h-8 rounded-full shadow-sm self-end mb-1">
-            {/* Future: if user can set avatar from UserProfile.avatarUrl */}
-            <AvatarFallback className="bg-accent text-accent-foreground text-xs">
-              {userDisplayName ? getInitials(userDisplayName) : <User size={16}/>}
+         <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-secondary/30 group-hover:border-secondary transition-all">
+            <AvatarImage src={userDisplayName ? undefined : undefined} /* placeholder for user's own avatar if available */ />
+            <AvatarFallback className="bg-secondary/20 text-secondary-foreground text-sm font-semibold">
+              {userDisplayName ? getInitials(userDisplayName) : <User size={18}/>}
             </AvatarFallback>
         </Avatar>
       )}

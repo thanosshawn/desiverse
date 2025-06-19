@@ -4,7 +4,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SendHorizonal, Mic, Paperclip, SmilePlus, Lock, Gift as GiftIcon, LucideIcon } from 'lucide-react'; 
+import { SendHorizonal, Mic, Paperclip, SmilePlus, Lock, Gift as GiftIcon, LucideIcon, Sparkles } from 'lucide-react'; 
 import React, { useState, useRef } from 'react';
 import type { CharacterName, UserProfile, VirtualGift } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -15,6 +15,7 @@ import * as Icons from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { isFeatureLocked, getFeatureLockDetails } from '@/lib/premium'; 
+import { cn } from '@/lib/utils';
 
 interface ChatInputProps {
   onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request', gift?: VirtualGift) => void; 
@@ -103,11 +104,10 @@ export function ChatInput({
     const isThisGiftLocked = isFeatureLocked(
         'premium_gift', 
         userSubscriptionTier
-        // If individual gifts had premium flags: { giftIsPremium: gift.isPremium }
     );
 
     if (isThisGiftLocked) {
-      const details = getFeatureLockDetails('premium_gift', { characterName, itemName: gift.name });
+      const details = getFeatureLockDetails('premium_gift', { itemName: gift.name, characterName });
       toast({ title: details.title, description: details.description, variant: 'default' });
       router.push(`/subscribe?${details.subscribeQuery}`);
       setShowGiftPicker(false);
@@ -132,7 +132,7 @@ export function ChatInput({
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-3 md:p-4 border-t border-border/50 bg-card/70 backdrop-blur-sm flex items-end space-x-1 sm:space-x-2 sticky bottom-0"
+      className="p-3 md:p-4 border-t border-border/30 bg-card/80 backdrop-blur-md flex items-end space-x-1.5 sm:space-x-2 sticky bottom-0 shadow-[-2px_0px_15px_rgba(0,0,0,0.1)]"
       aria-label="Chat input form"
     >
       <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
@@ -143,7 +143,7 @@ export function ChatInput({
             size="icon"
             disabled={isLoading}
             aria-label="Emoji"
-            className="text-muted-foreground hover:text-primary rounded-full p-2 hidden sm:inline-flex"
+            className="text-muted-foreground hover:text-primary rounded-full p-2.5 hidden sm:inline-flex transition-colors duration-200 hover:bg-primary/10"
             title="Select an emoji"
             onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGiftPicker(false); }}
           >
@@ -151,7 +151,7 @@ export function ChatInput({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-            className="w-auto p-0 border-none shadow-xl bg-transparent mb-2" 
+            className="w-auto p-0 border-none shadow-xl bg-transparent mb-2 rounded-2xl" 
             side="top" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()} 
@@ -161,12 +161,14 @@ export function ChatInput({
             onEmojiClick={onEmojiClick}
             autoFocusSearch={false}
             theme={resolvedTheme === 'dark' ? EmojiTheme.DARK : EmojiTheme.LIGHT}
-            searchPlaceholder="Search emoji"
+            searchPlaceholder="Search emoji..."
             emojiVersion="5.0"
             lazyLoadEmojis={true}
             categories={[EmojiCategory.SUGGESTED, EmojiCategory.SMILEYS_PEOPLE, EmojiCategory.ANIMALS_NATURE, EmojiCategory.FOOD_DRINK, EmojiCategory.TRAVEL_PLACES, EmojiCategory.ACTIVITIES, EmojiCategory.OBJECTS, EmojiCategory.SYMBOLS, EmojiCategory.FLAGS]}
             height={350}
             previewConfig={{ showPreview: false }}
+            skinTonesDisabled
+            className="!rounded-2xl"
           />
         </PopoverContent>
       </Popover>
@@ -179,7 +181,7 @@ export function ChatInput({
             size="icon" 
             disabled={isLoading}
             aria-label="Send a gift"
-            className="text-muted-foreground hover:text-primary rounded-full p-2"
+            className="text-muted-foreground hover:text-primary rounded-full p-2.5 transition-colors duration-200 hover:bg-primary/10"
             title="Send a gift"
             onClick={() => { setShowGiftPicker(!showGiftPicker); setShowEmojiPicker(false); }}
           >
@@ -187,34 +189,34 @@ export function ChatInput({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-            className="w-80 p-2 border-border shadow-xl bg-white dark:bg-neutral-900 mb-2 rounded-xl"
+            className="w-80 p-2 border-border/50 shadow-2xl bg-card mb-2 rounded-2xl backdrop-blur-md"
             side="top" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onCloseAutoFocus={(e) => e.preventDefault()}
         >
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-neutral-800 dark:text-neutral-200 px-2 pt-1">Send a Virtual Gift to {characterName}</p>
+          <div className="space-y-1.5">
+            <p className="text-sm font-headline text-primary px-2 pt-1">Gifts for {characterName} <Sparkles className="inline h-4 w-4 text-yellow-400"/></p>
             {virtualGifts.map((gift) => {
-                const isThisSpecificGiftLocked = isFeatureLocked('premium_gift', userSubscriptionTier /*, { giftIsPremium: gift.isPremium } */);
+                const isThisSpecificGiftLocked = isFeatureLocked('premium_gift', userSubscriptionTier);
                 return (
                     <Button
                         key={gift.id}
                         variant="ghost"
-                        className="w-full justify-start h-auto p-2 text-left !rounded-md text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 focus:bg-neutral-100 focus:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 dark:focus:bg-neutral-800 dark:focus:text-neutral-100"
+                        className="w-full justify-start h-auto p-2.5 text-left !rounded-lg text-card-foreground hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-150"
                         onClick={() => handleSendGift(gift)}
                         title={isThisSpecificGiftLocked ? getFeatureLockDetails('premium_gift', { itemName: gift.name, characterName }).title : `Send ${gift.name}`}
                     >
                         {renderGiftIcon(gift.iconName)}
                         <div className="flex flex-col flex-grow min-w-0 mr-2">
                             <span className="text-sm font-medium block whitespace-normal">{gift.name}</span>
-                            <span className="text-xs text-muted-foreground dark:text-neutral-400 block whitespace-normal">{gift.description}</span>
+                            <span className="text-xs text-muted-foreground block whitespace-normal">{gift.description}</span>
                         </div>
                         {isThisSpecificGiftLocked && (
                            <Lock className="h-4 w-4 text-amber-500 ml-auto flex-shrink-0" />
                         )}
                          {gift.price && !isThisSpecificGiftLocked && (
-                            <span className={`ml-auto text-xs font-semibold text-primary`}>
+                            <span className={`ml-auto text-xs font-semibold text-green-500`}>
                                 ₹{gift.price}
                             </span>
                         )}
@@ -224,13 +226,13 @@ export function ChatInput({
             {userSubscriptionTier === 'free' && (
                  <Button 
                     variant="default" 
-                    className="w-full mt-2 !rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 text-white"
+                    className="w-full mt-2 !rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-md hover:shadow-lg"
                     onClick={() => {
                         const details = getFeatureLockDetails('premium_gift', { characterName });
                         router.push(`/subscribe?${details.subscribeQuery}`);
                     }}
                 >
-                    Unlock All Gifts & Go Premium! ✨
+                    Unlock All Gifts & Go Premium! <Gem className="ml-2 h-4 w-4"/>
                 </Button>
             )}
           </div>
@@ -243,7 +245,7 @@ export function ChatInput({
         size="icon" 
         disabled={isLoading}
         aria-label="Attach file"
-        className="text-muted-foreground hover:text-primary rounded-full p-2 hidden sm:inline-flex"
+        className="text-muted-foreground hover:text-primary rounded-full p-2.5 hidden sm:inline-flex transition-colors duration-200 hover:bg-primary/10"
         title="Attach file (coming soon!)"
       >
         <Paperclip className="h-5 w-5" />
@@ -253,8 +255,8 @@ export function ChatInput({
         ref={textareaRef}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
-        placeholder={`Bolo kya haal chaal, ${characterName}?`}
-        className="flex-grow resize-none max-h-32 p-3 rounded-2xl shadow-inner focus:ring-primary focus:border-primary bg-background/70 border-border text-sm md:text-base"
+        placeholder={`Message ${characterName}...`}
+        className="flex-grow resize-none max-h-36 p-3.5 rounded-2xl shadow-inner focus:ring-2 focus:ring-primary focus:border-primary bg-background/80 border-border/70 text-sm md:text-base transition-shadow duration-200 focus:shadow-md"
         rows={1}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {
@@ -266,7 +268,7 @@ export function ChatInput({
         aria-label="Message input"
         onClick={() => { setShowEmojiPicker(false); setShowGiftPicker(false); }} 
       />
-      <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+      <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2">
         <Button 
           type="button" 
           variant="ghost" 
@@ -274,7 +276,11 @@ export function ChatInput({
           onClick={() => handleSpecialRequest('audio_request')} 
           disabled={voiceButtonDisabled}
           aria-label={voiceButtonTitle}
-          className={`rounded-full p-2.5 aspect-square ${isVoiceChatLocked ? 'text-amber-500 hover:text-amber-600 cursor-pointer' : voiceButtonDisabled ? 'text-muted-foreground/70 cursor-not-allowed' : 'text-primary hover:text-primary/80'}`}
+          className={cn(
+            "rounded-full p-2.5 aspect-square transition-all duration-200 ease-in-out transform hover:scale-110",
+            isVoiceChatLocked ? 'text-amber-500 hover:bg-amber-500/10 cursor-pointer' : 
+            voiceButtonDisabled ? 'text-muted-foreground/50 cursor-not-allowed' : 'text-primary hover:bg-primary/10'
+          )}
           title={voiceButtonTitle}
         >
           {isVoiceChatLocked ? <Lock className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
@@ -285,7 +291,7 @@ export function ChatInput({
           size="icon" 
           disabled={isLoading || (!inputValue.trim())} 
           aria-label="Send message"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-2.5 aspect-square shadow-lg transform transition-transform hover:scale-110"
+          className="bg-gradient-to-br from-primary via-rose-500 to-pink-600 hover:shadow-glow-primary text-primary-foreground rounded-full p-2.5 aspect-square shadow-lg transform transition-transform hover:scale-110 focus:ring-2 ring-primary ring-offset-2 ring-offset-background"
           title="Send message"
         >
           <SendHorizonal className="h-5 w-5" />
@@ -294,4 +300,3 @@ export function ChatInput({
     </form>
   );
 }
-

@@ -1,3 +1,4 @@
+
 // src/components/layout/header.tsx
 'use client';
 
@@ -6,7 +7,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Send, Gem, BookHeart } from 'lucide-react';
+import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Send, Gem, BookHeart, Menu } from 'lucide-react';
 import { Badge } from '@/components/ui/badge'; 
 import {
   DropdownMenu,
@@ -18,10 +19,12 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // For mobile menu
 import { usePathname } from 'next/navigation';
 import { listenToOnlineUsersCount, listenToTotalRegisteredUsers } from '@/lib/firebase/rtdb';
 import { useTheme } from 'next-themes';
 import { getInitials } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 
 export function Header() {
   const { user, userProfile, loading, signInWithGoogle, signInAnonymously, signOut } = useAuth();
@@ -30,6 +33,7 @@ export function Header() {
   const [totalRegisteredCount, setTotalRegisteredCount] = useState(0);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -46,167 +50,142 @@ export function Header() {
   const getThemeIcon = () => {
     if (!mounted) return <Palette className="h-5 w-5" />;
     switch (theme) {
-      case 'light':
-        return <Sun className="h-5 w-5" />;
-      case 'dark':
-        return <Moon className="h-5 w-5" />;
-      case 'pink':
-        return <Sparkles className="h-5 w-5" />;
-      default:
-        return <Palette className="h-5 w-5" />;
+      case 'light': return <Sun className="h-5 w-5" />;
+      case 'dark': return <Moon className="h-5 w-5" />;
+      case 'pink': return <Sparkles className="h-5 w-5 text-pink-400" />;
+      default: return <Palette className="h-5 w-5" />;
     }
   };
 
   const isPremiumUser = userProfile?.subscriptionTier === 'premium' || userProfile?.subscriptionTier === 'spicy';
 
+  const navLinks = [
+    { href: "/stories", label: "Stories", icon: BookHeart, activePath: "/stories"},
+    { href: "https://t.me/desibaecommunity", label: "Join Group", icon: Send, target: "_blank"},
+    ...(user ? [{ href: "/history", label: "History", icon: History, activePath: "/history"}] : []),
+  ];
+
+  const userMenuItems = [
+    { href: "/", label: "Characters", icon: MessageSquareText },
+    { href: "/stories", label: "Stories", icon: BookHeart },
+    { href: "/history", label: "Chat History", icon: History },
+    { href: "/settings", label: "Settings", icon: Settings },
+  ];
+
+  const NavLinkItem: React.FC<{href: string; label: string; icon: React.ElementType; activePath?: string, target?: string; onClick?: () => void}> = ({ href, label, icon: Icon, activePath, target, onClick }) => (
+     <Link href={href} passHref target={target} onClick={onClick}>
+        <Button 
+            variant="ghost" 
+            className={cn(
+                "hover:bg-primary-foreground/10 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ease-in-out group",
+                (activePath && pathname.startsWith(activePath)) ? 'bg-primary-foreground/20 text-primary-foreground shadow-inner' : 'text-primary-foreground/80 hover:text-primary-foreground'
+            )} 
+            title={label}
+        >
+            <Icon className={cn("h-5 w-5 mr-1.5 group-hover:animate-pulse", (activePath && pathname.startsWith(activePath)) ? "text-primary-foreground" : "")} /> {label}
+        </Button>
+    </Link>
+  );
+
+
   return (
-    <header className="bg-gradient-to-br from-primary via-pink-400 to-accent text-primary-foreground p-3 md:p-4 shadow-lg sticky top-0 z-50 h-16 md:h-18 flex items-center">
+    <header className="bg-gradient-to-r from-primary via-pink-500 to-rose-500 text-primary-foreground p-3 shadow-lg sticky top-0 z-50 h-18 flex items-center">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="flex items-center gap-4">
-          <Link href="/" passHref>
-            <div className="flex items-center gap-2 cursor-pointer">
-              <Sparkles className="h-7 w-7 md:h-8 md:w-8 animate-pulse" />
-              <h1 className="text-2xl md:text-3xl font-headline">DesiBae</h1>
-            </div>
-          </Link>
-          <div className="hidden md:flex items-center gap-3 text-xs opacity-80">
-            <div className="flex items-center gap-1" title="Online Users">
-              <Users className="h-4 w-4" />
-              <span>{onlineUsersCount} Online</span>
-            </div>
-            <div className="flex items-center gap-1" title="Total Registered Users">
-              <Globe className="h-4 w-4" />
-              <span>{totalRegisteredCount} Total</span>
-            </div>
+        <Link href="/" passHref>
+          <div className="flex items-center gap-2 cursor-pointer group">
+            <Sparkles className="h-8 w-8 text-yellow-300 group-hover:animate-hue-rotate-glow transition-all duration-300" />
+            <h1 className="text-3xl font-headline tracking-tight">DesiBae</h1>
           </div>
-        </div>
-        <nav className="flex items-center space-x-1 md:space-x-2">
-          <Link href="/stories" passHref>
-            <Button variant="ghost" className={`hover:bg-primary-foreground/10 rounded-lg px-3 py-2 text-sm ${pathname === '/stories' ? 'bg-primary-foreground/20' : ''}`} title="Interactive Stories">
-                <BookHeart className="h-5 w-5 mr-1.5 hidden sm:inline-block" /> Stories
-            </Button>
-          </Link>
-          <Link href="https://t.me/desibaecommunity" target="_blank" passHref>
-            <Button variant="ghost" className="hover:bg-primary-foreground/10 rounded-lg px-3 py-2 text-sm" title="Join Telegram Group">
-              <Send className="h-5 w-5 mr-1.5" /> Join Group
-            </Button>
-          </Link>
+        </Link>
+        
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center space-x-1">
+          {navLinks.filter(link => link.label !== "History" || user).map(link => <NavLinkItem key={link.href} {...link} />)}
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10 rounded-full" title="Change theme">
+              <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10 rounded-full text-primary-foreground/80 hover:text-primary-foreground" title="Change theme">
                 {getThemeIcon()}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-48 rounded-xl shadow-2xl" 
-            >
-              <DropdownMenuLabel>Select Theme</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-2xl border-border/30 bg-card text-card-foreground">
+              <DropdownMenuLabel className="text-muted-foreground">Select Theme</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-                <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md">
-                  <Sun className="mr-2 h-4 w-4" /> Light
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md">
-                  <Moon className="mr-2 h-4 w-4" /> Dark
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md">
-                  <Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Pink
-                </DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sun className="mr-2 h-4 w-4" /> Light</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Moon className="mr-2 h-4 w-4" /> Dark Soul</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Gulabi Mode</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
 
           {loading ? (
-            <Loader2 className="h-6 w-6 animate-spin text-primary-foreground" />
+            <Loader2 className="h-7 w-7 animate-spin text-primary-foreground" />
           ) : user ? (
-            <>
-              <Link href="/history" passHref>
-                <Button variant="ghost" size="icon" className={`hover:bg-primary-foreground/10 ${pathname === '/history' ? 'bg-primary-foreground/20' : ''} rounded-full`} title="Chat History">
-                  <History className="h-5 w-5" />
-                </Button>
-              </Link>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-primary">
-                    <Avatar className="h-10 w-10 border-2 border-primary-foreground/30 hover:border-accent transition-colors">
-                      <AvatarImage src={userProfile?.avatarUrl || user.photoURL || undefined} alt={userProfile?.name || user.displayName || 'User'} />
-                      <AvatarFallback className="bg-pink-200 text-pink-700 font-semibold">{getInitials(userProfile?.name || user.displayName)}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-60 rounded-xl shadow-2xl" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1 p-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium leading-none truncate">
-                          {userProfile?.name || user.displayName || 'Desi User'}
-                        </p>
-                        {isPremiumUser && (
-                          <Badge variant="default" className="px-1.5 py-0.5 text-xs bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-sm border-yellow-600">
-                            <Gem className="mr-1 h-3 w-3" />Premium
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-xs leading-none text-neutral-500 truncate">
-                        {user.email || (user.isAnonymous ? 'Guest User' : 'No email')}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild className="cursor-pointer rounded-md">
-                    <Link href="/">
-                      <MessageSquareText className="mr-2 h-4 w-4 text-neutral-600" /> Characters
-                    </Link>
-                  </DropdownMenuItem>
-                   <DropdownMenuItem asChild className="cursor-pointer rounded-md">
-                    <Link href="/stories">
-                      <BookHeart className="mr-2 h-4 w-4 text-neutral-600" /> Stories
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer rounded-md">
-                    <Link href="/history">
-                      <History className="mr-2 h-4 w-4 text-neutral-600" /> Chat History
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild className="cursor-pointer rounded-md">
-                     <Link href="/settings">
-                       <Settings className="mr-2 h-4 w-4 text-neutral-600" /> Settings
-                     </Link>
-                  </DropdownMenuItem>
-                   {!isPremiumUser && (
-                    <DropdownMenuItem asChild className="cursor-pointer rounded-md">
-                      <Link href="/subscribe?feature=PremiumAccessHeader">
-                        <Gem className="mr-2 h-4 w-4 text-yellow-500" /> Upgrade to Premium
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive data-[highlighted]:!bg-red-50 data-[highlighted]:!text-destructive rounded-md">
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-             <DropdownMenu>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="secondary" className="bg-accent text-accent-foreground hover:bg-accent/90 rounded-lg shadow-md px-3 py-2 md:px-4 md:py-2.5 text-sm md:text-base">
+                <Button variant="ghost" className="relative h-11 w-11 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-2 focus-visible:ring-offset-primary">
+                  <Avatar className="h-11 w-11 border-2 border-primary-foreground/50 hover:border-yellow-300 transition-colors duration-200">
+                    <AvatarImage src={userProfile?.avatarUrl || user.photoURL || undefined} alt={userProfile?.name || user.displayName || 'User'} />
+                    <AvatarFallback className="bg-pink-200 text-pink-700 font-semibold text-lg">{getInitials(userProfile?.name || user.displayName)}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-64 rounded-xl shadow-2xl border-border/30 bg-card text-card-foreground" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal p-2">
+                  <div className="flex flex-col space-y-1 p-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium leading-none truncate text-foreground">
+                        {userProfile?.name || user.displayName || 'Desi User'}
+                      </p>
+                      {isPremiumUser && (
+                        <Badge variant="default" className="px-2 py-0.5 text-xs bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-white shadow-sm border-yellow-600">
+                          <Gem className="mr-1 h-3 w-3" />Premium
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs leading-none text-muted-foreground truncate">
+                      {user.email || (user.isAnonymous ? 'Guest User' : 'No email')}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {userMenuItems.map(item => (
+                  <DropdownMenuItem key={item.href} asChild className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary py-2">
+                    <Link href={item.href}><item.icon className="mr-2 h-4 w-4 text-muted-foreground" /> {item.label}</Link>
+                  </DropdownMenuItem>
+                ))}
+                {!isPremiumUser && (
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-md focus:bg-yellow-400/20 focus:text-yellow-600 py-2">
+                    <Link href="/subscribe?feature=PremiumAccessHeader">
+                      <Gem className="mr-2 h-4 w-4 text-yellow-500" /> Upgrade to Premium
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut} className="cursor-pointer text-destructive data-[highlighted]:!bg-destructive/10 data-[highlighted]:!text-destructive rounded-md py-2">
+                  <LogOut className="mr-2 h-4 w-4" /> Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" className="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 rounded-lg shadow-md px-4 py-2.5 text-sm font-medium">
                   <UserCircle className="mr-1.5 h-5 w-5" /> Login / Sign Up
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-60 rounded-xl shadow-2xl" align="end" forceMount>
-                 <DropdownMenuLabel className="text-center text-neutral-500 text-sm py-2 px-2">Chalo, milte hain tumhari virtual crush se 😍</DropdownMenuLabel>
+              <DropdownMenuContent className="w-64 rounded-xl shadow-2xl border-border/30 bg-card text-card-foreground" align="end" forceMount>
+                 <DropdownMenuLabel className="text-center text-muted-foreground text-sm py-2 px-2">Dil se connect karo! 😍</DropdownMenuLabel>
                  <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signInWithGoogle} className="cursor-pointer group py-2.5 px-3 rounded-md">
-                  <LogIn className="mr-2 h-4 w-4 text-neutral-600" /> Sign in with Google
+                <DropdownMenuItem onClick={signInWithGoogle} className="cursor-pointer group py-2.5 px-3 rounded-md focus:bg-primary/10 focus:text-primary">
+                  <LogIn className="mr-2 h-4 w-4 text-muted-foreground" /> Sign in with Google
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={signInAnonymously} className="cursor-pointer group py-2.5 px-3 rounded-md">
-                  <UserCircle className="mr-2 h-4 w-4 text-neutral-600" /> Continue as Guest
+                <DropdownMenuItem onClick={signInAnonymously} className="cursor-pointer group py-2.5 px-3 rounded-md focus:bg-primary/10 focus:text-primary">
+                  <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" /> Continue as Guest
                 </DropdownMenuItem>
                  <DropdownMenuSeparator />
-                 <DropdownMenuItem asChild className="cursor-pointer rounded-md">
+                 <DropdownMenuItem asChild className="cursor-pointer rounded-md focus:bg-yellow-400/20 focus:text-yellow-600 py-2">
                     <Link href="/subscribe?feature=GuestUpgradePrompt">
                         <Gem className="mr-2 h-4 w-4 text-yellow-500" /> Explore Premium
                     </Link>
@@ -215,6 +194,63 @@ export function Header() {
             </DropdownMenu>
           )}
         </nav>
+
+        {/* Mobile Navigation Trigger */}
+        <div className="md:hidden">
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10 rounded-full">
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] bg-card p-4 text-card-foreground shadow-2xl">
+              <div className="flex flex-col h-full">
+                <div className="mb-6">
+                  <Link href="/" passHref onClick={() => setIsMobileMenuOpen(false)}>
+                    <div className="flex items-center gap-2 cursor-pointer group mb-4">
+                      <Sparkles className="h-7 w-7 text-primary group-hover:animate-pulse" />
+                      <h1 className="text-2xl font-headline text-primary">DesiBae</h1>
+                    </div>
+                  </Link>
+                </div>
+                <nav className="flex flex-col space-y-2 flex-grow">
+                  {navLinks.filter(link => link.label !== "History" || user).map(link => <NavLinkItem key={link.href} {...link} onClick={() => setIsMobileMenuOpen(false)} />)}
+                   {user && userMenuItems.map(item => (
+                      <NavLinkItem key={item.href} href={item.href} label={item.label} icon={item.icon} activePath={item.href} onClick={() => setIsMobileMenuOpen(false)} />
+                  ))}
+                  {!user && (
+                     <>
+                      <Button onClick={() => { signInWithGoogle(); setIsMobileMenuOpen(false); }} className="w-full justify-start text-base py-3 !rounded-lg bg-red-500 hover:bg-red-600 text-white"> <LogIn className="mr-2 h-5 w-5" /> Sign in with Google</Button>
+                      <Button onClick={() => { signInAnonymously(); setIsMobileMenuOpen(false);}} variant="outline" className="w-full justify-start text-base py-3 !rounded-lg !border-primary/50 !text-primary hover:!bg-primary/10"> <UserCircle className="mr-2 h-5 w-5" /> Continue as Guest</Button>
+                     </>
+                  )}
+                </nav>
+                <div className="mt-auto space-y-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                       <Button variant="outline" className="w-full justify-between !rounded-lg text-muted-foreground border-border">
+                          <span>Change Theme</span> {getThemeIcon()}
+                       </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-full rounded-xl shadow-xl border-border/30 bg-card text-card-foreground">
+                      <DropdownMenuRadioGroup value={theme} onValueChange={(v) => { setTheme(v); setIsMobileMenuOpen(false);}}>
+                        <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sun className="mr-2 h-4 w-4" /> Light</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Moon className="mr-2 h-4 w-4" /> Dark Soul</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Gulabi Mode</DropdownMenuRadioItem>
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                   {user && (
+                      <Button variant="outline" onClick={() => { signOut(); setIsMobileMenuOpen(false); }} className="w-full !rounded-lg text-destructive border-destructive/50 hover:bg-destructive/10 hover:text-destructive">
+                         <LogOut className="mr-2 h-4 w-4"/> Sign Out
+                      </Button>
+                   )}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
       </div>
     </header>
   );

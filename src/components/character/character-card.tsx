@@ -1,16 +1,18 @@
+
 // src/components/character/character-card.tsx
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import type { User } from 'firebase/auth';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'; // CardFooter removed
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle } from 'lucide-react';
+import { Heart, MessageCircle, Sparkles } from 'lucide-react';
 import type { CharacterMetadata } from '@/lib/types';
 import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface CharacterCardProps {
   character: CharacterMetadata;
@@ -18,38 +20,45 @@ interface CharacterCardProps {
   tagColors: Record<string, string>;
 }
 
-// Wrap with React.memo for potential performance optimization if props are stable
 const CharacterCardComponent = ({ character, user, tagColors }: CharacterCardProps) => {
   const isValidAvatarUrl = character.avatarUrl && (character.avatarUrl.startsWith('http') || character.avatarUrl.startsWith('data:'));
   const avatarSrc = isValidAvatarUrl ? character.avatarUrl : DEFAULT_AVATAR_DATA_URI;
 
   return (
-    <Card key={character.id} className="bg-card shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.03] transition-transform duration-300 flex flex-col group hover:shadow-primary/30 animate-fade-in">
-      <CardHeader className="p-0 relative w-full aspect-[3/4]">
+    <Card 
+        key={character.id} 
+        className="bg-card/80 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.03] transition-transform duration-300 flex flex-col group hover:shadow-primary/40 animate-fade-in border-2 border-transparent hover:border-primary/30"
+    >
+      <CardHeader className="p-0 relative w-full aspect-[3/4] group-hover:shadow-glow-primary transition-shadow duration-300">
         <Image
           src={avatarSrc}
           alt={character.name}
           fill
-          className="object-cover group-hover:brightness-110 transition-all duration-300"
+          className="object-cover group-hover:brightness-110 transition-all duration-300 ease-in-out"
           data-ai-hint={character.dataAiHint || 'indian person portrait'}
           sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, (max-width: 1280px) 30vw, 23vw"
-          priority // Prioritize loading visible character images
+          priority={character.id === 'priya_sharma_abcd'} // Example: prioritize first character or based on logic
         />
         {character.isPremium && (
-          <Badge variant="default" className="absolute top-3 right-3 bg-accent text-accent-foreground shadow-md animate-heartbeat">
-            <Heart className="w-3 h-3 mr-1.5" /> Premium
+          <Badge variant="default" className="absolute top-3 right-3 bg-gradient-to-br from-yellow-400 to-amber-500 text-black shadow-lg animate-heartbeat px-2.5 py-1 text-xs border border-yellow-600">
+            <Gem className="w-3.5 h-3.5 mr-1.5 text-black/70" /> Premium
           </Badge>
         )}
+         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 via-black/40 to-transparent">
+            <CardTitle className="text-2xl text-white mb-0.5 font-headline drop-shadow-lg">{character.name}</CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="p-5 text-center flex flex-col flex-grow">
-        <CardTitle className="text-2xl text-primary mb-1.5 font-headline">{character.name}</CardTitle>
         <CardDescription className="text-sm text-muted-foreground mb-3 flex-grow min-h-[3em] line-clamp-2">{character.personalitySnippet}</CardDescription>
         <div className="flex flex-wrap gap-1.5 justify-center mb-4">
           {character.styleTags.slice(0, 3).map(tag => (
             <Badge
               key={tag}
-              variant="default" // Use default variant for solid background
-              className={`text-xs px-2.5 py-1 rounded-full font-medium ${tagColors[tag] || 'bg-primary'} text-primary-foreground`}
+              variant="outline"
+              className={cn(
+                "text-xs px-2.5 py-1 rounded-full font-medium border-current",
+                tagColors[tag] ? `text-white ${tagColors[tag].replace('hover:', 'bg-opacity-70 ')}` : "border-primary/50 text-primary bg-primary/10"
+              )}
             >
               {tag}
             </Badge>
@@ -58,9 +67,9 @@ const CharacterCardComponent = ({ character, user, tagColors }: CharacterCardPro
         <Link href={user ? `/chat/${character.id}` : `/login?redirect=/chat/${character.id}`} passHref className="mt-auto">
           <Button
             variant="default"
-            className="w-full text-primary-foreground rounded-xl text-base py-3 shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 group-hover:animate-heartbeat bg-gradient-to-br from-rose-400 via-orange-300 to-amber-300 hover:from-rose-500 hover:via-orange-400 hover:to-amber-400 hover:shadow-orange-500/50"
+            className="w-full text-primary-foreground rounded-xl text-base py-3 shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 group-hover:shadow-glow-primary bg-gradient-to-r from-primary via-rose-500 to-pink-600 hover:from-primary/90 hover:via-rose-500/90 hover:to-pink-600/90"
           >
-            <MessageCircle className="mr-2 h-5 w-5" /> Chat with {character.name}
+            <MessageCircle className="mr-2 h-5 w-5" /> Chat Now
           </Button>
         </Link>
       </CardContent>

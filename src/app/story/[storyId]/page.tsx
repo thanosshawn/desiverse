@@ -1,3 +1,4 @@
+
 // src/app/story/[storyId]/page.tsx
 'use client';
 
@@ -12,9 +13,9 @@ import type { InteractiveStory, UserStoryProgress, StoryTurnOutput, CharacterMet
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { getInteractiveStory, getUserStoryProgress, getCharacterMetadata } from '@/lib/firebase/rtdb';
-import { handleStoryChoiceAction } from '../actions'; // Corrected path to actions
-import { Loader2, Drama, MessageCircle, Send, BookHeart, User } from 'lucide-react';
-import { getInitials } from '@/lib/utils';
+import { handleStoryChoiceAction } from '../actions'; 
+import { Loader2, Drama, User, BookHeart, Sparkles, ChevronRight } from 'lucide-react';
+import { getInitials, cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 
 function StoryPlayerContent() {
@@ -33,12 +34,12 @@ function StoryPlayerContent() {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   const fetchStoryData = useCallback(async () => {
-    if (!storyId || !user || initialLoadComplete) return; // Prevent re-fetch if already loaded
+    if (!storyId || !user || initialLoadComplete) return;
     setIsLoading(true);
     try {
       const storyData = await getInteractiveStory(storyId);
       if (!storyData) {
-        toast({ title: 'Error', description: 'Story not found.', variant: 'destructive' });
+        toast({ title: 'Kahani Nahi Mili 😟', description: 'Story not found.', variant: 'destructive' });
         router.push('/stories');
         return;
       }
@@ -46,7 +47,7 @@ function StoryPlayerContent() {
 
       const charData = await getCharacterMetadata(storyData.characterId);
       if (!charData) {
-        toast({ title: 'Error', description: 'Character for this story not found.', variant: 'destructive' });
+        toast({ title: 'Character Error', description: 'Character for this story not found.', variant: 'destructive' });
         router.push('/stories');
         return;
       }
@@ -59,20 +60,13 @@ function StoryPlayerContent() {
       let previousUserChoiceForAI: string;
 
       if (progressData?.currentTurnContext?.summaryOfCurrentSituation && progressData?.currentTurnContext?.previousUserChoice) {
-        // This means we are resuming a story where the AI has already provided narration based on a user choice
-        // So, we should display that previous AI narration and the new choices
         summaryForAICurrentTurn = progressData.currentTurnContext.summaryOfCurrentSituation;
-        previousUserChoiceForAI = progressData.currentTurnContext.previousUserChoice; // This choice led to summaryForAICurrentTurn
-        // We need to generate the *next* turn based on the summaryOfCurrentSituation as context
-        // But for display, userProgress.currentTurnContext.previousUserChoice is the one to show before summaryOfCurrentSituation
+        previousUserChoiceForAI = progressData.currentTurnContext.previousUserChoice;
       } else {
         summaryForAICurrentTurn = storyData.initialSceneSummary;
         previousUserChoiceForAI = "Let's begin the story!";
       }
 
-      // Call AI only if currentAiTurn is not set or if we need to fetch a new turn based on progress
-      // If userProgress.currentTurnContext.summaryOfCurrentSituation is available, it means AI has already responded to previousUserChoice.
-      // We directly use that summaryOfCurrentSituation as the AI's current narration.
       if (progressData?.currentTurnContext?.summaryOfCurrentSituation && progressData?.currentTurnContext?.choiceA && progressData?.currentTurnContext?.choiceB) {
         setCurrentAiTurn({
           narrationForThisTurn: progressData.currentTurnContext.summaryOfCurrentSituation,
@@ -80,12 +74,11 @@ function StoryPlayerContent() {
           choiceB: progressData.currentTurnContext.choiceB,
         });
       } else {
-        // This is for the very first turn or if progress doesn't have choices (older format)
         const aiResponse = await handleStoryChoiceAction(
           user.uid,
           userProfile?.name || user.displayName || 'Adventurer',
           storyId,
-          previousUserChoiceForAI // This is "Let's begin" or the choice that led to the current situation
+          previousUserChoiceForAI
         );
 
         if (aiResponse.error || !aiResponse.aiResponse) {
@@ -114,6 +107,9 @@ function StoryPlayerContent() {
   const handleChoice = async (choiceText: string) => {
     if (!user || !story || isProcessingChoice || !currentAiTurn) return;
     setIsProcessingChoice(true);
+    // Add the user's choice to the display optimistically (or after AI confirms)
+    // For now, the AI's next turn will include the context of this choice.
+
     try {
       const result = await handleStoryChoiceAction(
         user.uid,
@@ -125,9 +121,9 @@ function StoryPlayerContent() {
       if (result.error || !result.aiResponse) {
         toast({ title: 'AI Error', description: result.error || 'Could not process choice.', variant: 'destructive' });
       } else {
-        setCurrentAiTurn(result.aiResponse);
+        setCurrentAiTurn(result.aiResponse); // This contains new narration & choices
         if (result.nextProgress) {
-          setUserProgress(result.nextProgress);
+          setUserProgress(result.nextProgress); // Update progress which now includes the choice made
         }
       }
     } catch (error: any) {
@@ -136,66 +132,63 @@ function StoryPlayerContent() {
       setIsProcessingChoice(false);
     }
   };
+  
+  useEffect(() => { // Apply background specific to story
+    const bodyEl = document.body;
+    if (storyCharacter?.backgroundImageUrl) {
+      bodyEl.style.backgroundImage = `linear-gradient(rgba(var(--background-rgb),0.85), rgba(var(--background-rgb),0.95)), url(${storyCharacter.backgroundImageUrl})`;
+      bodyEl.style.backgroundSize = 'cover';
+      bodyEl.style.backgroundPosition = 'center';
+      bodyEl.style.backgroundAttachment = 'fixed';
+    }
+    return () => {
+      bodyEl.style.backgroundImage = '';
+      bodyEl.style.backgroundSize = '';
+      bodyEl.style.backgroundPosition = '';
+      bodyEl.style.backgroundAttachment = '';
+    };
+  }, [storyCharacter]);
 
-  if (isLoading || authLoading) {
-    return (
-      <div className="flex flex-col min-h-screen bg-background items-center justify-center">
-        <Header />
-        <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
-        <p className="text-lg mt-2 text-muted-foreground">Loading your story adventure... Please wait. ✨</p>
-      </div>
-    );
-  }
 
-  if (!story || !storyCharacter ) {
+  if (isLoading || authLoading || !story || !storyCharacter || !currentAiTurn) {
     return (
-      <div className="flex flex-col min-h-screen bg-background items-center justify-center">
+      <div className="flex flex-col min-h-screen bg-background items-center justify-center p-4">
         <Header />
-        <p className="text-lg mt-2 text-muted-foreground">Could not load story content. Please try again or select another story.</p>
-        <Button onClick={() => router.push('/stories')} className="mt-4 !rounded-lg">Back to Stories</Button>
+        <Loader2 className="h-16 w-16 animate-spin text-primary mt-4" />
+        <p className="text-lg mt-3 text-muted-foreground font-body">
+          {(!story || !storyCharacter) ? 'Loading your story adventure... ✨' : `Getting ${storyCharacter.name}'s reply... 💖`}
+        </p>
       </div>
     );
   }
   
-  // This condition ensures we only render the AI turn once it's loaded.
-  if (!currentAiTurn) {
-     return (
-      <div className="flex flex-col min-h-screen bg-background items-center justify-center">
-        <Header />
-        <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
-        <p className="text-lg mt-2 text-muted-foreground">Getting {storyCharacter.name}'s first response... Hold tight! 💖</p>
-      </div>
-    );
-  }
-
-
   const displayPreviousUserChoice = userProgress?.currentTurnContext?.previousUserChoice && userProgress.currentTurnContext.previousUserChoice !== "Let's begin the story!";
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
+    <div className="flex flex-col min-h-screen bg-transparent"> {/* Transparent to let body bg show */}
       <Header />
-      <main className="flex-grow container mx-auto px-4 pt-20 md:pt-24 pb-8">
-        <Card className="max-w-2xl mx-auto bg-card/90 backdrop-blur-lg shadow-2xl rounded-2xl overflow-hidden">
-          <CardHeader className="p-4 md:p-6 border-b border-border/50">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-12 w-12 md:h-16 md:w-16 border-2 border-primary/30 rounded-lg">
-                <AvatarImage src={storyCharacter.avatarUrl} alt={storyCharacter.name} />
-                <AvatarFallback className="bg-pink-100 text-pink-600 rounded-lg">{getInitials(storyCharacter.name)}</AvatarFallback>
+      <main className="flex-grow container mx-auto px-4 pt-20 md:pt-24 pb-8 flex flex-col items-center">
+        <Card className="w-full max-w-2xl bg-card/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden animate-fade-in border-2 border-primary/20">
+          <CardHeader className="p-4 md:p-6 border-b border-border/30 bg-gradient-to-br from-primary/10 via-card to-secondary/10">
+            <div className="flex items-center gap-3 md:gap-4">
+              <Avatar className="h-14 w-14 md:h-16 md:w-16 border-2 border-primary/50 rounded-xl shadow-md">
+                <AvatarImage src={storyCharacter.avatarUrl} alt={storyCharacter.name} className="rounded-lg"/>
+                <AvatarFallback className="bg-pink-100 text-pink-600 rounded-xl font-semibold">{getInitials(storyCharacter.name)}</AvatarFallback>
               </Avatar>
               <div>
-                <CardTitle className="text-xl md:text-2xl font-headline text-primary">{story.title}</CardTitle>
-                <CardDescription className="text-sm md:text-base font-body">An interactive story with {storyCharacter.name}</CardDescription>
+                <CardTitle className="text-xl md:text-2xl font-headline text-primary drop-shadow-sm">{story.title}</CardTitle>
+                <CardDescription className="text-sm md:text-base font-body text-muted-foreground">An interactive story with {storyCharacter.name}</CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6 min-h-[300px] flex flex-col">
+          <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6 min-h-[350px] flex flex-col">
             {displayPreviousUserChoice && (
-              <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 shadow-sm">
-                <div className="flex items-start gap-2">
-                  <User className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+              <div className="mb-3 p-3 rounded-xl bg-secondary/10 border border-secondary/20 shadow-sm animate-slide-in-from-bottom">
+                <div className="flex items-start gap-2.5">
+                  <User className="h-5 w-5 text-secondary flex-shrink-0 mt-1" />
                   <div>
-                    <p className="text-sm font-medium text-primary/80">You chose:</p>
-                    <p className="text-foreground/90 text-sm italic">
+                    <p className="text-xs font-medium text-secondary/90 uppercase tracking-wider">You Chose:</p>
+                    <p className="text-foreground/90 text-sm italic leading-relaxed">
                       {userProgress.currentTurnContext.previousUserChoice}
                     </p>
                   </div>
@@ -203,45 +196,43 @@ function StoryPlayerContent() {
               </div>
             )}
 
-            <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none flex-grow bg-muted/30 p-3 rounded-lg shadow-inner text-foreground">
+            <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none flex-grow bg-muted/20 p-4 rounded-xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in">
               <ReactMarkdown
                 components={{
-                  p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                  p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} />,
                 }}
               >
                 {currentAiTurn.narrationForThisTurn}
               </ReactMarkdown>
             </div>
           </CardContent>
-          <CardFooter className="p-4 md:p-6 border-t border-border/50">
+          <CardFooter className="p-4 md:p-6 border-t border-border/30 bg-card/50">
             {isProcessingChoice ? (
-              <div className="w-full flex justify-center items-center py-3">
+              <div className="w-full flex justify-center items-center py-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-3 text-muted-foreground">Waiting for {storyCharacter.name}'s reply...</p>
+                <p className="ml-3 text-muted-foreground font-medium">Waiting for {storyCharacter.name}'s reply...</p>
               </div>
             ) : (
               <div className="w-full space-y-3">
-                 <p className="text-center text-sm text-muted-foreground font-semibold mb-3">What happens next, {userProfile?.name || 'jaan'}? 😘</p>
-                <Button
-                  onClick={() => handleChoice(currentAiTurn.choiceA)}
-                  className="w-full !rounded-lg text-base py-3 bg-primary/80 hover:bg-primary"
-                  aria-label={`Choice A: ${currentAiTurn.choiceA}`}
-                >
-                  a) {currentAiTurn.choiceA}
-                </Button>
-                <Button
-                  onClick={() => handleChoice(currentAiTurn.choiceB)}
-                  className="w-full !rounded-lg text-base py-3 bg-primary/80 hover:bg-primary"
-                  aria-label={`Choice B: ${currentAiTurn.choiceB}`}
-                >
-                  b) {currentAiTurn.choiceB}
-                </Button>
+                 <p className="text-center text-sm text-muted-foreground font-semibold mb-2">What happens next, {userProfile?.name || 'jaan'}? <Sparkles className="inline h-4 w-4 text-yellow-400 animate-pulse" /></p>
+                {[currentAiTurn.choiceA, currentAiTurn.choiceB].map((choice, index) => (
+                  <Button
+                    key={index}
+                    onClick={() => handleChoice(choice)}
+                    variant="default"
+                    className="w-full !rounded-xl text-base py-3.5 shadow-lg hover:shadow-primary/30 transition-all duration-200 ease-in-out transform hover:scale-[1.02] group bg-gradient-to-r from-primary/80 via-rose-500/80 to-pink-600/80 hover:from-primary hover:via-rose-500 hover:to-pink-600 text-primary-foreground flex items-center justify-between"
+                    aria-label={`Choice ${index === 0 ? 'A' : 'B'}: ${choice}`}
+                  >
+                    <span className="text-left flex-grow">{choice}</span>
+                    <ChevronRight className="h-5 w-5 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-transform duration-200" />
+                  </Button>
+                ))}
               </div>
             )}
           </CardFooter>
         </Card>
-        <div className="text-center mt-6">
-            <Button variant="outline" onClick={() => router.push('/stories')} className="!rounded-lg">
+        <div className="text-center mt-8">
+            <Button variant="outline" onClick={() => router.push('/stories')} className="!rounded-xl border-primary/50 text-primary hover:bg-primary/10 hover:border-primary shadow-sm">
                 <BookHeart className="mr-2 h-4 w-4"/> Back to All Stories
             </Button>
         </div>
@@ -253,14 +244,13 @@ function StoryPlayerContent() {
 export default function StoryPage() {
     return (
         <Suspense fallback={
-            <div className="flex flex-col min-h-screen bg-background items-center justify-center">
+            <div className="flex flex-col min-h-screen bg-background items-center justify-center p-4">
                 <Header />
-                <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
-                <p className="text-lg mt-2 text-muted-foreground">Loading Story...</p>
+                <Loader2 className="h-16 w-16 animate-spin text-primary mt-4" />
+                <p className="text-lg mt-3 text-muted-foreground font-body">Loading Story...</p>
             </div>
         }>
             <StoryPlayerContent />
         </Suspense>
     );
 }
-

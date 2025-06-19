@@ -1,3 +1,4 @@
+
 // src/app/history/page.tsx - Chat History Page
 'use client';
 
@@ -11,7 +12,7 @@ import { Header } from '@/components/layout/header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Loader2, Star, Trash2, MessageSquareText, Search } from 'lucide-react';
+import { Loader2, Star, Trash2, MessageSquareText, Search, Inbox } from 'lucide-react';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -26,6 +27,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { cn } from '@/lib/utils';
 
 export default function ChatHistoryPage() {
   const { user, loading: authLoading } = useAuth();
@@ -58,8 +60,13 @@ export default function ChatHistoryPage() {
 
   const filteredSessions = chatSessions.filter(session =>
     session.characterName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    session.lastMessageText?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    (session.lastMessageText || '').toLowerCase().includes(searchTerm.toLowerCase())
+  ).sort((a, b) => { // Ensure sorting is always applied after filtering
+    if (a.isFavorite && !b.isFavorite) return -1;
+    if (!a.isFavorite && b.isFavorite) return 1;
+    return (b.updatedAt || 0) - (a.updatedAt || 0);
+  });
+
 
   const toggleFavorite = async (characterId: string, currentIsFavorite: boolean) => {
     if (!user) return;
@@ -68,7 +75,7 @@ export default function ChatHistoryPage() {
       await updateChatSessionMetadata(user.uid, characterId, { isFavorite: newIsFavorite });
       setChatSessions(prev => 
         prev.map(s => s.characterId === characterId ? {...s, isFavorite: newIsFavorite} : s)
-            .sort((a, b) => {
+            .sort((a, b) => { // Re-sort after favorite change
                 if (a.isFavorite && !b.isFavorite) return -1;
                 if (!a.isFavorite && b.isFavorite) return 1;
                 return (b.updatedAt || 0) - (a.updatedAt || 0);
@@ -76,7 +83,7 @@ export default function ChatHistoryPage() {
       );
       toast({
         title: newIsFavorite ? 'Chat Starred ⭐' : 'Chat Unstarred',
-        description: `Chat with ${chatSessions.find(s=>s.characterId === characterId)?.characterName} is ${newIsFavorite ? 'now a favorite!' : 'no longer a favorite.'}`
+        description: `Chat with ${chatSessions.find(s=>s.characterId === characterId)?.characterName} is ${newIsFavorite ? 'now a favorite! ✨' : 'no longer a favorite.'}`
       });
     } catch (error) {
       toast({ title: "Error", description: "Could not update favorite status.", variant: "destructive" });
@@ -85,17 +92,13 @@ export default function ChatHistoryPage() {
 
   const handleDeleteChat = async (characterId: string) => {
     if(!user) return;
-    // Placeholder for actual deletion from RTDB.
-    // For now, visually remove and show toast.
-    // A function in rtdb.ts like `deleteUserChatSession(userId, characterId)` would be needed.
     const characterName = chatSessions.find(s => s.characterId === characterId)?.characterName || 'this character';
     setChatSessions(prev => prev.filter(s => s.characterId !== characterId));
     toast({
       title: "Chat Removed (Visually)",
-      description: `Chat with ${characterName} removed from list. Full delete functionality is not yet implemented.`,
+      description: `Chat with ${characterName} removed from list. Full delete functionality is not yet implemented in this prototype.`,
       variant: "default"
     });
-    // console.log(`TODO: Implement full RTDB deletion for chat with ${characterId}`);
   };
 
 
@@ -103,8 +106,11 @@ export default function ChatHistoryPage() {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
-        <div className="flex-grow flex items-center justify-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <div className="flex-grow flex items-center justify-center p-4">
+           <div className="text-center">
+            <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
+            <p className="mt-4 text-lg font-body text-muted-foreground">Loading chat history...</p>
+          </div>
         </div>
       </div>
     );
@@ -115,10 +121,11 @@ export default function ChatHistoryPage() {
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
         <div className="flex-grow container mx-auto px-4 py-8 text-center">
+          <MessageSquareText className="mx-auto h-20 w-20 text-primary/20 mb-6 animate-pulse" />
           <h2 className="text-2xl font-headline text-primary mb-4">Login Required</h2>
-          <p className="text-muted-foreground mb-6">Please login to see your chat history.</p>
+          <p className="text-muted-foreground font-body mb-6">Please login to see your chat history with your Baes.</p>
           <Link href="/login?redirect=/history">
-            <Button className="!rounded-xl">Login</Button>
+            <Button className="!rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30">Login Now</Button>
           </Link>
         </div>
       </div>
@@ -129,34 +136,34 @@ export default function ChatHistoryPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
-      <main className="flex-grow container mx-auto px-2 sm:px-4 pt-20 md:pt-22 pb-6 md:pb-8">
+      <main className="flex-grow container mx-auto px-2 sm:px-4 pt-20 md:pt-24 pb-8 md:pb-10">
         <div className="mb-6 md:mb-8 text-center">
-            <h1 className="text-3xl md:text-4xl font-headline text-primary mb-2 animate-fade-in">Chat History</h1>
-            <p className="text-muted-foreground font-body animate-slide-in-from-bottom">Relive your favorite moments with your Desi Baes!</p>
+            <h1 className="text-3xl md:text-5xl font-headline text-primary mb-2 animate-fade-in drop-shadow-sm">Chat History</h1>
+            <p className="text-base md:text-lg font-body text-muted-foreground animate-slide-in-from-bottom">Relive your favorite moments and spicy conversations! 🔥</p>
         </div>
         
-        <div className="mb-6 sticky top-16 md:top-18 z-30 bg-background/80 backdrop-blur-md p-3 rounded-xl shadow-sm">
+        <div className="mb-6 md:mb-8 sticky top-18 md:top-20 z-30 bg-card/80 backdrop-blur-md p-3.5 rounded-2xl shadow-lg border border-border/30">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               placeholder="Search chats by name or message..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 !rounded-lg text-sm md:text-base"
+              className="w-full pl-10 !rounded-xl text-sm md:text-base py-2.5 border-border/50 focus:border-primary focus:ring-primary shadow-sm"
             />
           </div>
         </div>
 
         {filteredSessions.length === 0 && !loadingSessions && (
-          <div className="text-center py-12 animate-fade-in">
-            <MessageSquareText className="mx-auto h-16 w-16 text-primary/30 mb-4" />
-            <h3 className="text-xl font-headline text-primary mb-2">No Chats Found</h3>
-            <p className="text-muted-foreground font-body">
-              {searchTerm ? "Try a different search term." : "Looks like your chat history is empty. Start a new chat!"}
+          <div className="text-center py-16 animate-fade-in">
+            <Inbox className="mx-auto h-20 w-20 text-primary/20 mb-6 animate-pulse" />
+            <h3 className="text-2xl font-headline text-primary mb-3">No Chats Found</h3>
+            <p className="text-muted-foreground font-body max-w-md mx-auto">
+              {searchTerm ? "Hmm, nothing matches that. Try a different search term, yaar!" : "Looks like your chat history is empty. Time to make some memories!"}
             </p>
-            <Link href="/" className="mt-6">
-              <Button variant="default" className="mt-4 !rounded-xl">Find a Bae</Button>
+            <Link href="/" className="mt-8 inline-block">
+              <Button variant="default" className="!rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30 px-6 py-3 text-base">Find a Bae to Chat With</Button>
             </Link>
           </div>
         )}
@@ -165,57 +172,60 @@ export default function ChatHistoryPage() {
           {filteredSessions.map(session => (
             <Card 
                 key={session.characterId} 
-                className={`bg-card shadow-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-primary/20 ${session.isFavorite ? 'border-2 border-accent' : 'border-transparent'} animate-slide-in-from-bottom`}
+                className={cn(
+                    "bg-card/90 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-primary/30 border-2 animate-slide-in-from-bottom",
+                    session.isFavorite ? 'border-yellow-400/70 shadow-yellow-400/20' : 'border-transparent hover:border-primary/20'
+                )}
             >
               <CardContent className="p-0">
-                <Link href={`/chat/${session.characterId}`} className="block hover:bg-card/50 transition-colors">
-                    <div className="flex items-center gap-3 md:gap-4 p-3 md:p-4">
-                        <Avatar className="h-12 w-12 md:h-14 md:w-14 border-2 border-primary/30 rounded-lg">
+                <Link href={`/chat/${session.characterId}`} className="block hover:bg-primary/5 transition-colors duration-200">
+                    <div className="flex items-center gap-3 md:gap-4 p-3.5 md:p-4">
+                        <Avatar className="h-12 w-12 md:h-14 md:w-14 border-2 border-primary/30 rounded-lg shadow-sm">
                             <AvatarImage src={session.characterAvatarUrl} alt={session.characterName} className="rounded-md"/>
-                            <AvatarFallback className="bg-pink-100 text-pink-600 rounded-lg">{session.characterName.substring(0,1)}</AvatarFallback>
+                            <AvatarFallback className="bg-pink-100 text-pink-600 rounded-lg font-semibold">{session.characterName.substring(0,1)}</AvatarFallback>
                         </Avatar>
                         <div className="flex-grow overflow-hidden">
                             <h3 className="text-base md:text-lg font-headline text-primary truncate">{session.characterName}</h3>
-                            <p className="text-xs md:text-sm text-muted-foreground truncate">{session.lastMessageText || "No messages yet..."}</p>
+                            <p className="text-xs md:text-sm text-muted-foreground truncate italic">{session.lastMessageText || "No messages yet..."}</p>
                         </div>
-                        <div className="flex-shrink-0 text-right space-y-1">
-                            <p className="text-xs text-muted-foreground">
+                        <div className="flex-shrink-0 text-right space-y-1 ml-2">
+                            <p className="text-xs text-muted-foreground/80">
                             {session.lastMessageTimestamp ? formatDistanceToNowStrict(new Date(session.lastMessageTimestamp), { addSuffix: true }) : 'New chat'}
                             </p>
                             <div className="flex items-center justify-end gap-1">
                                 <Button 
-                                    variant="outline" 
+                                    variant="ghost" 
                                     size="icon" 
                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(session.characterId, session.isFavorite || false); }}
-                                    className="h-7 w-7 p-1 rounded-full hover:bg-accent/20"
+                                    className="h-8 w-8 p-1.5 rounded-full hover:bg-yellow-400/20"
                                     title={session.isFavorite ? "Unstar Chat" : "Star Chat"}
                                 >
-                                    <Star className={`h-4 w-4 transition-colors ${session.isFavorite ? 'fill-accent text-accent' : 'text-muted-foreground/70 hover:text-accent'}`} />
+                                    <Star className={`h-4 w-4 transition-colors ${session.isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/60 hover:text-yellow-500'}`} />
                                 </Button>
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button 
-                                            variant="outline" 
+                                            variant="ghost" 
                                             size="icon" 
                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                            className="h-7 w-7 p-1 rounded-full text-muted-foreground/70 hover:text-destructive hover:border-destructive hover:bg-destructive/10"
+                                            className="h-8 w-8 p-1.5 rounded-full text-muted-foreground/60 hover:text-destructive hover:border-destructive/50 hover:bg-destructive/10"
                                             title="Delete Chat"
                                         >
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
                                     </AlertDialogTrigger>
-                                    <AlertDialogContent className="rounded-xl">
+                                    <AlertDialogContent className="rounded-2xl shadow-2xl border-border/30 bg-card">
                                         <AlertDialogHeader>
-                                        <AlertDialogTitle>Are you sure you want to delete this chat?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This action cannot be undone. All messages with {session.characterName} will be permanently deleted.
+                                        <AlertDialogTitle className="font-headline text-xl text-primary">Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription className="font-body text-muted-foreground">
+                                            This action cannot be undone. All messages with {session.characterName} will be removed from this list. (Full deletion is not yet live).
                                         </AlertDialogDescription>
                                         </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                        <AlertDialogCancel className="!rounded-lg">Cancel</AlertDialogCancel>
+                                        <AlertDialogFooter className="mt-2">
+                                        <AlertDialogCancel className="!rounded-lg hover:bg-muted/80">Cancel</AlertDialogCancel>
                                         <AlertDialogAction 
                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteChat(session.characterId); }}
-                                            className="bg-destructive hover:bg-destructive/90 !rounded-lg"
+                                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground !rounded-lg"
                                         >
                                             Delete Chat
                                         </AlertDialogAction>

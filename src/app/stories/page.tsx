@@ -1,9 +1,10 @@
+
 // src/app/stories/page.tsx - Story Listing Page
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Loader2, BookHeart, Sparkles, Filter, History } from 'lucide-react';
+import { Loader2, BookHeart, Sparkles, Filter, History, Search } from 'lucide-react'; // Added Search
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState, useMemo, Suspense } from 'react';
 import type { InteractiveStory, CharacterMetadata } from '@/lib/types';
@@ -13,55 +14,63 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useRouter } from 'next/navigation'; // useRouter for navigation
+import { cn } from '@/lib/utils'; // Import cn
 
 const tagColors: Record<string, string> = {
   "Adventure": "bg-sky-500 hover:bg-sky-600",
   "Romance": "bg-pink-500 hover:bg-pink-600",
   "Mystery": "bg-purple-500 hover:bg-purple-600",
-  "Thriller": "bg-red-500 hover:bg-red-600",
+  "Thriller": "bg-red-600 hover:bg-red-700",
   "Sci-Fi": "bg-indigo-500 hover:bg-indigo-600",
   "Fantasy": "bg-emerald-500 hover:bg-emerald-600",
-  "Comedy": "bg-yellow-500 hover:bg-yellow-600 text-black", // Ensure contrast for yellow
-  "Drama": "bg-slate-500 hover:bg-slate-600",
+  "Comedy": "bg-yellow-400 hover:bg-yellow-500 text-black", 
+  "Drama": "bg-slate-600 hover:bg-slate-700",
   "Heartwarming": "bg-rose-400 hover:bg-rose-500",
   "Hinglish": "bg-orange-500 hover:bg-orange-600",
 };
 
-
-// New Story Card Component
 interface StoryCardProps {
   story: InteractiveStory;
-  character?: CharacterMetadata; // Character can be undefined if not found
+  character?: CharacterMetadata; 
 }
 
 const StoryCard: React.FC<StoryCardProps> = ({ story, character }) => {
-  const { user } = useAuth(); // Get user for login check on play button
+  const { user } = useAuth(); 
 
   return (
-    <Card key={story.id} className="bg-card shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.02] transition-transform duration-300 flex flex-col group hover:shadow-primary/30 animate-fade-in">
-      <CardHeader className="p-0 relative w-full aspect-[16/9]">
+    <Card 
+        key={story.id} 
+        className="bg-card/80 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.03] transition-transform duration-300 flex flex-col group hover:shadow-primary/30 animate-fade-in border-2 border-transparent hover:border-primary/20"
+    >
+      <CardHeader className="p-0 relative w-full aspect-[16/9] group-hover:shadow-glow-primary transition-shadow duration-300">
         <Image
-          src={story.coverImageUrl || `https://placehold.co/600x338.png?text=${encodeURIComponent(story.title)}`}
+          src={story.coverImageUrl || `https://placehold.co/600x338.png?text=${encodeURIComponent(story.title)}&font=baloo`}
           alt={story.title}
           fill
-          className="object-cover group-hover:brightness-110 transition-all duration-300"
-          data-ai-hint={story.tags?.join(' ') || 'story cover'}
+          className="object-cover group-hover:brightness-105 transition-all duration-300 ease-in-out"
+          data-ai-hint={story.tags?.join(' ') || 'story cover adventure romance'}
           sizes="(max-width: 640px) 90vw, (max-width: 1024px) 45vw, 30vw"
         />
+         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent opacity-70 group-hover:opacity-50 transition-opacity duration-300"></div>
+         <div className="absolute bottom-0 left-0 right-0 p-4">
+            <CardTitle className="text-xl text-white mb-0.5 font-headline line-clamp-2 drop-shadow-lg">{story.title}</CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="p-5 flex flex-col flex-grow">
-        <CardTitle className="text-xl text-primary mb-1 font-headline line-clamp-2">{story.title}</CardTitle>
-        <CardDescription className="text-sm text-muted-foreground mb-2 line-clamp-3 flex-grow">{story.description}</CardDescription>
+        <CardDescription className="text-sm text-muted-foreground mb-2 line-clamp-3 flex-grow min-h-[3.5em]">{story.description}</CardDescription>
         <p className="text-xs text-muted-foreground/80 mb-3">
-          With: <span className="font-semibold text-accent">{story.characterNameSnapshot || character?.name || 'Mysterious Bae'}</span>
+          Starring: <span className="font-semibold text-accent">{story.characterNameSnapshot || character?.name || 'Mysterious Bae'}</span>
         </p>
         <div className="flex flex-wrap gap-1.5 mb-4">
           {story.tags?.slice(0, 4).map(tag => (
             <Badge
               key={tag}
-              variant="default"
-              className={`text-xs px-2 py-0.5 rounded-full font-medium ${tagColors[tag] || 'bg-secondary'} ${tag === 'Comedy' ? 'text-black' : 'text-secondary-foreground'}`}
+              variant="default" // Use default variant
+              className={cn(
+                "text-xs px-2.5 py-1 rounded-full font-medium shadow-sm",
+                tagColors[tag] || 'bg-secondary text-secondary-foreground',
+                (tag === 'Comedy' || tag === 'Spiritual' || tag === 'Hinglish') ? 'text-black' : 'text-primary-foreground' // Ensure contrast
+              )}
             >
               {tag}
             </Badge>
@@ -70,7 +79,7 @@ const StoryCard: React.FC<StoryCardProps> = ({ story, character }) => {
         <Link href={user ? `/story/${story.id}` : `/login?redirect=/story/${story.id}`} passHref className="mt-auto">
           <Button
             variant="default"
-            className="w-full text-primary-foreground rounded-xl text-base py-2.5 shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 group-hover:animate-heartbeat bg-gradient-to-br from-rose-400 via-orange-300 to-amber-300 hover:from-rose-500 hover:via-orange-400 hover:to-amber-400 hover:shadow-orange-500/50"
+            className="w-full text-primary-foreground rounded-xl text-base py-3 shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 group-hover:shadow-glow-primary bg-gradient-to-r from-primary via-rose-500 to-pink-600 hover:from-primary/90 hover:via-rose-500/90 hover:to-pink-600/90"
           >
             <BookHeart className="mr-2 h-5 w-5" /> Play Story
           </Button>
@@ -80,10 +89,8 @@ const StoryCard: React.FC<StoryCardProps> = ({ story, character }) => {
   );
 };
 
-
 function StoryListingContent() {
   const { user, loading: authLoading } = useAuth();
-  // const router = useRouter(); No longer needed directly here
   const [stories, setStories] = useState<InteractiveStory[]>([]);
   const [characters, setCharacters] = useState<Record<string, CharacterMetadata>>({});
   const [loadingData, setLoadingData] = useState(true);
@@ -144,8 +151,11 @@ function StoryListingContent() {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
-        <div className="flex-grow flex items-center justify-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <div className="flex-grow flex items-center justify-center p-4">
+           <div className="text-center">
+            <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
+            <p className="mt-4 text-lg font-body text-muted-foreground">Loading stories...</p>
+          </div>
         </div>
       </div>
     );
@@ -155,86 +165,92 @@ function StoryListingContent() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50 text-foreground">
       <Header />
-      <section className="container mx-auto px-4 pt-20 md:pt-22 pb-8 flex-grow">
-        <div className="text-center mb-10">
-          <h2 className="text-4xl md:text-5xl font-bold font-headline mb-3 text-primary animate-fade-in">
-            Choose Your Adventure <BookHeart className="inline-block text-accent h-10 w-10" />
+      <section className="container mx-auto px-4 pt-20 md:pt-24 pb-12 flex-grow">
+        <div className="text-center mb-10 md:mb-12">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline mb-3 text-primary animate-fade-in drop-shadow-sm">
+            Choose Your <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">Adventure</span>
+            <BookHeart className="inline-block text-accent h-10 w-10 ml-2 animate-pulse" />
           </h2>
-          <p className="text-lg md:text-xl font-body text-muted-foreground animate-slide-in-from-bottom">
-            Dive into interactive stories and shape the narrative with your Desi Bae!
+          <p className="text-lg md:text-xl font-body text-muted-foreground animate-slide-in-from-bottom max-w-2xl mx-auto">
+            Dive into interactive stories and shape the narrative with your Desi Bae! Your choices, your kahani.
           </p>
         </div>
 
-        <div className="mb-8 p-4 bg-card/80 backdrop-blur-sm rounded-xl shadow-lg space-y-4 md:space-y-0 md:flex md:items-center md:justify-between gap-4 sticky top-16 md:top-18 z-30">
-          <div className="flex-grow">
+        <div className="mb-8 md:mb-10 p-4 bg-card/80 backdrop-blur-md rounded-2xl shadow-lg space-y-4 sticky top-18 md:top-20 z-30 border border-border/30">
+          <div className="relative">
+             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               placeholder="Search stories by title, description, or character..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full !rounded-lg text-sm md:text-base"
+              className="w-full !rounded-xl text-sm md:text-base pl-10 pr-4 py-2.5 border-border/50 focus:ring-primary focus:border-primary shadow-sm"
             />
           </div>
-          <div className="flex flex-wrap gap-2 items-center">
-            <Filter className="h-5 w-5 text-primary mr-1 hidden xs:inline-block sm:inline-block" />
-            <span className="text-sm font-medium text-muted-foreground mr-2 hidden xs:inline-block sm:inline-block">Filter by Tags:</span>
-            {allTags.map(tag => (
-              <Button
-                key={tag}
-                variant={selectedTags.includes(tag) ? "default" : "outline"}
-                size="sm"
-                onClick={() => toggleTag(tag)}
-                className={`rounded-full text-xs px-3 py-1 transition-all duration-200 ease-in-out transform hover:scale-105
-                            ${selectedTags.includes(tag) ?
-                              `${tagColors[tag] || 'bg-primary'} ${tag === 'Comedy' ? 'text-black' : 'text-primary-foreground'} shadow-md` :
-                              'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/70 bg-background/50'
-                            }`}
-              >
-                {tag}
-              </Button>
-            ))}
-          </div>
+           {allTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 items-center pt-2">
+              <Filter className="h-5 w-5 text-primary mr-1 hidden xs:inline-block sm:inline-block" />
+              <span className="text-sm font-medium text-muted-foreground mr-2 hidden xs:inline-block sm:inline-block">Filter by Tags:</span>
+              {allTags.slice(0, 7).map(tag => (
+                <Button
+                  key={tag}
+                  variant={selectedTags.includes(tag) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => toggleTag(tag)}
+                  className={cn(
+                    "rounded-full text-xs px-3.5 py-1.5 transition-all duration-200 ease-in-out transform hover:scale-105 shadow-sm",
+                    selectedTags.includes(tag) ? 
+                      `${tagColors[tag] || 'bg-primary hover:bg-primary/90'} ${ (tag === 'Comedy' || tag === 'Spiritual' || tag === 'Hinglish') ? 'text-black' : 'text-primary-foreground'}` : 
+                      'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/70 bg-card/70'
+                  )}
+                >
+                  {tag}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
 
         {loadingData ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className="bg-card shadow-xl rounded-2xl overflow-hidden aspect-[16/10] flex flex-col">
-                <Skeleton className="w-full h-3/5" />
-                <div className="p-5 space-y-2 flex-grow flex flex-col justify-between">
+              <Skeleton key={i} className="bg-card/50 shadow-xl rounded-3xl overflow-hidden aspect-[16/11] flex flex-col">
+                <Skeleton className="w-full h-3/5 bg-muted/30" />
+                <div className="p-5 space-y-3 flex-grow flex flex-col justify-between">
                   <div>
-                    <Skeleton className="h-7 w-3/4 mb-1.5" />
-                    <Skeleton className="h-10 w-full mb-3" />
+                    <Skeleton className="h-7 w-3/4 mb-2 bg-muted/40" />
+                    <Skeleton className="h-12 w-full mb-4 bg-muted/30" />
                   </div>
-                  <Skeleton className="h-10 w-full rounded-lg" />
+                  <Skeleton className="h-11 w-full rounded-xl bg-muted/40" />
                 </div>
               </Skeleton>
             ))}
           </div>
         ) : filteredStories.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredStories.map((story) => (
               <StoryCard key={story.id} story={story} character={characters[story.characterId]} />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
+          <div className="text-center py-16">
+            <BookHeart className="mx-auto h-20 w-20 text-primary/20 mb-6 animate-pulse" />
             <h3 className="text-2xl font-headline text-primary mb-3">No Stories Found... Yet! 😟</h3>
-            <p className="text-muted-foreground font-body mb-6">
+            <p className="text-muted-foreground font-body mb-6 max-w-md mx-auto">
               {searchTerm || selectedTags.length > 0 ? "Try adjusting your search or filters. More stories coming soon!" : "No interactive stories available right now. Check back soon!"}
             </p>
             { (searchTerm || selectedTags.length > 0) &&
-                <Button onClick={() => { setSearchTerm(''); setSelectedTags([]); }} variant="outline" className="rounded-lg">Clear Filters</Button>
+                <Button onClick={() => { setSearchTerm(''); setSelectedTags([]); }} variant="outline" className="rounded-xl border-primary/50 text-primary hover:bg-primary/10">Clear Filters</Button>
             }
-             <Link href="/" className="mt-4 ml-2">
-                <Button variant="default" className="!rounded-xl">Chat with Baes</Button>
+             <Link href="/" className="mt-4 ml-2 inline-block">
+                <Button variant="default" className="!rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30">Chat with Baes</Button>
             </Link>
           </div>
         )}
       </section>
 
-      <footer className="py-6 text-center border-t border-border/20 bg-background/30">
-        <p className="text-sm text-muted-foreground font-body">&copy; {new Date().getFullYear()} DesiVerse Bae. Made with <Sparkles className="inline h-4 w-4 text-primary animate-pulse" /> in India.</p>
+      <footer className="py-8 text-center border-t border-border/20 bg-card/30 backdrop-blur-sm">
+        <p className="text-sm text-muted-foreground font-body">&copy; {new Date().getFullYear()} DesiVerse Bae. Made with <Sparkles className="inline h-4 w-4 text-yellow-400 animate-pulse" /> in India.</p>
       </footer>
     </div>
   );
@@ -245,9 +261,11 @@ export default function StoryListPage() {
         <Suspense fallback={
             <div className="flex flex-col min-h-screen bg-background">
                 <Header />
-                <div className="flex-grow flex items-center justify-center">
-                    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-                    <p className="ml-4 text-lg font-body">Loading stories...</p>
+                <div className="flex-grow flex items-center justify-center p-4">
+                     <div className="text-center">
+                        <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
+                        <p className="mt-4 text-lg font-body text-muted-foreground">Loading stories...</p>
+                    </div>
                 </div>
             </div>
         }>

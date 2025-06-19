@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, Palette, Languages, Bell, ShieldCheck, Sun, Moon, Sparkles, User, LogOut } from 'lucide-react';
+import { Loader2, Save, Palette, Languages, Bell, ShieldCheck, Sun, Moon, Sparkles, User, LogOut, Camera, Gem } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -28,6 +28,7 @@ import {
 import { useTheme } from 'next-themes';
 import { getInitials } from '@/lib/utils'; 
 import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
 
 const settingsFormSchema = z.object({
@@ -42,11 +43,10 @@ export default function SettingsPage() {
   const { user, userProfile, loading: authLoading, signOut } = useAuth();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
-  const { theme, setTheme } = useTheme(); // Removed themes: availableThemes
+  const { theme, setTheme } = useTheme(); 
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
-
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
@@ -64,19 +64,15 @@ export default function SettingsPage() {
         avatarUrl: userProfile.avatarUrl || '',
         selectedTheme: userProfile.selectedTheme || theme || 'light',
       });
-      // Theme is applied via AuthContext now, no need to call setTheme here
-      // directly from userProfile if it differs from current 'theme',
-      // as AuthContext handles initial theme setting.
-      // The Select component will reflect 'theme' from useTheme().
-    } else if (theme && mounted) { // Ensure mounted before using theme in form
+    } else if (theme && mounted) { 
         form.setValue('selectedTheme', theme as 'light' | 'dark' | 'pink');
     }
-  }, [userProfile, form, theme, mounted]); // Added mounted to dependency
+  }, [userProfile, form, theme, mounted]); 
   
 
   const onSubmit = async (data: SettingsFormValues) => {
     if (!user) {
-      toast({ title: 'Error', description: 'You must be logged in to save settings.', variant: 'destructive' });
+      toast({ title: 'Not Logged In', description: 'You must be logged in to save settings.', variant: 'destructive' });
       return;
     }
     setIsSaving(true);
@@ -85,16 +81,14 @@ export default function SettingsPage() {
       if (data.name !== undefined && data.name !== (userProfile?.name || '')) updateData.name = data.name;
       if (data.avatarUrl !== (userProfile?.avatarUrl || '')) updateData.avatarUrl = data.avatarUrl || null;
       
-      // Only update selectedTheme if it has actually changed and is different from current userProfile theme
       if (data.selectedTheme && data.selectedTheme !== (userProfile?.selectedTheme || theme)) {
         updateData.selectedTheme = data.selectedTheme;
-        setTheme(data.selectedTheme); // Apply theme immediately on client
+        setTheme(data.selectedTheme); 
       }
-
 
       if (Object.keys(updateData).length > 0) {
         await updateUserProfile(user.uid, updateData);
-        toast({ title: 'Settings Saved!', description: 'Aapki profile update ho gayi hai! 🎉' });
+        toast({ title: 'Settings Saved! ✨', description: 'Aapki profile update ho gayi hai! 🎉' });
       } else {
         toast({ title: 'No Changes', description: 'Aapne kuch badla nahi.' });
       }
@@ -109,8 +103,11 @@ export default function SettingsPage() {
     return (
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
-        <div className="flex-grow flex items-center justify-center">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <div className="flex-grow flex items-center justify-center p-4">
+           <div className="text-center">
+            <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
+            <p className="mt-4 text-lg font-body text-muted-foreground">Loading settings...</p>
+          </div>
         </div>
       </div>
     );
@@ -121,8 +118,12 @@ export default function SettingsPage() {
       <div className="flex flex-col min-h-screen bg-background">
         <Header />
         <div className="flex-grow container mx-auto px-4 py-8 text-center">
-            <h2 className="text-2xl font-headline text-primary mb-4">Access Denied</h2>
-            <p className="text-muted-foreground">Please login to access settings.</p>
+            <User className="mx-auto h-20 w-20 text-primary/20 mb-6 animate-pulse" />
+            <h2 className="text-2xl font-headline text-primary mb-4">Login Required</h2>
+            <p className="text-muted-foreground font-body">Please login to access settings.</p>
+            <Link href="/login?redirect=/settings" className="mt-6">
+                <Button variant="default" className="mt-4 !rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30">Login Now</Button>
+            </Link>
         </div>
       </div>
     );
@@ -131,35 +132,39 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
-      <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
-        <Card className="max-w-2xl mx-auto bg-card/90 backdrop-blur-lg shadow-2xl rounded-2xl">
-          <CardHeader className="text-center p-6">
-            <CardTitle className="text-3xl font-headline text-primary">Settings</CardTitle>
-            <CardDescription className="font-body">Apni profile aur app preferences yahaan manage karo.</CardDescription>
+      <main className="flex-grow container mx-auto px-4 pt-20 md:pt-24 pb-12">
+        <Card className="max-w-2xl mx-auto bg-card/90 backdrop-blur-xl shadow-2xl rounded-3xl border-2 border-primary/10 animate-fade-in">
+          <CardHeader className="text-center p-6 md:p-8 border-b border-border/20">
+            <Settings className="mx-auto h-12 w-12 text-primary mb-3 animate-pulse-spinner" />
+            <CardTitle className="text-3xl md:text-4xl font-headline text-primary">Settings</CardTitle>
+            <CardDescription className="font-body text-muted-foreground text-base">Apni profile aur app preferences yahaan manage karo.</CardDescription>
           </CardHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <CardContent className="space-y-6 p-6">
+              <CardContent className="space-y-8 p-6 md:p-8">
                 
                 {/* Profile Section */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-headline text-primary/90 flex items-center"><User className="mr-2 h-5 w-5 text-accent"/> Profile</h3>
-                  <div className="flex flex-col items-center space-y-3">
-                      <Avatar className="h-24 w-24 border-4 border-primary/50 shadow-md">
+                <div className="space-y-6">
+                  <h3 className="text-xl font-headline text-primary/90 flex items-center"><User className="mr-2.5 h-6 w-6 text-accent"/> Profile Details</h3>
+                  <div className="flex flex-col items-center space-y-4">
+                      <Avatar className="h-28 w-28 border-4 border-primary/50 shadow-lg rounded-2xl">
                           <AvatarImage src={form.watch('avatarUrl') || userProfile?.avatarUrl || user.photoURL || undefined} alt={form.watch('name') || userProfile?.name || user.displayName || 'User'} />
-                          <AvatarFallback className="text-3xl bg-pink-100 text-pink-600">{getInitials(form.watch('name') || userProfile?.name || user.displayName)}</AvatarFallback>
+                          <AvatarFallback className="text-4xl bg-pink-100 text-pink-600 rounded-xl">{getInitials(form.watch('name') || userProfile?.name || user.displayName)}</AvatarFallback>
                       </Avatar>
+                      <Button type="button" variant="outline" size="sm" className="!rounded-lg text-xs border-primary/40 text-primary hover:bg-primary/10">
+                        <Camera className="mr-2 h-4 w-4"/> Change Avatar (URL below)
+                      </Button>
                   </div>
                   <FormField
                     control={form.control}
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base">Display Name</FormLabel>
+                        <FormLabel className="text-base font-medium">Display Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Your awesome name" {...field} className="!rounded-lg text-sm md:text-base p-3" />
+                          <Input placeholder="Your awesome name" {...field} className="!rounded-xl text-sm md:text-base p-3.5 border-border/50 focus:border-primary focus:ring-primary" />
                         </FormControl>
-                        <FormDescription>This is how your Baes will see you.</FormDescription>
+                        <FormDescription className="text-xs">This is how your Baes will see you.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -169,96 +174,105 @@ export default function SettingsPage() {
                     name="avatarUrl"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-base">Avatar URL</FormLabel>
+                        <FormLabel className="text-base font-medium">Avatar URL</FormLabel>
                         <FormControl>
-                          <Input placeholder="https://example.com/your-avatar.png" {...field} className="!rounded-lg text-sm md:text-base p-3" />
+                          <Input placeholder="https://example.com/your-avatar.png" {...field} className="!rounded-xl text-sm md:text-base p-3.5 border-border/50 focus:border-primary focus:ring-primary" />
                         </FormControl>
-                         <FormDescription>Link to your public avatar image.</FormDescription>
+                         <FormDescription className="text-xs">Link to your public avatar image (e.g., from Imgur, Google Photos).</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-                <Separator className="my-6 bg-border/50"/>
+                <Separator className="my-6 bg-border/30"/>
 
                 {/* Appearance Section */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-headline text-primary/90 flex items-center"><Palette className="mr-2 h-5 w-5 text-accent"/> Appearance</h3>
+                <div className="space-y-6">
+                    <h3 className="text-xl font-headline text-primary/90 flex items-center"><Palette className="mr-2.5 h-6 w-6 text-accent"/> Appearance</h3>
                     <FormField
                       control={form.control}
                       name="selectedTheme"
                       render={({ field }) => (
                         <FormItem>
-                            <FormLabel className="text-base">Theme</FormLabel>
+                            <FormLabel className="text-base font-medium">Theme</FormLabel>
                              <Select 
                                 onValueChange={(value) => {
                                   field.onChange(value);
-                                  // setTheme(value); // Let onSubmit handle the theme update for consistency
                                 }} 
-                                value={field.value} // This should reflect the form's current value for theme
+                                value={field.value} 
                                 disabled={!mounted}
                              >
                                 <FormControl>
-                                  <SelectTrigger className="w-full !rounded-lg text-sm md:text-base p-3">
+                                  <SelectTrigger className="w-full !rounded-xl text-sm md:text-base p-3.5 border-border/50 focus:border-primary focus:ring-primary">
                                       <SelectValue placeholder="Select app theme" />
                                   </SelectTrigger>
                                 </FormControl>
-                                <SelectContent className="rounded-lg">
-                                    <SelectItem value="light"><Sun className="inline-block mr-2 h-4 w-4"/> Light</SelectItem>
-                                    <SelectItem value="dark"><Moon className="inline-block mr-2 h-4 w-4"/> Dark Soul</SelectItem>
-                                    <SelectItem value="pink"><Sparkles className="inline-block mr-2 h-4 w-4 text-pink-500"/> Gulabi Mode</SelectItem>
+                                <SelectContent className="rounded-xl border-border/50 bg-popover shadow-lg">
+                                    <SelectItem value="light" className="focus:bg-primary/10 focus:text-primary rounded-md"><Sun className="inline-block mr-2 h-4 w-4"/> Light & Airy</SelectItem>
+                                    <SelectItem value="dark" className="focus:bg-primary/10 focus:text-primary rounded-md"><Moon className="inline-block mr-2 h-4 w-4"/> Dark Soul</SelectItem>
+                                    <SelectItem value="pink" className="focus:bg-primary/10 focus:text-primary rounded-md"><Sparkles className="inline-block mr-2 h-4 w-4 text-pink-500"/> Gulabi Mode</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <FormDescription>Choose how your app looks.</FormDescription>
+                            <FormDescription className="text-xs">Choose how your app looks and feels.</FormDescription>
                             <FormMessage />
                         </FormItem>
                       )}
                     />
                 </div>
-                <Separator className="my-6 bg-border/50"/>
+                <Separator className="my-6 bg-border/30"/>
                 
                 {/* Language Section */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-headline text-primary/90 flex items-center"><Languages className="mr-2 h-5 w-5 text-accent"/> Language</h3>
+                <div className="space-y-6">
+                    <h3 className="text-xl font-headline text-primary/90 flex items-center"><Languages className="mr-2.5 h-6 w-6 text-accent"/> Language</h3>
                      <FormItem>
-                        <FormLabel className="text-base">App Language (Coming Soon)</FormLabel>
+                        <FormLabel className="text-base font-medium">App Language (Coming Soon)</FormLabel>
                          <Select defaultValue={userProfile?.languagePreference || 'hinglish'} disabled>
-                            <SelectTrigger className="w-full !rounded-lg text-sm md:text-base p-3">
+                            <SelectTrigger className="w-full !rounded-xl text-sm md:text-base p-3.5 border-border/50 opacity-70 cursor-not-allowed">
                                 <SelectValue placeholder="Select language" />
                             </SelectTrigger>
-                            <SelectContent className="rounded-lg">
+                            <SelectContent className="rounded-xl border-border/50 bg-popover shadow-lg">
                                 <SelectItem value="hinglish">Hinglish (Recommended)</SelectItem>
                                 <SelectItem value="english">English</SelectItem>
                             </SelectContent>
                         </Select>
-                        <FormDescription>Baat karne ka style. More options soon!</FormDescription>
+                        <FormDescription className="text-xs">Baat karne ka style. More options soon!</FormDescription>
                     </FormItem>
                 </div>
-                <Separator className="my-6 bg-border/50"/>
+                <Separator className="my-6 bg-border/30"/>
                 
-                {/* Notifications Section */}
-                <div className="space-y-4">
-                    <h3 className="text-lg font-headline text-primary/90 flex items-center"><Bell className="mr-2 h-5 w-5 text-accent"/> Notifications (Coming Soon)</h3>
-                     <div className="flex items-center space-x-2 p-3 border border-input rounded-lg bg-muted/50">
-                        <Switch id="notifications-switch" disabled className="opacity-50"/>
-                        <Label htmlFor="notifications-switch" className="text-muted-foreground">Receive push notifications</Label>
+                 {/* Subscription Section */}
+                <div className="space-y-6">
+                    <h3 className="text-xl font-headline text-primary/90 flex items-center"><Gem className="mr-2.5 h-6 w-6 text-yellow-400"/> Subscription</h3>
+                    <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl shadow-sm">
+                        <p className="text-base font-medium text-card-foreground">Current Plan: <span className="capitalize font-semibold text-primary">{userProfile?.subscriptionTier || 'Free'}</span></Textarea>
+                        {userProfile?.subscriptionTier === 'free' && (
+                             <Link href="/subscribe?feature=SettingsUpgrade" className="mt-3 block">
+                                <Button size="sm" className="w-full !rounded-lg bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-black shadow-md hover:shadow-lg">
+                                    Upgrade to Premium
+                                </Button>
+                            </Link>
+                        )}
+                         {userProfile?.subscriptionTier !== 'free' && (
+                             <p className="text-xs text-muted-foreground mt-1">You have access to all premium features!</p>
+                        )}
                     </div>
                 </div>
-                <Separator className="my-6 bg-border/50"/>
+                <Separator className="my-6 bg-border/30"/>
+
 
                 {/* Account Actions Section */}
                 <div className="space-y-4">
-                    <h3 className="text-lg font-headline text-primary/90 flex items-center"><ShieldCheck className="mr-2 h-5 w-5 text-accent"/> Account Actions</h3>
-                    <Button type="button" variant="outline" onClick={signOut} className="w-full !rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive">
-                        <LogOut className="mr-2 h-4 w-4"/> Sign Out
+                    <h3 className="text-xl font-headline text-destructive/90 flex items-center"><ShieldCheck className="mr-2.5 h-6 w-6 text-destructive/70"/> Account Actions</h3>
+                    <Button type="button" variant="outline" onClick={signOut} className="w-full !rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/70 border-destructive/50 text-destructive text-base py-3">
+                        <LogOut className="mr-2 h-5 w-5"/> Sign Out
                     </Button>
-                     <Button type="button" variant="destructive" className="w-full !rounded-xl opacity-50 cursor-not-allowed" disabled>
+                     <Button type="button" variant="destructive" className="w-full !rounded-xl opacity-60 cursor-not-allowed text-base py-3" disabled>
                         Delete Account (Coming Soon)
                     </Button>
                 </div>
               </CardContent>
-              <CardFooter className="p-6">
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground !rounded-xl text-lg py-3 shadow-lg hover:shadow-primary/40" disabled={isSaving || !mounted}>
+              <CardFooter className="p-6 md:p-8 border-t border-border/20">
+                <Button type="submit" className="w-full bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground !rounded-xl text-lg py-3.5 shadow-lg hover:shadow-primary/40 transition-all duration-200 ease-in-out transform hover:scale-[1.02]" disabled={isSaving || !mounted}>
                   {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
                   Save Changes
                 </Button>
@@ -270,4 +284,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-

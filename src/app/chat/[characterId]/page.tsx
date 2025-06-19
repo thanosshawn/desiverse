@@ -2,11 +2,11 @@
 // src/app/chat/[characterId]/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'; // Removed 'use'
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/header';
 import { ChatLayout } from '@/components/chat/chat-layout';
-import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, StreakUpdateResult, UserChatStreakData, UserProfile, VirtualGift } from '@/lib/types';
+import type { ChatMessageUI, CharacterMetadata, UserChatSessionMetadata, MessageDocument, CharacterName, UserChatStreakData, UserProfile, VirtualGift } from '@/lib/types';
 import { handleUserMessageAction } from '../../actions';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,7 +19,7 @@ import {
   updateUserChatStreak,
   getStreakDataStream
 } from '@/lib/firebase/rtdb';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import { ChatPageHeader } from '@/components/chat/chat-page-header';
 
 export default function ChatPage() {
@@ -28,7 +28,6 @@ export default function ChatPage() {
 
   const paramsFromHook = useParams();
   const characterId = paramsFromHook.characterId as string;
-
 
   const [messages, setMessages] = useState<ChatMessageUI[]>([]);
   const [isLoadingMessage, setIsLoadingMessage] = useState(false);
@@ -40,62 +39,51 @@ export default function ChatPage() {
   const [isFavorite, setIsFavorite] = useState(false);
   const [currentStreakData, setCurrentStreakData] = useState<UserChatStreakData | null>(null);
 
-
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  },[]);
 
-  useEffect(scrollToBottom, [messages]);
+  useEffect(scrollToBottom, [messages, scrollToBottom]);
 
   useEffect(() => {
+    const bodyEl = document.body;
+    const htmlEl = document.documentElement;
     if (currentCharacterMeta?.backgroundImageUrl) {
-      const root = document.documentElement;
-      const rootStyle = getComputedStyle(root);
+      const rootStyle = getComputedStyle(htmlEl);
       const bgHslString = rootStyle.getPropertyValue('--background').trim();
-      const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\))?/);
-      let overlayColor = 'rgba(255, 255, 255, 0.7)'; // Default light overlay
+      const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?(?:\s*\))?/);
+      let overlayColor = 'hsla(var(--background), 0.7)'; // Default overlay using theme's background
 
       if (hslMatch && hslMatch.length >= 4) {
-        overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, 0.7)`;
-      } else {
-        console.warn("Could not parse HSL from --background for chat overlay. Using default. Raw value:", bgHslString);
+        const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.7 : 0.7; // Use existing alpha or default to 0.7
+        overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, ${alpha})`;
       }
-
-      document.body.style.backgroundImage = `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`;
-      document.body.style.backgroundSize = 'cover';
-      document.body.style.backgroundPosition = 'center';
-      document.body.style.backgroundRepeat = 'no-repeat';
-      document.body.style.backgroundAttachment = 'fixed';
+      
+      bodyEl.style.backgroundImage = `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`;
+      bodyEl.style.backgroundSize = 'cover';
+      bodyEl.style.backgroundPosition = 'center';
+      bodyEl.style.backgroundRepeat = 'no-repeat';
+      bodyEl.style.backgroundAttachment = 'fixed';
+      
+      // For loading state
+      if (pageLoading) {
+        htmlEl.style.setProperty('--chat-page-initial-bg-image', `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`);
+      }
     } else {
-      document.body.style.backgroundImage = ''; // Clear if no char background
+      bodyEl.style.backgroundImage = '';
+      htmlEl.style.removeProperty('--chat-page-initial-bg-image');
     }
 
-    // For loading state, if characterMeta is available early
-    if (pageLoading && currentCharacterMeta?.backgroundImageUrl) {
-       const root = document.documentElement;
-       const rootStyle = getComputedStyle(root);
-       const bgHslString = rootStyle.getPropertyValue('--background').trim();
-       const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\))?/);
-       let overlayColor = 'rgba(255, 255, 255, 0.7)';
-        if (hslMatch && hslMatch.length >= 4) {
-            overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, 0.7)`;
-        }
-      document.documentElement.style.setProperty('--chat-page-initial-bg-image', `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`);
-    } else {
-      document.documentElement.style.removeProperty('--chat-page-initial-bg-image');
-    }
-
-
-    return () => { // Cleanup styles on component unmount
-      document.body.style.backgroundImage = '';
-      document.body.style.backgroundSize = '';
-      document.body.style.backgroundPosition = '';
-      document.body.style.backgroundRepeat = '';
-      document.body.style.backgroundAttachment = '';
-      document.documentElement.style.removeProperty('--chat-page-initial-bg-image');
+    return () => { // Cleanup styles
+      bodyEl.style.backgroundImage = '';
+      bodyEl.style.backgroundSize = '';
+      bodyEl.style.backgroundPosition = '';
+      bodyEl.style.backgroundRepeat = '';
+      bodyEl.style.backgroundAttachment = '';
+      htmlEl.style.removeProperty('--chat-page-initial-bg-image');
     };
   }, [currentCharacterMeta?.backgroundImageUrl, pageLoading]);
 
@@ -104,7 +92,7 @@ export default function ChatPage() {
     if (authLoading) return;
 
     if (!user) {
-      toast({ title: 'Dil Ke Connections', description: 'Login karke apni bae se baat karo!', variant: 'default' });
+      toast({ title: 'Dil Ke Connections 💖', description: 'Login karke apni bae se baat karo!', variant: 'default' });
       router.push(`/login?redirect=/chat/${characterId}`);
       return;
     }
@@ -120,7 +108,7 @@ export default function ChatPage() {
       try {
         const charMeta = await getCharacterMetadata(characterId);
         if (!charMeta) {
-          toast({ title: 'Character Not Found', variant: 'destructive' });
+          toast({ title: 'Bae Not Found 😟', description: "Aisa lagta hai yeh Bae abhi yahaan nahi hai.", variant: 'destructive' });
           router.push('/');
           return;
         }
@@ -131,10 +119,9 @@ export default function ChatPage() {
         setIsFavorite(chatSessionMeta.isFavorite || false);
       } catch (error: any) {
         console.error("Error initializing chat:", error);
-        toast({ title: 'Error Initializing Chat', description: error.message, variant: 'destructive' });
+        toast({ title: 'Chat Shuru Nahi Ho Paya', description: error.message || "Kuch toh gadbad hai, try again!", variant: 'destructive' });
         router.push('/');
       }
-      // Page loading will be set to false in the messages stream effect
     };
 
     initializeChat();
@@ -162,20 +149,21 @@ export default function ChatPage() {
             videoSrc: doc.videoUrl || undefined,
           };
           if (doc.messageType === 'gift_sent' && doc.sentGiftId) {
-            baseMessage.sentGift = { // This part needs to be robust. For now, assumes gift store is client-side only
+            baseMessage.sentGift = { 
                 id: doc.sentGiftId,
-                name: doc.text.includes("sent a") ? doc.text.split("sent a ")[1].split(" to")[0] : "a gift", // Basic parsing
-                iconName: 'Gift', // Default, ideally stored or mapped
-                description: "A lovely gift", // Default
-                aiReactionPrompt: "", // Default
+                name: doc.text.includes("sent ") ? doc.text.split("sent ")[1].split(" to")[0] : "a gift", 
+                iconName: 'Gift', 
+                description: "A lovely gift", 
+                aiReactionPrompt: "", 
+                isPremium: true, // Assume gifts are premium for now
             };
           }
           return baseMessage;
         });
         setMessages(uiMessages);
-        if(pageLoading) setPageLoading(false); // Set page loading to false after first messages are loaded
+        if(pageLoading) setPageLoading(false); 
       },
-      50 // Limit messages
+      50 
     );
 
     const unsubscribeStreak = getStreakDataStream(user.uid, characterId, setCurrentStreakData);
@@ -248,15 +236,15 @@ export default function ChatPage() {
       try {
         const streakResult = await updateUserChatStreak(user.uid, characterId);
         let streakToastMessage = '';
-        let toastTitle = "Chat Streak Update!";
+        let toastTitle = "Chat Streak Update! 🔥";
         switch (streakResult.status) {
           case 'first_ever': 
             streakToastMessage = `Pehli mulaqat aur streak shuru! Day ${streakResult.streak}! 💖 Keep it going!`; 
             toastTitle = "New Chat Streak Started! ✨";
             break;
           case 'continued': 
-            streakToastMessage = `Streak jaari hai: ${streakResult.streak} din! 🔥 Keep the flame alive!`; 
-            toastTitle = `Chat Streak: Day ${streakResult.streak}! 🎉`;
+            streakToastMessage = `Streak jaari hai: ${streakResult.streak} din! 🎉 Keep the flame alive!`; 
+            toastTitle = `Chat Streak: Day ${streakResult.streak}! 🔥`;
             break;
           case 'reset': 
             streakToastMessage = `Streak toot gayi! 💔 Koi baat nahi, naya din, nayi shuruaat! Day ${streakResult.streak} 💪`; 
@@ -266,7 +254,6 @@ export default function ChatPage() {
         }
         if (streakToastMessage) toast({ title: toastTitle, description: streakToastMessage, duration: 4000 });
       } catch (streakError) { console.error("Error updating chat streak:", streakError); }
-
 
       const optimisticAiLoadingId = addOptimisticMessage({
         sender: 'ai',
@@ -327,7 +314,7 @@ export default function ChatPage() {
     } finally {
       setIsLoadingMessage(false);
     }
-  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast, userDisplayName]);
+  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast, userDisplayName]); // Removed scrollToBottom
 
   const toggleFavoriteChat = async () => {
     if (!user || !characterId) return;
@@ -337,7 +324,7 @@ export default function ChatPage() {
       await updateChatSessionMetadata(user.uid, characterId, { isFavorite: newFavoriteStatus });
       toast({
         title: newFavoriteStatus ? 'Favorite Chat ⭐' : 'Unfavorited Chat',
-        description: `${currentCharacterMeta?.name} ${newFavoriteStatus ? 'is now a favorite!' : 'is no longer a favorite.'}`,
+        description: `${currentCharacterMeta?.name} ${newFavoriteStatus ? 'is now a favorite! So romantic!' : 'is no longer a favorite.'}`,
       });
     } catch (error) {
       console.error("Error updating favorite status:", error);
@@ -372,9 +359,9 @@ export default function ChatPage() {
       <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={initialBackgroundStyle}>
         <Header />
         <div className="flex-grow flex flex-col items-center justify-center text-center p-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-          <p className="text-lg text-muted-foreground bg-card/80 p-3 rounded-lg shadow-md">
-            Thoda intezaar... Aapki chat {currentCharacterMeta?.name || characterId || 'aapki Bae'} ke saath load ho rahi hai! 💖
+          <Loader2 className="h-16 w-16 animate-spin text-primary mb-4" />
+          <p className="text-xl font-headline text-muted-foreground bg-card/80 p-4 rounded-2xl shadow-lg">
+            Thoda intezaar... <Sparkles className="inline h-6 w-6 text-yellow-400 animate-pulse" /> Aapki chat {currentCharacterMeta?.name || 'aapki Bae'} ke saath load ho rahi hai! 💖
           </p>
         </div>
       </div>
@@ -383,7 +370,7 @@ export default function ChatPage() {
 
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden bg-transparent"> {/* Ensure bg is transparent here to let body bg show */}
       <Header />
       <ChatPageHeader
         characterMeta={currentCharacterMeta}
@@ -393,7 +380,7 @@ export default function ChatPage() {
         currentStreakData={currentStreakData}
         router={router}
       />
-      <main className="flex-grow overflow-hidden">
+      <main className="flex-grow overflow-hidden"> {/* This main needs to be flexible */}
         <ChatLayout
           messages={messages}
           onSendMessage={handleSendMessage}
@@ -407,8 +394,7 @@ export default function ChatPage() {
           userDisplayName={userDisplayName}
         />
       </main>
-      <div ref={messagesEndRef} />
+      <div ref={messagesEndRef} /> {/* For scrolling to bottom */}
     </div>
   );
 }
-
