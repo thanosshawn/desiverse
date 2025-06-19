@@ -74,10 +74,6 @@ export default function ManageCharactersPage() {
   };
 
   const handleDeleteCharacter = async (characterId: string, characterName: string) => {
-    // In a real app, you would call a Firebase function here to delete from RTDB.
-    // For this prototype, we'll just show a toast.
-    // Example: await deleteCharacterFromDB(characterId);
-    // setCharacters(prev => prev.filter(char => char.id !== characterId));
     toast({
       title: `Deletion Action (Simulated for ${characterName})`,
       description: `If fully implemented, this would delete '${characterName}' (ID: ${characterId}) from the database. This is a placeholder action.`,
@@ -182,9 +178,11 @@ export default function ManageCharactersPage() {
                             <Eye className="h-4 w-4" />
                           </Button>
                         </Link>
-                        <Button variant="outline" size="icon" title="Edit Character (Not Implemented)" className="hover:text-primary rounded-md opacity-50 cursor-not-allowed">
-                          <Edit className="h-4 w-4" />
-                        </Button>
+                        <Link href={`/admin/edit-character/${char.id}`} passHref>
+                          <Button variant="outline" size="icon" title="Edit Character" className="hover:text-primary rounded-md">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </Link>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button variant="outline" size="icon" title="Delete Character" className="hover:text-destructive hover:border-destructive rounded-md">

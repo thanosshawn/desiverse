@@ -3,19 +3,18 @@
 
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { addCharacter, getAdminCredentials, getAllCharacters } from '@/lib/firebase/rtdb'; // Added getAllCharacters
+import { addCharacter, getAdminCredentials, getAllCharacters, updateCharacter } from '@/lib/firebase/rtdb'; // Added updateCharacter
 import type { CharacterMetadata } from '@/lib/types';
-// Zod schema for validation is removed from this action
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
-import { ref, get } from 'firebase/database'; // Added for RTDB access
-import { db } from '@/lib/firebase/config'; // Added for RTDB instance
+import { ref, get } from 'firebase/database'; 
+import { db } from '@/lib/firebase/config'; 
 
 
 export interface CreateCharacterActionState {
   message: string;
   characterId?: string;
   success: boolean;
-  errors?: Partial<Record<keyof CharacterCreationAdminFormValues, string[]>> | null; // Kept for structure, but less used
+  errors?: Partial<Record<keyof CharacterCreationAdminFormValues, string[]>> | null;
 }
 
 export async function createCharacterAction(
@@ -23,13 +22,12 @@ export async function createCharacterAction(
   formData: FormData
 ): Promise<CreateCharacterActionState> {
   
-  // Directly extract data from formData since Zod validation is removed for this form
   const data: CharacterCreationAdminFormValues = {
     name: formData.get('name') as string || 'Unnamed Character',
     description: formData.get('description') as string || 'No description provided.',
     personalitySnippet: formData.get('personalitySnippet') as string || 'A mysterious AI.',
     avatarUrl: formData.get('avatarUrl') as string || 'https://placehold.co/400x400.png',
-    backgroundImageUrl: formData.get('backgroundImageUrl') as string || '', // Default to empty string if not present
+    backgroundImageUrl: formData.get('backgroundImageUrl') as string || '', 
     basePrompt: formData.get('basePrompt') as string || 'You are a helpful AI.',
     styleTags: formData.get('styleTags') as string || 'general',
     defaultVoiceTone: formData.get('defaultVoiceTone') as string || 'neutral',
@@ -40,7 +38,6 @@ export async function createCharacterAction(
     isPremium: formData.get('isPremium') === 'on' || false,
   };
 
-  // Basic check if name is provided, fallback if not (though autofill should handle this)
   if (!data.name.trim()) {
      data.name = `AI_Character_${uuidv4().substring(0,4)}`;
   }
@@ -52,14 +49,14 @@ export async function createCharacterAction(
     description: data.description,
     personalitySnippet: data.personalitySnippet,
     avatarUrl: data.avatarUrl,
-    backgroundImageUrl: data.backgroundImageUrl || null, // Convert empty string to null
+    backgroundImageUrl: data.backgroundImageUrl || null,
     basePrompt: data.basePrompt,
     styleTags: data.styleTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
     defaultVoiceTone: data.defaultVoiceTone,
     dataAiHint: data.dataAiHint,
-    messageBubbleStyle: data.messageBubbleStyle || null, // Convert empty string to null
-    animatedEmojiResponse: data.animatedEmojiResponse || null, // Convert empty string to null
-    audioGreetingUrl: data.audioGreetingUrl || null, // Convert empty string to null
+    messageBubbleStyle: data.messageBubbleStyle || null,
+    animatedEmojiResponse: data.animatedEmojiResponse || null,
+    audioGreetingUrl: data.audioGreetingUrl || null,
     isPremium: data.isPremium || false,
   };
 
@@ -69,7 +66,7 @@ export async function createCharacterAction(
       message: `Character "${data.name}" created successfully with ID: ${characterId}`,
       characterId,
       success: true,
-      errors: null, // Validation errors are no longer generated here
+      errors: null,
     };
   } catch (error) {
     console.error('Error creating character:', error);
@@ -77,7 +74,80 @@ export async function createCharacterAction(
     return {
       message: `Failed to create character: ${errorMessage}`,
       success: false,
-      errors: null, // No field-specific validation errors
+      errors: null,
+    };
+  }
+}
+
+export interface UpdateCharacterActionState {
+  message: string;
+  success: boolean;
+  errors?: Partial<Record<keyof CharacterCreationAdminFormValues, string[]>> | null;
+}
+
+export async function updateCharacterAction(
+  characterId: string, // This will be bound to the action
+  prevState: UpdateCharacterActionState,
+  formData: FormData
+): Promise<UpdateCharacterActionState> {
+  
+  const data: CharacterCreationAdminFormValues = {
+    name: formData.get('name') as string || 'Unnamed Character',
+    description: formData.get('description') as string || 'No description provided.',
+    personalitySnippet: formData.get('personalitySnippet') as string || 'A mysterious AI.',
+    avatarUrl: formData.get('avatarUrl') as string || 'https://placehold.co/400x400.png',
+    backgroundImageUrl: formData.get('backgroundImageUrl') as string || '',
+    basePrompt: formData.get('basePrompt') as string || 'You are a helpful AI.',
+    styleTags: formData.get('styleTags') as string || 'general',
+    defaultVoiceTone: formData.get('defaultVoiceTone') as string || 'neutral',
+    dataAiHint: formData.get('dataAiHint') as string || (formData.get('name') as string || 'AI').toLowerCase().split(' ')[0] || 'person',
+    messageBubbleStyle: formData.get('messageBubbleStyle') as string || '',
+    animatedEmojiResponse: formData.get('animatedEmojiResponse') as string || '',
+    audioGreetingUrl: formData.get('audioGreetingUrl') as string || '',
+    isPremium: formData.get('isPremium') === 'on' || false,
+  };
+
+  if (!data.name.trim()) {
+     // Should not happen if form is pre-filled, but as a fallback
+     return {
+        message: 'Character name cannot be empty.',
+        success: false,
+        errors: { name: ['Character name is required.'] }
+     }
+  }
+
+  // Note: We don't regenerate characterId on update. It remains stable.
+  // The 'id' and 'createdAt' fields are not directly updated via this form for CharacterMetadata.
+  const characterUpdateData: Partial<Omit<CharacterMetadata, 'id' | 'createdAt'>> = {
+    name: data.name,
+    description: data.description,
+    personalitySnippet: data.personalitySnippet,
+    avatarUrl: data.avatarUrl,
+    backgroundImageUrl: data.backgroundImageUrl || null,
+    basePrompt: data.basePrompt,
+    styleTags: data.styleTags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+    defaultVoiceTone: data.defaultVoiceTone,
+    dataAiHint: data.dataAiHint,
+    messageBubbleStyle: data.messageBubbleStyle || null,
+    animatedEmojiResponse: data.animatedEmojiResponse || null,
+    audioGreetingUrl: data.audioGreetingUrl || null,
+    isPremium: data.isPremium || false,
+  };
+
+  try {
+    await updateCharacter(characterId, characterUpdateData);
+    return {
+      message: `Character "${data.name}" updated successfully.`,
+      success: true,
+      errors: null,
+    };
+  } catch (error) {
+    console.error('Error updating character:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return {
+      message: `Failed to update character: ${errorMessage}`,
+      success: false,
+      errors: null,
     };
   }
 }
@@ -196,8 +266,6 @@ export async function getCharacterUsageStats(): Promise<CharacterUsageStat[]> {
       .map(char => ({
         name: char.name,
         count: characterCounts[char.id] || 0,
-        // Example: could assign different fill colors based on character or count
-        // fill: char.name === 'Riya' ? 'hsl(var(--chart-1))' : 'hsl(var(--chart-2))', 
       }))
       .sort((a, b) => b.count - a.count); // Sort by most used
 

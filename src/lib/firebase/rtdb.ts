@@ -121,7 +121,7 @@ export async function getAllCharacters(): Promise<CharacterMetadata[]> {
 
 export async function addCharacter(characterId: string, data: Omit<CharacterMetadata, 'id' | 'createdAt'> & { createdAt?: number }): Promise<void> {
   const characterRef = ref(db, `characters/${characterId}`);
-  const characterDataToWrite: Omit<CharacterMetadata, 'createdAt' | 'id'> & { createdAt: number | object, id: string } = {
+  const characterDataToWrite: Omit<CharacterMetadata, 'id'> & { createdAt: number | object, id: string } = {
      ...data, 
      id: characterId, 
      createdAt: data.createdAt || rtdbServerTimestamp(), 
@@ -130,6 +130,15 @@ export async function addCharacter(characterId: string, data: Omit<CharacterMeta
      styleTags: data.styleTags || [],
   };
   await set(characterRef, characterDataToWrite);
+}
+
+export async function updateCharacter(characterId: string, data: Partial<Omit<CharacterMetadata, 'id' | 'createdAt'>>): Promise<void> {
+  const characterRef = ref(db, `characters/${characterId}`);
+  // Ensure 'id' and 'createdAt' are not part of the update payload directly,
+  // as these should generally be immutable or handled specifically if they need to change.
+  // For this implementation, we assume they don't change during an edit.
+  const { id, createdAt, ...updateData } = data as any; // Cast to any to satisfy Omit not liking id and createdAt
+  await update(characterRef, updateData);
 }
 
 
