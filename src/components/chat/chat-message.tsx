@@ -36,7 +36,7 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
     if (isUser) {
       if (message.type === 'gift_sent') {
         // Distinct style for "gift sent" messages
-        return 'bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-400 text-black dark:text-neutral-800 rounded-br-none shadow-lg border border-amber-500/50'; 
+        return 'bg-gradient-to-br from-amber-400 via-yellow-400 to-orange-400 text-black rounded-br-none shadow-lg border border-amber-500/50'; 
       }
       return 'bg-primary text-primary-foreground rounded-br-none';
     }
@@ -163,3 +163,4 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
     </div>
   );
 }
+
