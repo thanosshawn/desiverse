@@ -29,16 +29,18 @@ export async function handleStoryChoiceAction(
       return { error: `Character for story (ID: ${story.characterId}) not found.` };
     }
 
+    // Get the most recent progress. For the very first turn, this might be null.
     let currentUserProgress = await getUserStoryProgress(userId, storyId);
+    
     let summaryForAICurrentTurn: string;
-    let previousUserChoiceForAI: string;
 
-    if (currentUserProgress?.currentTurnContext?.summaryOfCurrentSituation) {
+    if (currentUserProgress?.currentTurnContext?.summaryOfCurrentSituation && userChoiceText !== "Let's begin the story!") {
+      // If there's existing progress and it's not the initial call,
+      // the summaryOfCurrentSituation from *that* progress is the context.
       summaryForAICurrentTurn = currentUserProgress.currentTurnContext.summaryOfCurrentSituation;
-      previousUserChoiceForAI = userChoiceText; 
     } else {
+      // This is for the very first turn or if "Let's begin the story!" is passed (which signals a fresh start/restart)
       summaryForAICurrentTurn = story.initialSceneSummary;
-      previousUserChoiceForAI = "Let's begin the story!"; 
     }
 
     const aiInput: StoryTurnInput = {
@@ -54,8 +56,8 @@ export async function handleStoryChoiceAction(
         name: userName,
       },
       currentTurn: {
-        summaryOfCurrentSituation: summaryForAICurrentTurn,
-        previousUserChoice: previousUserChoiceForAI,
+        summaryOfCurrentSituation: summaryForAICurrentTurn, // This is the AI's narration from *previous* turn, or initial summary
+        previousUserChoice: userChoiceText, // This is the choice the user *just* made to get to the *new* situation
       },
     };
 
@@ -78,19 +80,26 @@ export async function handleStoryChoiceAction(
       return { error: 'Failed to get a complete story response from AI. Please try again.' };
     }
     
+    // This `nextProgressData` will be saved to Firebase.
+    // `summaryOfCurrentSituation` now stores the AI's *new* narration.
+    // `previousUserChoice` stores the `userChoiceText` that led to this *new* narration.
     const nextProgressData: UserStoryProgress = {
       userId,
       storyId,
       currentTurnContext: {
-        summaryOfCurrentSituation: aiResponse.narrationForThisTurn,
-        previousUserChoice: userChoiceText,
+        summaryOfCurrentSituation: aiResponse.narrationForThisTurn, // The AI's new narration
+        previousUserChoice: userChoiceText,                      // The user's choice that led to this new narration
+        choiceA: aiResponse.choiceA,                             // The new choice A from AI
+        choiceB: aiResponse.choiceB,                             // The new choice B from AI
       },
       storyTitleSnapshot: story.title,
       characterIdSnapshot: story.characterId,
+      lastPlayed: new Date().getTime(), // Using client time here for simplicity, serverTimestamp can also be used via rtdb
     };
 
     await updateUserStoryProgress(userId, storyId, nextProgressData);
     
+    // Fetch the just-updated progress to ensure consistency, though nextProgressData should be accurate
     const updatedProgress = await getUserStoryProgress(userId, storyId); 
 
     return { aiResponse, nextProgress: updatedProgress || nextProgressData };

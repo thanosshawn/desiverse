@@ -11,9 +11,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { InteractiveStory, UserStoryProgress, StoryTurnOutput, CharacterMetadata } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { getInteractiveStory, getUserStoryProgress, getCharacterMetadata } from '@/lib/firebase/rtdb'; // Removed updateUserStoryProgress
-import { handleStoryChoiceAction } from '../actions';
-import { Loader2, Drama, MessageCircle, Send, BookHeart } from 'lucide-react';
+import { getInteractiveStory, getUserStoryProgress, getCharacterMetadata } from '@/lib/firebase/rtdb';
+import { handleStoryChoiceAction } from '../actions'; // Corrected path to actions
+import { Loader2, Drama, MessageCircle, Send, BookHeart, User } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 
@@ -30,9 +30,10 @@ function StoryPlayerContent() {
   const [currentAiTurn, setCurrentAiTurn] = useState<StoryTurnOutput | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingChoice, setIsProcessingChoice] = useState(false);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   const fetchStoryData = useCallback(async () => {
-    if (!storyId || !user) return;
+    if (!storyId || !user || initialLoadComplete) return; // Prevent re-fetch if already loaded
     setIsLoading(true);
     try {
       const storyData = await getInteractiveStory(storyId);
@@ -45,42 +46,62 @@ function StoryPlayerContent() {
 
       const charData = await getCharacterMetadata(storyData.characterId);
       if (!charData) {
-          toast({ title: 'Error', description: 'Character for this story not found.', variant: 'destructive' });
-          router.push('/stories');
-          return;
+        toast({ title: 'Error', description: 'Character for this story not found.', variant: 'destructive' });
+        router.push('/stories');
+        return;
       }
       setStoryCharacter(charData);
 
       const progressData = await getUserStoryProgress(user.uid, storyId);
       setUserProgress(progressData);
 
-      let initialSummary: string;
-      let initialUserChoice: string;
+      let summaryForAICurrentTurn: string;
+      let previousUserChoiceForAI: string;
 
-      if (progressData?.currentTurnContext?.summaryOfCurrentSituation) {
-        initialSummary = progressData.currentTurnContext.summaryOfCurrentSituation;
-        initialUserChoice = progressData.currentTurnContext.previousUserChoice;
+      if (progressData?.currentTurnContext?.summaryOfCurrentSituation && progressData?.currentTurnContext?.previousUserChoice) {
+        // This means we are resuming a story where the AI has already provided narration based on a user choice
+        // So, we should display that previous AI narration and the new choices
+        summaryForAICurrentTurn = progressData.currentTurnContext.summaryOfCurrentSituation;
+        previousUserChoiceForAI = progressData.currentTurnContext.previousUserChoice; // This choice led to summaryForAICurrentTurn
+        // We need to generate the *next* turn based on the summaryOfCurrentSituation as context
+        // But for display, userProgress.currentTurnContext.previousUserChoice is the one to show before summaryOfCurrentSituation
       } else {
-        initialSummary = storyData.initialSceneSummary;
-        initialUserChoice = "Let's begin the story!";
+        summaryForAICurrentTurn = storyData.initialSceneSummary;
+        previousUserChoiceForAI = "Let's begin the story!";
       }
-      
-      if (!currentAiTurn) { // Only call AI if not already loaded
-        const aiResponse = await handleStoryChoiceAction(user.uid, userProfile?.name || user.displayName || 'Adventurer', storyId, initialUserChoice);
+
+      // Call AI only if currentAiTurn is not set or if we need to fetch a new turn based on progress
+      // If userProgress.currentTurnContext.summaryOfCurrentSituation is available, it means AI has already responded to previousUserChoice.
+      // We directly use that summaryOfCurrentSituation as the AI's current narration.
+      if (progressData?.currentTurnContext?.summaryOfCurrentSituation && progressData?.currentTurnContext?.choiceA && progressData?.currentTurnContext?.choiceB) {
+        setCurrentAiTurn({
+          narrationForThisTurn: progressData.currentTurnContext.summaryOfCurrentSituation,
+          choiceA: progressData.currentTurnContext.choiceA,
+          choiceB: progressData.currentTurnContext.choiceB,
+        });
+      } else {
+        // This is for the very first turn or if progress doesn't have choices (older format)
+        const aiResponse = await handleStoryChoiceAction(
+          user.uid,
+          userProfile?.name || user.displayName || 'Adventurer',
+          storyId,
+          previousUserChoiceForAI // This is "Let's begin" or the choice that led to the current situation
+        );
+
         if (aiResponse.error || !aiResponse.aiResponse) {
-          toast({ title: 'AI Error', description: aiResponse.error || 'Could not start story.', variant: 'destructive' });
+          toast({ title: 'AI Error', description: aiResponse.error || 'Could not start or continue story.', variant: 'destructive' });
         } else {
           setCurrentAiTurn(aiResponse.aiResponse);
-          if(aiResponse.nextProgress) setUserProgress(aiResponse.nextProgress);
+          if (aiResponse.nextProgress) setUserProgress(aiResponse.nextProgress);
         }
       }
-
+      setInitialLoadComplete(true);
     } catch (error: any) {
       toast({ title: 'Error loading story', description: error.message, variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }
-  }, [storyId, user, userProfile, router, toast, currentAiTurn]);
+  }, [storyId, user, userProfile, router, toast, initialLoadComplete]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -94,12 +115,11 @@ function StoryPlayerContent() {
     if (!user || !story || isProcessingChoice || !currentAiTurn) return;
     setIsProcessingChoice(true);
     try {
-      // Server action will fetch current progress, generate AI turn, and update progress.
       const result = await handleStoryChoiceAction(
         user.uid,
         userProfile?.name || user.displayName || 'Adventurer',
         story.id,
-        choiceText // The choice the user just made
+        choiceText
       );
 
       if (result.error || !result.aiResponse) {
@@ -107,7 +127,7 @@ function StoryPlayerContent() {
       } else {
         setCurrentAiTurn(result.aiResponse);
         if (result.nextProgress) {
-          setUserProgress(result.nextProgress); // Update client state with progress from server
+          setUserProgress(result.nextProgress);
         }
       }
     } catch (error: any) {
@@ -122,20 +142,34 @@ function StoryPlayerContent() {
       <div className="flex flex-col min-h-screen bg-background items-center justify-center">
         <Header />
         <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
-        <p className="text-lg mt-2 text-muted-foreground">Loading your story adventure...</p>
+        <p className="text-lg mt-2 text-muted-foreground">Loading your story adventure... Please wait. ✨</p>
       </div>
     );
   }
 
-  if (!story || !storyCharacter || !currentAiTurn) {
+  if (!story || !storyCharacter ) {
     return (
       <div className="flex flex-col min-h-screen bg-background items-center justify-center">
         <Header />
-        <p className="text-lg mt-2 text-muted-foreground">Could not load story content. Please try again.</p>
+        <p className="text-lg mt-2 text-muted-foreground">Could not load story content. Please try again or select another story.</p>
         <Button onClick={() => router.push('/stories')} className="mt-4 !rounded-lg">Back to Stories</Button>
       </div>
     );
   }
+  
+  // This condition ensures we only render the AI turn once it's loaded.
+  if (!currentAiTurn) {
+     return (
+      <div className="flex flex-col min-h-screen bg-background items-center justify-center">
+        <Header />
+        <Loader2 className="h-12 w-12 animate-spin text-primary mt-4" />
+        <p className="text-lg mt-2 text-muted-foreground">Getting {storyCharacter.name}'s first response... Hold tight! 💖</p>
+      </div>
+    );
+  }
+
+
+  const displayPreviousUserChoice = userProgress?.currentTurnContext?.previousUserChoice && userProgress.currentTurnContext.previousUserChoice !== "Let's begin the story!";
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
@@ -155,6 +189,20 @@ function StoryPlayerContent() {
             </div>
           </CardHeader>
           <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6 min-h-[300px] flex flex-col">
+            {displayPreviousUserChoice && (
+              <div className="mb-4 p-3 rounded-lg bg-primary/10 border border-primary/20 shadow-sm">
+                <div className="flex items-start gap-2">
+                  <User className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-primary/80">You chose:</p>
+                    <p className="text-foreground/90 text-sm italic">
+                      {userProgress.currentTurnContext.previousUserChoice}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none flex-grow bg-muted/30 p-3 rounded-lg shadow-inner text-foreground">
               <ReactMarkdown
                 components={{
@@ -173,7 +221,7 @@ function StoryPlayerContent() {
               </div>
             ) : (
               <div className="w-full space-y-3">
-                 <p className="text-center text-sm text-muted-foreground font-semibold mb-3">What happens next, jaan? 😘</p>
+                 <p className="text-center text-sm text-muted-foreground font-semibold mb-3">What happens next, {userProfile?.name || 'jaan'}? 😘</p>
                 <Button
                   onClick={() => handleChoice(currentAiTurn.choiceA)}
                   className="w-full !rounded-lg text-base py-3 bg-primary/80 hover:bg-primary"
@@ -215,3 +263,4 @@ export default function StoryPage() {
         </Suspense>
     );
 }
+

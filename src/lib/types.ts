@@ -141,18 +141,20 @@ export type InteractiveStoryAdminFormValues = Omit<InteractiveStory, 'id' | 'cre
   tagsString: string; // For form input
 };
 
+// Extended UserStoryProgress to potentially store choices directly in currentTurnContext if AI sends them
 export interface UserStoryProgress {
   userId: string;
   storyId: string;
   currentTurnContext: {
-    summaryOfCurrentSituation: string; // This is the AI's last narration, becomes context for next turn
-    previousUserChoice: string; // The choice the user just made
+    summaryOfCurrentSituation: string; // AI's last narration
+    previousUserChoice: string;      // User's choice that led to the summary
+    choiceA?: string;                // Option A provided by AI (optional, for resumption)
+    choiceB?: string;                // Option B provided by AI (optional, for resumption)
   };
-  storyTitleSnapshot: string; // Snapshot of story title
-  characterIdSnapshot: string; // Snapshot of character ID
-  lastPlayed: number | object; // RTDB timestamp
-  // Optional: history of choices if needed later
-  // history: Array<{ sceneSummary: string; userChoice: string; aiNarration: string; timestamp: number }>;
+  storyTitleSnapshot: string;
+  characterIdSnapshot: string;
+  lastPlayed: number | object;
+  // history: Array<{ userChoice: string; aiNarration: string; choiceA: string; choiceB: string; timestamp: number | object }>; // Full history
 }
 
 // Genkit Flow for Story Turns
@@ -177,9 +179,8 @@ export type StoryTurnInput = z.infer<typeof StoryTurnInputSchema>;
 
 export const StoryTurnOutputSchema = z.object({
   narrationForThisTurn: z.string().describe("The AI character's story narration for the current turn, continuing from the user's choice. Should be in Hinglish, immersive, romantic, and emotional, with emojis. This narration should also include any personal question for the user if applicable, integrated naturally within the text."),
-  // personalQuestion field can be removed if integrated into narrationForThisTurn.
-  // personalQuestion: z.string().optional().describe("An optional personal question or action point for the user related to the current story moment, if distinct from the main narration."),
   choiceA: z.string().describe("The text for the first choice (Option A) for the user to continue the story."),
   choiceB: z.string().describe("The text for the second choice (Option B) for the user to continue the story."),
 });
 export type StoryTurnOutput = z.infer<typeof StoryTurnOutputSchema>;
+
