@@ -1,4 +1,3 @@
-
 // src/app/admin/edit-character/[characterId]/page.tsx
 'use client';
 
@@ -69,6 +68,7 @@ export default function EditCharacterPage() {
             messageBubbleStyle: charData.messageBubbleStyle || '',
             animatedEmojiResponse: charData.animatedEmojiResponse || '',
             audioGreetingUrl: charData.audioGreetingUrl || '',
+            isPremium: charData.isPremium || false, // Ensure isPremium has a boolean value
           });
         } else {
           setCharacterNotFound(true);
@@ -382,13 +382,19 @@ export default function EditCharacterPage() {
                     control={form.control}
                     name="isPremium"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-center justify-between rounded-xl border p-4 shadow-sm bg-primary/5">
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                         <div className="space-y-0.5">
                           <FormLabel className="text-base">Premium Character</FormLabel>
-                          <FormDescription>Mark this character as premium.</FormDescription>
+                          <FormDescription>
+                            Mark this character as premium (requires subscription to chat).
+                          </FormDescription>
                         </div>
                         <FormControl>
-                          <Switch checked={field.value} onCheckedChange={field.onChange} name={field.name} />
+                          <Switch
+                            checked={!!field.value} // Ensure value is explicitly boolean for Switch
+                            onCheckedChange={field.onChange}
+                            name={field.name}
+                          />
                         </FormControl>
                       </FormItem>
                     )}
