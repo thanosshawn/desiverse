@@ -8,13 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { createCharacterAction, type CreateCharacterActionState } from '../actions';
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
-import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info, RefreshCw, BarChart3 } from 'lucide-react';
+import { Loader2, LogOut, CheckSquare, ListChecks, Sparkles, ImagePlus, Brain, Settings2, Info, RefreshCw, BarChart3, BookOpenCheck, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
@@ -29,11 +29,11 @@ const initialState: CreateCharacterActionState = {
 export default function CreateCharacterPage() {
   const { toast } = useToast();
   const router = useRouter();
-  
+
   const form = useForm<CharacterCreationAdminFormValues>({
     defaultValues: generateRandomCharacterDefaults(),
   });
-  
+
   const [state, formAction] = useActionState(createCharacterAction, initialState);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isUploadingBackground, setIsUploadingBackground] = useState(false);
@@ -60,7 +60,7 @@ export default function CreateCharacterPage() {
         variant: state.success ? 'default' : 'destructive',
       });
       if (state.success) {
-        form.reset(generateRandomCharacterDefaults()); 
+        form.reset(generateRandomCharacterDefaults());
       }
     }
   }, [state, toast, form]);
@@ -154,7 +154,12 @@ export default function CreateCharacterPage() {
                 </Button>
                 <Link href="/admin/manage-characters" passHref className="w-full sm:w-auto">
                     <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing characters">
-                        <ListChecks className="mr-2 h-4 w-4" /> Manage
+                        <ListChecks className="mr-2 h-4 w-4" /> Manage Chars
+                    </Button>
+                </Link>
+                <Link href="/admin/create-story" passHref className="w-full sm:w-auto">
+                    <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new story">
+                        <BookOpenCheck className="mr-2 h-4 w-4" /> Create Story
                     </Button>
                 </Link>
                  <Link href="/admin/analytics" passHref className="w-full sm:w-auto">
@@ -372,24 +377,25 @@ export default function CreateCharacterPage() {
                     control={form.control}
                     name="isPremium"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={!!field.value}
-                            onChange={(e) => field.onChange(e.target.checked)}
-                            className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            id={`${field.name}-premium-checkbox`}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="font-medium">
+                      <FormItem className="space-y-1.5 py-2">
+                        <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                           <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                             Premium Character
                           </FormLabel>
-                          <FormDescription>
-                            Mark this character as premium (requires subscription to chat).
-                          </FormDescription>
+                          <FormControl>
+                             <input
+                              type="checkbox"
+                              id={`${field.name}-premium-checkbox`}
+                              checked={!!field.value}
+                              onChange={(e) => field.onChange(e.target.checked)}
+                              className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              aria-describedby={`${field.name}-premium-description`}
+                            />
+                          </FormControl>
                         </div>
+                        <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground px-1">
+                          Mark this character as premium (requires subscription to chat).
+                        </FormDescription>
                       </FormItem>
                     )}
                   />

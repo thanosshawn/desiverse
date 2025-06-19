@@ -8,7 +8,7 @@ import {
   orderByChild,
   limitToLast,
   onValue,
-  serverTimestamp as rtdbServerTimestamp, 
+  serverTimestamp as rtdbServerTimestamp,
   off,
   type Unsubscribe,
   update,
@@ -16,7 +16,7 @@ import {
   runTransaction,
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
-import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult } from '@/lib/types';
+import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult, InteractiveStory, UserStoryProgress } from '@/lib/types';
 
 // --- User Profile ---
 
@@ -69,8 +69,8 @@ export async function getCharacterMetadata(characterId: string): Promise<Charact
   const snapshot = await get(characterRef);
   if (snapshot.exists()) {
     const val = snapshot.val();
-    return { 
-      id: snapshot.key!, 
+    return {
+      id: snapshot.key!,
       name: val.name,
       description: val.description,
       personalitySnippet: val.personalitySnippet || val.description.substring(0, 70) + "...",
@@ -92,13 +92,13 @@ export async function getCharacterMetadata(characterId: string): Promise<Charact
 
 export async function getAllCharacters(): Promise<CharacterMetadata[]> {
   const charactersRef = ref(db, 'characters');
-  const snapshot = await get(query(charactersRef)); 
+  const snapshot = await get(query(charactersRef));
   const characters: CharacterMetadata[] = [];
   if (snapshot.exists()) {
     snapshot.forEach((childSnapshot) => {
       const val = childSnapshot.val();
-      characters.push({ 
-        id: childSnapshot.key!, 
+      characters.push({
+        id: childSnapshot.key!,
         name: val.name,
         description: val.description,
         personalitySnippet: val.personalitySnippet || val.description.substring(0, 70) + "...",
@@ -122,9 +122,9 @@ export async function getAllCharacters(): Promise<CharacterMetadata[]> {
 export async function addCharacter(characterId: string, data: Omit<CharacterMetadata, 'id' | 'createdAt'> & { createdAt?: number }): Promise<void> {
   const characterRef = ref(db, `characters/${characterId}`);
   const characterDataToWrite: Omit<CharacterMetadata, 'id'> & { createdAt: number | object, id: string } = {
-     ...data, 
-     id: characterId, 
-     createdAt: data.createdAt || rtdbServerTimestamp(), 
+     ...data,
+     id: characterId,
+     createdAt: data.createdAt || rtdbServerTimestamp(),
      personalitySnippet: data.personalitySnippet || data.description.substring(0,70) + "...",
      isPremium: data.isPremium || false,
      styleTags: data.styleTags || [],
@@ -149,8 +149,8 @@ export async function getOrCreateChatSession(userId: string, characterId: string
 
   if (snapshot.exists()) {
     const existingData = snapshot.val() as UserChatSessionMetadata;
-    await update(chatMetadataRef, { updatedAt: rtdbServerTimestamp() }); 
-    return { ...existingData, updatedAt: Date.now() }; 
+    await update(chatMetadataRef, { updatedAt: rtdbServerTimestamp() });
+    return { ...existingData, updatedAt: Date.now() };
   } else {
     const characterMeta = await getCharacterMetadata(characterId);
     if (!characterMeta) {
@@ -161,10 +161,10 @@ export async function getOrCreateChatSession(userId: string, characterId: string
       characterId,
       characterName: characterMeta.name,
       characterAvatarUrl: characterMeta.avatarUrl,
-      createdAt: rtdbServerTimestamp(), 
-      updatedAt: rtdbServerTimestamp(), 
+      createdAt: rtdbServerTimestamp(),
+      updatedAt: rtdbServerTimestamp(),
       lastMessageText: `Chat started with ${characterMeta.name}`,
-      lastMessageTimestamp: rtdbServerTimestamp(), 
+      lastMessageTimestamp: rtdbServerTimestamp(),
       isFavorite: false,
     };
     await set(chatMetadataRef, newChatSessionMetaDataForWrite);
@@ -174,13 +174,13 @@ export async function getOrCreateChatSession(userId: string, characterId: string
       text: `Namaste! Main hoon ${characterMeta.name}. ${characterMeta.personalitySnippet} Kaho, kya baat karni hai? 😉`,
       messageType: 'text',
     });
-    
-    const now = Date.now(); 
-    return { 
-      ...newChatSessionMetaDataForWrite, 
-      createdAt: now, 
-      updatedAt: now, 
-      lastMessageTimestamp: now 
+
+    const now = Date.now();
+    return {
+      ...newChatSessionMetaDataForWrite,
+      createdAt: now,
+      updatedAt: now,
+      lastMessageTimestamp: now
     } as UserChatSessionMetadata;
   }
 }
@@ -211,7 +211,7 @@ export async function getUserChatSessions(userId: string): Promise<(UserChatSess
 export async function updateChatSessionMetadata(userId: string, characterId: string, data: Partial<UserChatSessionMetadata>): Promise<void> {
   const chatMetadataRef = ref(db, `users/${userId}/userChats/${characterId}/metadata`);
   const updateData : Partial<UserChatSessionMetadata> & {updatedAt?: object} = {...data};
-  updateData.updatedAt = rtdbServerTimestamp(); 
+  updateData.updatedAt = rtdbServerTimestamp();
   await update(chatMetadataRef, updateData);
 }
 
@@ -219,11 +219,11 @@ export async function updateChatSessionMetadata(userId: string, characterId: str
 // --- Messages ---
 export async function addMessageToChat(
   userId: string,
-  characterId: string, 
-  messageData: Omit<MessageDocument, 'timestamp'> & { timestamp?: number | object } 
+  characterId: string,
+  messageData: Omit<MessageDocument, 'timestamp'> & { timestamp?: number | object }
 ): Promise<string> {
   const messagesRef = ref(db, `users/${userId}/userChats/${characterId}/messages`);
-  const newMessageRef = push(messagesRef); 
+  const newMessageRef = push(messagesRef);
 
   const finalMessageData: MessageDocument = {
     sender: messageData.sender,
@@ -233,13 +233,13 @@ export async function addMessageToChat(
     audioUrl: messageData.audioUrl || null,
     videoUrl: messageData.videoUrl || null,
     sentGiftId: messageData.sentGiftId || null, // Ensure sentGiftId is saved
-  } as MessageDocument; 
-  
+  } as MessageDocument;
+
   await set(newMessageRef, finalMessageData);
 
   const chatMetadataUpdates: Partial<UserChatSessionMetadata> & {lastMessageTimestamp?: object} = {
     lastMessageText: messageData.text.substring(0, 100), // Keep last message text concise
-    lastMessageTimestamp: finalMessageData.timestamp, 
+    lastMessageTimestamp: finalMessageData.timestamp,
   };
   await updateChatSessionMetadata(userId, characterId, chatMetadataUpdates);
 
@@ -248,14 +248,14 @@ export async function addMessageToChat(
 
 export function getMessagesStream(
   userId: string,
-  characterId: string, 
+  characterId: string,
   callback: (messages: (MessageDocument & { id: string })[]) => void,
-  messageLimit: number = 50 
+  messageLimit: number = 50
 ): Unsubscribe {
   const messagesQuery = query(
     ref(db, `users/${userId}/userChats/${characterId}/messages`),
-    orderByChild('timestamp'), 
-    limitToLast(messageLimit) 
+    orderByChild('timestamp'),
+    limitToLast(messageLimit)
   );
 
   const listener = onValue(messagesQuery, (snapshot) => {
@@ -265,13 +265,13 @@ export function getMessagesStream(
         messagesData.push({ id: childSnapshot.key!, ...childSnapshot.val() } as (MessageDocument & { id: string }));
       });
     }
-    callback(messagesData); 
+    callback(messagesData);
   }, (error) => {
     console.error("Error fetching messages in real-time from RTDB: ", error);
     callback([]);
   });
 
-  return () => off(messagesQuery, 'value', listener); 
+  return () => off(messagesQuery, 'value', listener);
 }
 
 // --- Chat Streaks ---
@@ -349,7 +349,7 @@ export async function seedAdminCredentialsIfNeeded(): Promise<void> {
   if (!snapshot.exists()) {
     const defaultCreds: AdminCredentials = {
       username: 'admin',
-      password: 'admin', 
+      password: 'admin',
     };
     try {
       await set(credRef, defaultCreds);
@@ -433,4 +433,68 @@ export function listenToTotalRegisteredUsers(callback: (count: number) => void):
   });
   return () => off(counterRef, 'value', listener);
 }
-    
+
+
+// --- Interactive Stories ---
+export async function addInteractiveStory(storyId: string, data: Omit<InteractiveStory, 'id' | 'createdAt'> & { createdAt?: number | object }): Promise<void> {
+  const storyRef = ref(db, `interactiveStories/${storyId}`);
+  const storyDataForWrite = {
+    ...data,
+    id: storyId, // ensure id is part of the written object
+    createdAt: data.createdAt || rtdbServerTimestamp(),
+    updatedAt: rtdbServerTimestamp(),
+  };
+  await set(storyRef, storyDataForWrite);
+}
+
+export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
+  const storiesRef = ref(db, 'interactiveStories');
+  const snapshot = await get(query(storiesRef, orderByChild('createdAt'))); // Order by creation time
+  const stories: InteractiveStory[] = [];
+  if (snapshot.exists()) {
+    snapshot.forEach((childSnapshot) => {
+      stories.push({ id: childSnapshot.key!, ...childSnapshot.val() } as InteractiveStory);
+    });
+  }
+  return stories.reverse(); // To get newest first
+}
+
+export async function getInteractiveStory(storyId: string): Promise<InteractiveStory | null> {
+  const storyRef = ref(db, `interactiveStories/${storyId}`);
+  const snapshot = await get(storyRef);
+  return snapshot.exists() ? ({ id: snapshot.key!, ...snapshot.val() } as InteractiveStory) : null;
+}
+
+// --- User Story Progress ---
+export async function getUserStoryProgress(userId: string, storyId: string): Promise<UserStoryProgress | null> {
+  const progressRef = ref(db, `userStoryProgress/${userId}/${storyId}`);
+  const snapshot = await get(progressRef);
+  return snapshot.exists() ? (snapshot.val() as UserStoryProgress) : null;
+}
+
+export async function updateUserStoryProgress(userId: string, storyId: string, data: Partial<Omit<UserStoryProgress, 'userId' | 'storyId'>> & { lastPlayed?: number | object }): Promise<void> {
+  const progressRef = ref(db, `userStoryProgress/${userId}/${storyId}`);
+  const updateData = {
+    ...data,
+    userId, // ensure these are present
+    storyId,
+    lastPlayed: data.lastPlayed || rtdbServerTimestamp(),
+  };
+  // If it's a new progress, 'set' will create it. If existing, 'update' merges.
+  // Using 'update' is generally safer if you only want to modify specific fields.
+  // However, for progress, we often overwrite the entire currentTurnContext.
+  // Let's ensure all necessary fields are present for a 'set' operation if creating new.
+  const snapshot = await get(progressRef);
+  if (snapshot.exists()) {
+    await update(progressRef, updateData);
+  } else {
+    await set(progressRef, {
+        userId,
+        storyId,
+        currentTurnContext: data.currentTurnContext || { summaryOfCurrentSituation: 'Initial state', previousUserChoice: 'Let us begin!' },
+        storyTitleSnapshot: data.storyTitleSnapshot || 'Unknown Story',
+        characterIdSnapshot: data.characterIdSnapshot || 'unknown_char',
+        lastPlayed: updateData.lastPlayed,
+    });
+  }
+}

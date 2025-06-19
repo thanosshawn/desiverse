@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, LogOut, Edit, Trash2, PlusCircle, Eye, BarChart3 } from 'lucide-react';
+import { Loader2, LogOut, Edit, Trash2, PlusCircle, Eye, BarChart3, BookOpenCheck, FileText } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -32,14 +32,14 @@ export default function ManageCharactersPage() {
   const { toast } = useToast();
   const [characters, setCharacters] = useState<CharacterMetadata[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [authStatusChecked, setAuthStatusChecked] = useState(false);
 
   useEffect(() => {
     const loggedIn = localStorage.getItem('isAdminLoggedIn') === 'true';
     setIsAdminLoggedIn(loggedIn);
-    setAuthStatusChecked(true); 
+    setAuthStatusChecked(true);
 
     if (!loggedIn && authStatusChecked) {
       router.replace('/admin/login');
@@ -48,7 +48,7 @@ export default function ManageCharactersPage() {
   }, [router, toast, authStatusChecked]);
 
   useEffect(() => {
-    if (isAdminLoggedIn && authStatusChecked) { 
+    if (isAdminLoggedIn && authStatusChecked) {
       const fetchCharacters = async () => {
         setIsLoading(true);
         try {
@@ -63,7 +63,7 @@ export default function ManageCharactersPage() {
       };
       fetchCharacters();
     } else if (authStatusChecked && !isAdminLoggedIn) {
-        setIsLoading(false); 
+        setIsLoading(false);
     }
   }, [isAdminLoggedIn, authStatusChecked, toast]);
 
@@ -82,7 +82,7 @@ export default function ManageCharactersPage() {
     });
     console.log(`TODO: Implement RTDB delete for character ID: ${characterId}, Name: ${characterName}`);
   };
-  
+
   if (!authStatusChecked) {
     return (
         <div className="flex flex-col min-h-screen bg-background items-center justify-center">
@@ -116,7 +116,12 @@ export default function ManageCharactersPage() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 sm:mt-0 w-full sm:w-auto">
                <Link href="/admin/create-character" passHref className="w-full sm:w-auto">
                 <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new character">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Create
+                  <PlusCircle className="mr-2 h-4 w-4" /> Create Char
+                </Button>
+              </Link>
+              <Link href="/admin/create-story" passHref className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new story">
+                    <BookOpenCheck className="mr-2 h-4 w-4" /> Create Story
                 </Button>
               </Link>
               <Link href="/admin/analytics" passHref className="w-full sm:w-auto">
@@ -199,7 +204,7 @@ export default function ManageCharactersPage() {
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel className="!rounded-lg">Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
+                              <AlertDialogAction
                                 onClick={() => handleDeleteCharacter(char.id, char.name)}
                                 className="bg-destructive hover:bg-destructive/90 !rounded-lg"
                               >

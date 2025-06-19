@@ -7,7 +7,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Responsive
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, LogOut, BarChart3, AlertTriangle, Palette, Users } from 'lucide-react';
+import { Loader2, LogOut, BarChart3, AlertTriangle, Palette, Users, BookOpenCheck, FileText, ListChecks, PlusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { getCharacterUsageStats, type CharacterUsageStat } from '../actions';
@@ -41,10 +41,10 @@ export default function AnalyticsPage() {
           const stats = await getCharacterUsageStats();
           // Assign colors dynamically for the chart
           const chartColors = [
-            'hsl(var(--chart-1))', 
-            'hsl(var(--chart-2))', 
-            'hsl(var(--chart-3))', 
-            'hsl(var(--chart-4))', 
+            'hsl(var(--chart-1))',
+            'hsl(var(--chart-2))',
+            'hsl(var(--chart-3))',
+            'hsl(var(--chart-4))',
             'hsl(var(--chart-5))'
           ];
           const statsWithColors = stats.map((stat, index) => ({
@@ -70,7 +70,7 @@ export default function AnalyticsPage() {
     toast({ title: 'Logged Out', description: 'You have been logged out as admin.' });
     router.replace('/admin/login');
   };
-  
+
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -118,14 +118,25 @@ export default function AnalyticsPage() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <Link href="/admin/create-character" passHref className="w-full sm:w-auto">
                   <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new character">
-                      Create
+                      <PlusCircle className="mr-2 h-4 w-4"/> Create Char
                   </Button>
               </Link>
               <Link href="/admin/manage-characters" passHref className="w-full sm:w-auto">
                   <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing characters">
-                      Manage
+                      <ListChecks className="mr-2 h-4 w-4"/> Manage Chars
                   </Button>
               </Link>
+              <Link href="/admin/create-story" passHref className="w-full sm:w-auto">
+                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new story">
+                      <BookOpenCheck className="mr-2 h-4 w-4"/> Create Story
+                  </Button>
+              </Link>
+              {/* Placeholder for Manage Stories Link */}
+              {/* <Link href="/admin/manage-stories" passHref className="w-full sm:w-auto">
+                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing stories">
+                      <FileText className="mr-2 h-4 w-4"/> Manage Stories
+                  </Button>
+              </Link> */}
               <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto" title="Logout from admin">
                 <LogOut className="mr-2 h-4 w-4" /> Logout
               </Button>
@@ -150,19 +161,19 @@ export default function AnalyticsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={characterUsage} margin={{ top: 5, right: 0, left: -20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis 
-                        dataKey="name" 
-                        stroke="hsl(var(--muted-foreground))" 
-                        fontSize={12} 
-                        tickLine={false} 
+                      <XAxis
+                        dataKey="name"
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
                         axisLine={false}
-                        interval={0} 
+                        interval={0}
                       />
-                      <YAxis 
-                        stroke="hsl(var(--muted-foreground))" 
-                        fontSize={12} 
-                        tickLine={false} 
-                        axisLine={false} 
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
                         allowDecimals={false}
                       />
                       <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--accent)/0.1)' }}/>
@@ -172,7 +183,7 @@ export default function AnalyticsPage() {
                 </div>
               )}
               <p className="text-xs text-muted-foreground mt-2">
-                Note: Character usage is based on the number of unique user-character chat sessions initiated. 
+                Note: Character usage is based on the number of unique user-character chat sessions initiated.
                 The current data aggregation method might be slow for very large numbers of users.
               </p>
             </section>

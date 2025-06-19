@@ -14,7 +14,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/header';
-import { Loader2, LogOut, Save, ListChecks, ImagePlus, Brain, Settings2, Info, AlertTriangle, Edit2 } from 'lucide-react';
+import { Loader2, LogOut, Save, ListChecks, ImagePlus, Brain, Settings2, Info, AlertTriangle, Edit2, BookOpenCheck, FileText } from 'lucide-react';
 import { getCharacterMetadata } from '@/lib/firebase/rtdb';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
 import type { CharacterMetadata, CharacterCreationAdminFormValues } from '@/lib/types';
@@ -33,7 +33,7 @@ export default function EditCharacterPage() {
   const characterId = params.characterId as string;
 
   const form = useForm<CharacterCreationAdminFormValues>({
-     defaultValues: {
+     defaultValues: { // Ensure all fields have a default, especially booleans
         name: '',
         description: '',
         personalitySnippet: '',
@@ -46,7 +46,7 @@ export default function EditCharacterPage() {
         messageBubbleStyle: '',
         animatedEmojiResponse: '',
         audioGreetingUrl: '',
-        isPremium: false, 
+        isPremium: false,
     }
   });
   const [state, formAction, isPending] = useActionState(updateCharacterAction.bind(null, characterId), initialState);
@@ -84,7 +84,7 @@ export default function EditCharacterPage() {
             messageBubbleStyle: charData.messageBubbleStyle || '',
             animatedEmojiResponse: charData.animatedEmojiResponse || '',
             audioGreetingUrl: charData.audioGreetingUrl || '',
-            isPremium: charData.isPremium || false, 
+            isPremium: charData.isPremium || false, // Ensure boolean
           });
         } else {
           setCharacterNotFound(true);
@@ -188,7 +188,7 @@ export default function EditCharacterPage() {
       </div>
     );
   }
-  
+
   const isFormSubmitting = isPending || isUploadingAvatar || isUploadingBackground;
 
   return (
@@ -207,6 +207,11 @@ export default function EditCharacterPage() {
               <Link href="/admin/manage-characters" passHref className="w-full sm:w-auto">
                 <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Back to manage characters">
                   <ListChecks className="mr-2 h-4 w-4" /> Manage All
+                </Button>
+              </Link>
+               <Link href="/admin/create-story" passHref className="w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new story">
+                    <BookOpenCheck className="mr-2 h-4 w-4" /> Create Story
                 </Button>
               </Link>
               <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto" title="Logout from admin">
@@ -394,24 +399,25 @@ export default function EditCharacterPage() {
                     control={form.control}
                     name="isPremium"
                     render={({ field }) => (
-                       <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <input
-                            type="checkbox"
-                            checked={!!field.value}
-                            onChange={(e) => field.onChange(e.target.checked)}
-                            className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                            id={`${field.name}-premium-checkbox`}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="font-medium">
+                       <FormItem className="space-y-1.5 py-2">
+                        <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                           <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                             Premium Character
                           </FormLabel>
-                          <FormDescription>
-                            Mark this character as premium (requires subscription to chat).
-                          </FormDescription>
+                          <FormControl>
+                            <input
+                              type="checkbox"
+                              id={`${field.name}-premium-checkbox`}
+                              checked={!!field.value} // Ensure boolean
+                              onChange={(e) => field.onChange(e.target.checked)}
+                              className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                              aria-describedby={`${field.name}-premium-description`}
+                            />
+                          </FormControl>
                         </div>
+                        <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground px-1">
+                          Mark this character as premium (requires subscription to chat).
+                        </FormDescription>
                       </FormItem>
                     )}
                   />

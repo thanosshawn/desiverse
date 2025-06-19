@@ -3,11 +3,17 @@
 
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { addCharacter, getAdminCredentials, getAllCharacters, updateCharacter } from '@/lib/firebase/rtdb'; // Added updateCharacter
-import type { CharacterMetadata } from '@/lib/types';
-import type { CharacterCreationAdminFormValues } from '@/lib/types';
-import { ref, get } from 'firebase/database'; 
-import { db } from '@/lib/firebase/config'; 
+import {
+  addCharacter,
+  getAdminCredentials,
+  getAllCharacters,
+  updateCharacter,
+  addInteractiveStory, // Added for stories
+  getCharacterMetadata // Added for stories
+} from '@/lib/firebase/rtdb';
+import type { CharacterMetadata, CharacterCreationAdminFormValues, InteractiveStoryAdminFormValues, InteractiveStory } from '@/lib/types';
+import { ref, get } from 'firebase/database';
+import { db } from '@/lib/firebase/config';
 
 
 export interface CreateCharacterActionState {
@@ -21,13 +27,13 @@ export async function createCharacterAction(
   prevState: CreateCharacterActionState,
   formData: FormData
 ): Promise<CreateCharacterActionState> {
-  
+
   const data: CharacterCreationAdminFormValues = {
     name: formData.get('name') as string || 'Unnamed Character',
     description: formData.get('description') as string || 'No description provided.',
     personalitySnippet: formData.get('personalitySnippet') as string || 'A mysterious AI.',
     avatarUrl: formData.get('avatarUrl') as string || 'https://placehold.co/400x400.png',
-    backgroundImageUrl: formData.get('backgroundImageUrl') as string || '', 
+    backgroundImageUrl: formData.get('backgroundImageUrl') as string || '',
     basePrompt: formData.get('basePrompt') as string || 'You are a helpful AI.',
     styleTags: formData.get('styleTags') as string || 'general',
     defaultVoiceTone: formData.get('defaultVoiceTone') as string || 'neutral',
@@ -90,7 +96,7 @@ export async function updateCharacterAction(
   prevState: UpdateCharacterActionState,
   formData: FormData
 ): Promise<UpdateCharacterActionState> {
-  
+
   const data: CharacterCreationAdminFormValues = {
     name: formData.get('name') as string || 'Unnamed Character',
     description: formData.get('description') as string || 'No description provided.',
@@ -196,7 +202,7 @@ export async function loginAdminAction(
 
   try {
     const adminCreds = await getAdminCredentials();
-    
+
     if (!adminCreds) {
       return {
         success: false,
@@ -261,7 +267,7 @@ export async function getCharacterUsageStats(): Promise<CharacterUsageStat[]> {
     }
 
     const allCharacters = await getAllCharacters(); // Assumes this function correctly fetches all characters
-    
+
     const stats = allCharacters
       .map(char => ({
         name: char.name,
@@ -273,5 +279,73 @@ export async function getCharacterUsageStats(): Promise<CharacterUsageStat[]> {
   } catch (error) {
     console.error("Error fetching character usage stats:", error);
     return []; // Return empty array on error
+  }
+}
+
+// --- Interactive Story Admin Actions ---
+export interface CreateStoryActionState {
+  message: string;
+  storyId?: string;
+  success: boolean;
+  errors?: Partial<Record<keyof InteractiveStoryAdminFormValues, string[]>> | null;
+}
+
+export async function createStoryAction(
+  prevState: CreateStoryActionState,
+  formData: FormData
+): Promise<CreateStoryActionState> {
+  const data: InteractiveStoryAdminFormValues = {
+    title: formData.get('title') as string || 'Untitled Story',
+    description: formData.get('description') as string || 'An exciting adventure awaits!',
+    characterId: formData.get('characterId') as string,
+    coverImageUrl: formData.get('coverImageUrl') as string || null,
+    tagsString: formData.get('tagsString') as string || '',
+    initialSceneSummary: formData.get('initialSceneSummary') as string || 'The story begins...',
+  };
+
+  if (!data.title.trim()) {
+    return { message: 'Story title is required.', success: false, errors: { title: ['Title cannot be empty.'] } };
+  }
+  if (!data.characterId) {
+    return { message: 'A character must be selected for the story.', success: false, errors: { characterId: ['Please select a character.'] } };
+  }
+  if (!data.initialSceneSummary.trim()) {
+    return { message: 'Initial scene summary/prompt is required.', success: false, errors: { initialSceneSummary: ['Initial prompt cannot be empty.'] } };
+  }
+
+  const characterSnap = await getCharacterMetadata(data.characterId);
+  if (!characterSnap) {
+    return { message: `Selected character (ID: ${data.characterId}) not found.`, success: false };
+  }
+
+  const storyId = `${data.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${uuidv4().substring(0, 6)}`;
+
+  const storyMetadata: Omit<InteractiveStory, 'id' | 'createdAt' | 'updatedAt'> = {
+    title: data.title,
+    description: data.description,
+    characterId: data.characterId,
+    characterNameSnapshot: characterSnap.name,
+    characterAvatarSnapshot: characterSnap.avatarUrl,
+    coverImageUrl: data.coverImageUrl,
+    tags: data.tagsString.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
+    initialSceneSummary: data.initialSceneSummary,
+  };
+
+  try {
+    await addInteractiveStory(storyId, storyMetadata);
+    return {
+      message: `Story "${data.title}" created successfully with ID: ${storyId}`,
+      storyId,
+      success: true,
+      errors: null,
+    };
+  } catch (error) {
+    console.error('Error creating story:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return {
+      message: `Failed to create story: ${errorMessage}`,
+      success: false,
+      errors: null,
+    };
   }
 }
