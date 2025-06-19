@@ -8,7 +8,7 @@ import type { User } from 'firebase/auth';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'; // CardFooter removed
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, Sparkles } from 'lucide-react';
+import { Heart, MessageCircle, Sparkles, Gem } from 'lucide-react'; // Added Gem here
 import type { CharacterMetadata } from '@/lib/types';
 import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
 import React from 'react';
@@ -25,8 +25,8 @@ const CharacterCardComponent = ({ character, user, tagColors }: CharacterCardPro
   const avatarSrc = isValidAvatarUrl ? character.avatarUrl : DEFAULT_AVATAR_DATA_URI;
 
   return (
-    <Card 
-        key={character.id} 
+    <Card
+        key={character.id}
         className="bg-card/80 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.03] transition-transform duration-300 flex flex-col group hover:shadow-primary/40 animate-fade-in border-2 border-transparent hover:border-primary/30"
     >
       <CardHeader className="p-0 relative w-full aspect-[3/4] group-hover:shadow-glow-primary transition-shadow duration-300">
