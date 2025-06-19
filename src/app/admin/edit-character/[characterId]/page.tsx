@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/header';
@@ -47,7 +46,7 @@ export default function EditCharacterPage() {
         messageBubbleStyle: '',
         animatedEmojiResponse: '',
         audioGreetingUrl: '',
-        isPremium: false, // Important: Initialize as boolean
+        isPremium: false, 
     }
   });
   const [state, formAction, isPending] = useActionState(updateCharacterAction.bind(null, characterId), initialState);
@@ -395,23 +394,24 @@ export default function EditCharacterPage() {
                     control={form.control}
                     name="isPremium"
                     render={({ field }) => (
-                      <FormItem className="space-y-1.5 py-2">
-                        <div className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                          <FormLabel htmlFor={`${field.name}-premium-switch`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                       <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={!!field.value}
+                            onChange={(e) => field.onChange(e.target.checked)}
+                            className="accent-primary h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            id={`${field.name}-premium-checkbox`}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel htmlFor={`${field.name}-premium-checkbox`} className="font-medium">
                             Premium Character
                           </FormLabel>
-                          <FormControl>
-                            <Switch
-                              id={`${field.name}-premium-switch`}
-                              checked={!!field.value}
-                              onCheckedChange={field.onChange}
-                              aria-describedby={`${field.name}-premium-description`}
-                            />
-                          </FormControl>
+                          <FormDescription>
+                            Mark this character as premium (requires subscription to chat).
+                          </FormDescription>
                         </div>
-                        <FormDescription id={`${field.name}-premium-description`} className="text-xs text-muted-foreground px-1">
-                          Mark this character as premium (requires subscription to chat).
-                        </FormDescription>
                       </FormItem>
                     )}
                   />
@@ -430,5 +430,3 @@ export default function EditCharacterPage() {
     </div>
   );
 }
-
-    
