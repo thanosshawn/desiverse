@@ -1,3 +1,4 @@
+
 // src/lib/firebase/rtdb.ts
 import {
   ref,
@@ -450,13 +451,13 @@ export async function addInteractiveStory(storyId: string, data: Omit<Interactiv
 
 export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
   const storiesRef = ref(db, 'interactiveStories');
-  const snapshot = await get(query(storiesRef, orderByChild('createdAt')));
+  // Removed orderByChild('createdAt') to avoid indexing error
+  const snapshot = await get(query(storiesRef)); 
   const stories: InteractiveStory[] = [];
   if (snapshot.exists()) {
     snapshot.forEach((childSnapshot) => {
       const val = childSnapshot.val();
       const key = childSnapshot.key;
-      // Add checks for essential fields to ensure data integrity before pushing
       if (key && val && typeof val === 'object' && 
           val.title && typeof val.title === 'string' &&
           val.characterId && typeof val.characterId === 'string' &&
@@ -480,7 +481,9 @@ export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
       }
     });
   }
-  return stories.reverse(); // To get newest first, assuming createdAt is a positive timestamp
+  // Client-side sorting
+  stories.sort((a, b) => (b.createdAt as number) - (a.createdAt as number));
+  return stories;
 }
 
 
@@ -548,3 +551,4 @@ export async function updateUserStoryProgress(userId: string, storyId: string, d
     await set(progressRef, newProgressData);
   }
 }
+
