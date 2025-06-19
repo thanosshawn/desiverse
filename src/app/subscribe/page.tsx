@@ -2,7 +2,7 @@
 // src/app/subscribe/page.tsx
 'use client';
 
-import React, { Suspense, use } from 'react'; // Added use
+import React, { Suspense } from 'react'; 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Header } from '@/components/layout/header';
@@ -13,14 +13,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 
 function SubscribeContent() {
-  const searchParamsFromHook = useSearchParams();
-  const actualSearchParams = use(searchParamsFromHook); // Unwrap searchParams
+  const searchParams = useSearchParams(); 
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
-  const feature = actualSearchParams.get('feature') || 'Premium Access';
-  const itemName = actualSearchParams.get('itemName');
-  const characterName = actualSearchParams.get('characterName');
+  const feature = searchParams.get('feature') || 'Premium Access';
+  const itemName = searchParams.get('itemName');
+  const characterName = searchParams.get('characterName');
 
   let title = `Unlock ${feature}! ✨`;
   let description = `You're trying to access a premium feature. Upgrade to DesiBae Premium to enjoy this and much more!`;
