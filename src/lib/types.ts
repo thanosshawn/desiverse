@@ -141,20 +141,26 @@ export type InteractiveStoryAdminFormValues = Omit<InteractiveStory, 'id' | 'cre
   tagsString: string; // For form input
 };
 
-// Extended UserStoryProgress to potentially store choices directly in currentTurnContext if AI sends them
+// Represents a single completed turn in the story's history
+export interface StoryTurnRecord {
+  userChoice: string;       // The choice the user made
+  aiNarration: string;      // The AI's narration that resulted from that choice
+  timestamp: number | object; // Timestamp of when this turn was completed/saved
+}
+
 export interface UserStoryProgress {
   userId: string;
   storyId: string;
   currentTurnContext: {
-    summaryOfCurrentSituation: string; // AI's last narration
-    previousUserChoice: string;      // User's choice that led to the summary
-    choiceA?: string;                // Option A provided by AI (optional, for resumption)
-    choiceB?: string;                // Option B provided by AI (optional, for resumption)
+    summaryOfCurrentSituation: string; // AI's current narration (same as last history item's aiNarration)
+    previousUserChoice: string;      // User's choice that led to the current summary
+    choiceA?: string;                // Current Option A available to the user
+    choiceB?: string;                // Current Option B available to the user
   };
   storyTitleSnapshot: string;
   characterIdSnapshot: string;
   lastPlayed: number | object;
-  // history: Array<{ userChoice: string; aiNarration: string; choiceA: string; choiceB: string; timestamp: number | object }>; // Full history
+  history?: StoryTurnRecord[];     // Array to store the sequence of past turns
 }
 
 // Genkit Flow for Story Turns
@@ -171,8 +177,8 @@ export const StoryTurnInputSchema = z.object({
     name: z.string().describe("The user's name."),
   }),
   currentTurn: z.object({
-    summaryOfCurrentSituation: z.string().describe("A summary of the current scene or situation in the story. This is typically the AI's narration from the previous turn."),
-    previousUserChoice: z.string().describe("The choice the user made in the previous turn to reach this situation."),
+    summaryOfCurrentSituation: z.string().describe("A summary of the current scene or situation in the story. This is typically the AI's narration from the previous turn, or the initial story summary if it's the first turn."),
+    previousUserChoice: z.string().describe("The choice the user made in the previous turn to reach this situation. For the first turn, this could be a placeholder like 'Let's begin!'."),
   }),
 });
 export type StoryTurnInput = z.infer<typeof StoryTurnInputSchema>;
@@ -183,4 +189,3 @@ export const StoryTurnOutputSchema = z.object({
   choiceB: z.string().describe("The text for the second choice (Option B) for the user to continue the story."),
 });
 export type StoryTurnOutput = z.infer<typeof StoryTurnOutputSchema>;
-

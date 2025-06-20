@@ -17,7 +17,7 @@ import {
   runTransaction,
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
-import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult, InteractiveStory, UserStoryProgress } from '@/lib/types';
+import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult, InteractiveStory, UserStoryProgress, StoryTurnRecord } from '@/lib/types';
 import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
 
 // --- User Profile ---
@@ -451,7 +451,7 @@ export async function addInteractiveStory(storyId: string, data: Omit<Interactiv
 
 export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
   const storiesRef = ref(db, 'interactiveStories');
-  // Removed orderByChild('createdAt') to avoid indexing error
+  // Removed orderByChild to avoid indexing error, will sort client-side
   const snapshot = await get(query(storiesRef)); 
   const stories: InteractiveStory[] = [];
   if (snapshot.exists()) {
@@ -481,7 +481,7 @@ export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
       }
     });
   }
-  // Client-side sorting
+  // Client-side sorting as a workaround for potential indexing issues.
   stories.sort((a, b) => (b.createdAt as number) - (a.createdAt as number));
   return stories;
 }
@@ -521,34 +521,59 @@ export async function getInteractiveStory(storyId: string): Promise<InteractiveS
 
 // --- User Story Progress ---
 export async function getUserStoryProgress(userId: string, storyId: string): Promise<UserStoryProgress | null> {
-  const progressRef = ref(db, `users/${userId}/userStoryProgress/${storyId}`); // Corrected path
-  const snapshot = await get(progressRef);
-  return snapshot.exists() ? (snapshot.val() as UserStoryProgress) : null;
-}
-
-export async function updateUserStoryProgress(userId: string, storyId: string, data: Partial<Omit<UserStoryProgress, 'userId' | 'storyId'>> & { lastPlayed?: number | object }): Promise<void> {
-  const progressRef = ref(db, `users/${userId}/userStoryProgress/${storyId}`); // Corrected path
-  const updateData = {
-    ...data,
-    userId, 
-    storyId,
-    lastPlayed: data.lastPlayed || rtdbServerTimestamp(),
-  };
-  
+  const progressRef = ref(db, `users/${userId}/userStoryProgress/${storyId}`);
   const snapshot = await get(progressRef);
   if (snapshot.exists()) {
-    await update(progressRef, updateData);
-  } else {
-    // Ensure all required fields for UserStoryProgress are present when creating new
-    const newProgressData: UserStoryProgress = {
-        userId,
-        storyId,
-        currentTurnContext: data.currentTurnContext || { summaryOfCurrentSituation: 'Initial state', previousUserChoice: 'Let us begin!' },
-        storyTitleSnapshot: data.storyTitleSnapshot || 'Unknown Story', // Ensure this is set
-        characterIdSnapshot: data.characterIdSnapshot || 'unknown_char', // Ensure this is set
-        lastPlayed: updateData.lastPlayed,
-    };
-    await set(progressRef, newProgressData);
+    const data = snapshot.val() as UserStoryProgress;
+    // Ensure history is an array, even if it's missing or null in the DB
+    return { ...data, history: data.history || [] };
   }
+  return null;
 }
 
+export async function updateUserStoryProgress(
+  userId: string,
+  storyId: string,
+  data: {
+    currentTurnContext: UserStoryProgress['currentTurnContext'];
+    storyTitleSnapshot: string;
+    characterIdSnapshot: string;
+    userChoiceThatLedToThis: string;
+    newAiNarration: string;
+  }
+): Promise<void> {
+  const progressRef = ref(db, `users/${userId}/userStoryProgress/${storyId}`);
+
+  const newHistoryEntry: StoryTurnRecord = {
+    userChoice: data.userChoiceThatLedToThis,
+    aiNarration: data.newAiNarration,
+    timestamp: rtdbServerTimestamp(),
+  };
+
+  const snapshot = await get(progressRef);
+  let existingHistory: StoryTurnRecord[] = [];
+  if (snapshot.exists()) {
+    existingHistory = snapshot.val()?.history || [];
+  }
+  
+  const updatedHistory = [...existingHistory, newHistoryEntry];
+
+  // Special handling for the very first turn to ensure `history` starts correctly
+  if (data.userChoiceThatLedToThis === "Let's begin the story!" && existingHistory.length === 0) {
+    // The 'userChoice' for the first history entry is a placeholder representing the start.
+    // The 'aiNarration' is the actual first narration from the AI.
+    updatedHistory[0].userChoice = "Story Started"; 
+  }
+  
+  const updatePayload: UserStoryProgress = {
+    userId,
+    storyId,
+    currentTurnContext: data.currentTurnContext, // This contains the AI's latest narration and new choices
+    storyTitleSnapshot: data.storyTitleSnapshot,
+    characterIdSnapshot: data.characterIdSnapshot,
+    lastPlayed: rtdbServerTimestamp(),
+    history: updatedHistory,
+  };
+
+  await set(progressRef, updatePayload);
+}
