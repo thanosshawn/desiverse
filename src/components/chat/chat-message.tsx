@@ -13,7 +13,7 @@ import ReactMarkdown from 'react-markdown';
 
 interface ChatMessageProps {
   message: ChatMessageUI;
-  characterBubbleStyle?: string; // This can be used for very specific per-character styling if needed
+  characterBubbleStyle?: string; 
   aiAvatarUrl: string; 
   userDisplayName?: string; 
 }
@@ -36,29 +36,24 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
   }, [message.timestamp]);
 
   const getBubbleStyle = () => {
-    // Base classes for all bubbles
-    let baseClasses = 'p-3 md:p-4 rounded-2xl shadow-md break-words text-sm md:text-base transition-all duration-300 ease-in-out';
+    let baseClasses = 'p-3 md:p-3.5 rounded-2xl shadow-md break-words text-sm md:text-base transition-all duration-300 ease-in-out max-w-full'; // Ensure max-width for responsiveness
     
     if (isUser) {
       if (message.type === 'gift_sent') {
-        return `${baseClasses} bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 text-black rounded-br-none shadow-lg border border-amber-500/30`; 
+        return `${baseClasses} bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 text-black rounded-br-lg shadow-lg border border-amber-500/30`; 
       }
-      // User's regular text message: gradient from primary color
-      return `${baseClasses} bg-gradient-to-br from-primary via-rose-500 to-pink-600 text-primary-foreground rounded-br-none group-hover:shadow-lg`;
+      return `${baseClasses} bg-gradient-to-br from-primary via-rose-500 to-pink-600 text-primary-foreground rounded-br-lg group-hover:shadow-lg`;
     }
     
-    // AI message bubble styles
-    // Example for a specific character style if provided
-    if (characterBubbleStyle && characterBubbleStyle.includes('pink-glow')) { 
-        return `${baseClasses} bg-gradient-to-br from-pink-500 via-rose-400 to-fuchsia-500 text-white rounded-bl-none shadow-glow-primary`;
+    if (characterBubbleStyle === 'bubble-priya') { // Example for specific character style
+        return `${baseClasses} bg-gradient-to-tr from-teal-400 via-cyan-500 to-sky-500 text-white rounded-bl-lg shadow-glow-accent`;
     }
-    // Default AI bubble: subtle gradient on card background
-    return `${baseClasses} bg-card text-card-foreground rounded-bl-none shadow-soft-lg border border-border/50 group-hover:border-accent/50`;
+    // Default AI bubble: subtle gradient on card background or solid card color
+    return `${baseClasses} bg-card text-card-foreground rounded-bl-lg shadow-soft-lg border border-border/60 group-hover:border-accent/60`;
   };
 
   const renderGiftIcon = (gift: VirtualGift) => {
     const IconComponent = Icons[gift.iconName] as React.ElementType;
-    // Use a specific color for gift icons, perhaps from accent or secondary
     return IconComponent ? <IconComponent className="h-6 w-6 inline-block mr-2 text-amber-600 flex-shrink-0" /> : <GiftIconLucide className="h-6 w-6 inline-block mr-2 text-amber-600 flex-shrink-0"/>;
   };
 
@@ -68,7 +63,7 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
         return (
           <ReactMarkdown
             components={{
-              p: ({node, ...props}) => <p className="mb-0 last:mb-0" {...props} />, // Remove default margins
+              p: ({node, ...props}) => <p className="mb-0 last:mb-0 leading-relaxed" {...props} />, 
             }}
           >
             {message.content}
@@ -138,8 +133,8 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
   return (
     <div
       className={cn(
-        'flex items-end space-x-2.5 group animate-fade-in max-w-[80%] sm:max-w-[70%] md:max-w-[65%]',
-        isUser ? 'justify-end self-end ml-auto' : 'justify-start self-start mr-auto'
+        'flex items-end space-x-2 group animate-fade-in w-fit', // Changed max-w to w-fit for natural sizing
+        isUser ? 'justify-end self-end ml-auto pl-[10%] sm:pl-[15%]' : 'justify-start self-start mr-auto pr-[10%] sm:pr-[15%]' // Added padding to opposite side to prevent full width
       )}
     >
       {!isUser && (
@@ -158,8 +153,8 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
         {renderContent()}
         {clientFormattedTimestamp && message.type !== 'loading' && message.type !== 'error' && (
           <p className={cn(
-              "text-xs mt-1.5 text-right opacity-60", 
-              isUser ? "text-primary-foreground/70" : "text-muted-foreground/80"
+              "text-xs mt-1.5 text-right opacity-70", 
+              isUser ? "text-primary-foreground/80" : "text-muted-foreground/90"
           )}>
             {clientFormattedTimestamp}
           </p>
@@ -167,7 +162,7 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
       </div>
        {isUser && ( 
          <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-secondary/30 group-hover:border-secondary transition-all">
-            <AvatarImage src={userDisplayName ? undefined : undefined} /* placeholder for user's own avatar if available */ />
+            <AvatarImage src={userProfile?.avatarUrl || user?.photoURL || undefined} />
             <AvatarFallback className="bg-secondary/20 text-secondary-foreground text-sm font-semibold">
               {userDisplayName ? getInitials(userDisplayName) : <User size={18}/>}
             </AvatarFallback>

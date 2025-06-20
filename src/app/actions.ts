@@ -1,9 +1,11 @@
+
 // src/app/actions.ts
 'use server';
 
 import { personalizeDailyMessage } from '@/ai/flows/personalize-daily-message';
 import type { CharacterMetadata } from '@/lib/types'; 
-import type { MessageDocument } from '@/lib/types';
+import type { MessageDocument, UserProfile } from '@/lib/types'; // Added UserProfile
+import { updateUserProfile } from '@/lib/firebase/rtdb'; // Added for subscription
 
 interface AIActionInputMessage { 
   id: string;
@@ -24,21 +26,18 @@ export async function handleUserMessageAction(
   chatHistory: AIActionInputMessage[], 
   characterMeta: CharacterMetadata, 
   userId: string, 
-  chatId: string, // Though not directly used here, good to keep for potential future use like session logging
+  chatId: string, 
   userDisplayName: string, 
-  giftReactionPrompt?: string // Optional prompt for reacting to a gift
+  giftReactionPrompt?: string 
 ): Promise<AIResponse> {
   try {
-    // Format previous messages for the AI, including sender's actual name
     const formattedPreviousMessages = chatHistory
       .map(msg => ({
         sender: msg.sender === 'user' ? userDisplayName : characterMeta.name,
         content: msg.content,
       }))
-      .slice(-10); // Send last 10 messages for context
+      .slice(-10); 
 
-    // Construct the user preferences string for the AI
-    // This string now includes the user's name and context about the gift if sent
     let userPreferencesForAI = `User is interacting with ${characterMeta.name}. User's name is ${userDisplayName}.
     Character's persona: ${characterMeta.basePrompt}.
     Style tags: ${characterMeta.styleTags.join(', ')}.
@@ -46,7 +45,6 @@ export async function handleUserMessageAction(
     They enjoy flirty, emotional, Bollywood-style dialogues in Hinglish.`;
 
     if (giftReactionPrompt) {
-      // Prepend gift reaction context if a gift was sent
       userPreferencesForAI = `${giftReactionPrompt}\n\nAfter reacting to the gift, consider the following user input (if any) from ${userDisplayName}: ${userInput}\n\n${userPreferencesForAI}`;
     } else {
       userPreferencesForAI = `${userPreferencesForAI}\n\nCurrent user input from ${userDisplayName}: ${userInput}`;
@@ -67,14 +65,6 @@ export async function handleUserMessageAction(
     const aiTextResponse = personalizedMessage.message;
     let response: AIResponse = { text: aiTextResponse };
     
-    // TODO: Here you could conditionally call voice/video generation flows
-    // For example, if user requested it or based on AI's response intent.
-    // const shouldGenerateAudio = ...;
-    // if (shouldGenerateAudio) {
-    //   const audioResponse = await generatePersonalizedVoiceMessage({ messageText: aiTextResponse, characterStyle: characterMeta.name as any });
-    //   response.audioDataUri = audioResponse.audioDataUri;
-    // }
-
     return response;
 
   } catch (error) {
@@ -116,3 +106,42 @@ export async function processAndAddAiResponse(
   }
 }
 
+// --- Subscription Action ---
+export interface SubscriptionUpgradeState {
+  success: boolean;
+  message: string;
+  newTier?: UserProfile['subscriptionTier'];
+}
+
+export async function processSubscriptionUpgrade(
+  userId: string | undefined // Make userId optional to handle unauthenticated state gracefully
+): Promise<SubscriptionUpgradeState> {
+  if (!userId) {
+    return {
+      success: false,
+      message: "User not authenticated. Please log in to upgrade.",
+    };
+  }
+
+  try {
+    // In a real app, this is where you'd integrate with Stripe, PayPal, etc.
+    // For this simulation, we'll assume payment is successful.
+    console.log(`Simulating successful payment for user: ${userId}`);
+
+    // Update user's profile in Firebase RTDB
+    await updateUserProfile(userId, { subscriptionTier: 'premium' });
+    
+    return {
+      success: true,
+      message: "🎉 Congratulations! You've successfully upgraded to DesiBae Premium! All features are now unlocked.",
+      newTier: 'premium',
+    };
+  } catch (error) {
+    console.error('Error processing subscription upgrade for user:', userId, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred during the upgrade.';
+    return {
+      success: false,
+      message: `Upgrade failed: ${errorMessage}. Please try again or contact support.`,
+    };
+  }
+}

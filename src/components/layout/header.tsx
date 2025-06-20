@@ -19,7 +19,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'; // Added SheetHeader, SheetTitle
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
 import { listenToOnlineUsersCount, listenToTotalRegisteredUsers } from '@/lib/firebase/rtdb';
 import { useTheme } from 'next-themes';
@@ -52,7 +52,7 @@ export function Header() {
     switch (theme) {
       case 'light': return <Sun className="h-5 w-5" />;
       case 'dark': return <Moon className="h-5 w-5" />;
-      case 'pink': return <Sparkles className="h-5 w-5 text-pink-400" />;
+      case 'pink': return <Sparkles className="h-5 w-5 text-pink-500" />; // Pink theme specific icon
       default: return <Palette className="h-5 w-5" />;
     }
   };
@@ -72,29 +72,30 @@ export function Header() {
     { href: "/settings", label: "Settings", icon: Settings },
   ];
 
-  const NavLinkItem: React.FC<{href: string; label: string; icon: React.ElementType; activePath?: string, target?: string; onClick?: () => void}> = ({ href, label, icon: Icon, activePath, target, onClick }) => (
+  const NavLinkItem: React.FC<{href: string; label: string; icon: React.ElementType; activePath?: string, target?: string; onClick?: () => void; className?: string}> = ({ href, label, icon: Icon, activePath, target, onClick, className }) => (
      <Link href={href} passHref target={target} onClick={onClick}>
         <Button 
             variant="ghost" 
             className={cn(
-                "hover:bg-primary-foreground/10 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ease-in-out group",
-                (activePath && pathname.startsWith(activePath)) ? 'bg-primary-foreground/20 text-primary-foreground shadow-inner' : 'text-primary-foreground/80 hover:text-primary-foreground'
+                "hover:bg-white/20 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ease-in-out group focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-primary",
+                (activePath && pathname.startsWith(activePath)) ? 'bg-white/25 text-white shadow-inner' : 'text-white/80 hover:text-white',
+                className
             )} 
             title={label}
         >
-            <Icon className={cn("h-5 w-5 mr-1.5 group-hover:animate-pulse", (activePath && pathname.startsWith(activePath)) ? "text-primary-foreground" : "")} /> {label}
+            <Icon className={cn("h-5 w-5 mr-1.5 group-hover:animate-pulse", (activePath && pathname.startsWith(activePath)) ? "text-white" : "")} /> {label}
         </Button>
     </Link>
   );
 
 
   return (
-    <header className="bg-gradient-to-r from-primary via-pink-500 to-rose-500 text-primary-foreground p-3 shadow-lg sticky top-0 z-50 h-18 flex items-center">
+    <header className="bg-gradient-to-r from-primary via-secondary to-accent text-primary-foreground p-3 shadow-lg sticky top-0 z-50 h-18 flex items-center">
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" passHref>
           <div className="flex items-center gap-2 cursor-pointer group">
-            <Sparkles className="h-8 w-8 text-yellow-300 group-hover:animate-hue-rotate-glow transition-all duration-300" />
-            <h1 className="text-3xl font-headline tracking-tight">DesiBae</h1>
+            <Sparkles className="h-8 w-8 text-yellow-300 group-hover:animate-hue-rotate-glow transition-all duration-300 filter drop-shadow-[0_2px_3px_rgba(0,0,0,0.2)]" />
+            <h1 className="text-3xl font-headline tracking-tight filter drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)]">DesiBae</h1>
           </div>
         </Link>
         
@@ -104,7 +105,7 @@ export function Header() {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="hover:bg-primary-foreground/10 rounded-full text-primary-foreground/80 hover:text-primary-foreground" title="Change theme">
+              <Button variant="ghost" size="icon" className="hover:bg-white/20 rounded-full text-white/80 hover:text-white" title="Change theme">
                 {getThemeIcon()}
               </Button>
             </DropdownMenuTrigger>
@@ -112,20 +113,20 @@ export function Header() {
               <DropdownMenuLabel className="text-muted-foreground">Select Theme</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-                <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sun className="mr-2 h-4 w-4" /> Light</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Moon className="mr-2 h-4 w-4" /> Dark Soul</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Gulabi Mode</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sun className="mr-2 h-4 w-4" /> Light & Bright</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Moon className="mr-2 h-4 w-4" /> Neon Dark</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Vibrant Pink</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
 
           {loading ? (
-            <Loader2 className="h-7 w-7 animate-spin text-primary-foreground" />
+            <Loader2 className="h-7 w-7 animate-spin text-white" />
           ) : user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-11 w-11 rounded-full p-0 focus-visible:ring-2 focus-visible:ring-yellow-300 focus-visible:ring-offset-2 focus-visible:ring-offset-primary">
-                  <Avatar className="h-11 w-11 border-2 border-primary-foreground/50 hover:border-yellow-300 transition-colors duration-200">
+                  <Avatar className="h-11 w-11 border-2 border-white/50 hover:border-yellow-300 transition-colors duration-200">
                     <AvatarImage src={userProfile?.avatarUrl || user.photoURL || undefined} alt={userProfile?.name || user.displayName || 'User'} />
                     <AvatarFallback className="bg-pink-200 text-pink-700 font-semibold text-lg">{getInitials(userProfile?.name || user.displayName)}</AvatarFallback>
                   </Avatar>
@@ -139,7 +140,7 @@ export function Header() {
                         {userProfile?.name || user.displayName || 'Desi User'}
                       </p>
                       {isPremiumUser && (
-                        <Badge variant="default" className="px-2 py-0.5 text-xs bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-white shadow-sm border-yellow-600">
+                        <Badge variant="default" className="px-2 py-0.5 text-xs bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-black shadow-sm border-yellow-600">
                           <Gem className="mr-1 h-3 w-3" />Premium
                         </Badge>
                       )}
@@ -156,7 +157,7 @@ export function Header() {
                   </DropdownMenuItem>
                 ))}
                 {!isPremiumUser && (
-                  <DropdownMenuItem asChild className="cursor-pointer rounded-md focus:bg-yellow-400/20 focus:text-yellow-600 py-2">
+                  <DropdownMenuItem asChild className="cursor-pointer rounded-md focus:bg-yellow-400/20 focus:text-yellow-600 py-2 bg-gradient-to-r from-yellow-400/10 via-amber-500/10 to-orange-500/10">
                     <Link href="/subscribe?feature=PremiumAccessHeader">
                       <Gem className="mr-2 h-4 w-4 text-yellow-500" /> Upgrade to Premium
                     </Link>
@@ -171,7 +172,7 @@ export function Header() {
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="secondary" className="bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 rounded-lg shadow-md px-4 py-2.5 text-sm font-medium">
+                <Button variant="secondary" className="bg-white/10 text-white hover:bg-white/25 rounded-lg shadow-md px-4 py-2.5 text-sm font-medium">
                   <UserCircle className="mr-1.5 h-5 w-5" /> Login / Sign Up
                 </Button>
               </DropdownMenuTrigger>
@@ -185,7 +186,7 @@ export function Header() {
                   <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" /> Continue as Guest
                 </DropdownMenuItem>
                  <DropdownMenuSeparator />
-                 <DropdownMenuItem asChild className="cursor-pointer rounded-md focus:bg-yellow-400/20 focus:text-yellow-600 py-2">
+                 <DropdownMenuItem asChild className="cursor-pointer rounded-md focus:bg-yellow-400/20 focus:text-yellow-600 py-2 bg-gradient-to-r from-yellow-400/10 via-amber-500/10 to-orange-500/10">
                     <Link href="/subscribe?feature=GuestUpgradePrompt">
                         <Gem className="mr-2 h-4 w-4 text-yellow-500" /> Explore Premium
                     </Link>
@@ -199,12 +200,12 @@ export function Header() {
         <div className="md:hidden">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10 rounded-full">
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20 rounded-full">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] bg-card p-0 text-card-foreground shadow-2xl flex flex-col">
-              <SheetHeader className="p-4 border-b border-border">
+            <SheetContent side="left" className="w-[280px] bg-card p-0 text-card-foreground shadow-2xl flex flex-col border-l-4 border-primary">
+              <SheetHeader className="p-4 border-b border-border bg-gradient-to-br from-primary/20 to-secondary/10">
                 <SheetTitle>
                     <Link href="/" passHref onClick={() => setIsMobileMenuOpen(false)}>
                         <div className="flex items-center gap-2 cursor-pointer group">
@@ -214,15 +215,30 @@ export function Header() {
                     </Link>
                 </SheetTitle>
               </SheetHeader>
-              <div className="flex flex-col flex-grow p-4 overflow-y-auto">
-                <nav className="flex flex-col space-y-2 flex-grow">
-                  {navLinks.filter(link => link.label !== "History" || user).map(link => <NavLinkItem key={link.href} {...link} onClick={() => setIsMobileMenuOpen(false)} />)}
-                   {user && userMenuItems.map(item => (
-                      <NavLinkItem key={item.href} href={item.href} label={item.label} icon={item.icon} activePath={item.href} onClick={() => setIsMobileMenuOpen(false)} />
+              <div className="flex flex-col flex-grow p-4 overflow-y-auto space-y-2">
+                <nav className="flex flex-col space-y-1.5 flex-grow">
+                  {userMenuItems.map(item => (
+                      <NavLinkItem 
+                        key={item.href} 
+                        href={item.href} 
+                        label={item.label} 
+                        icon={item.icon} 
+                        activePath={item.activePath || item.href} 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="!text-card-foreground hover:!bg-primary/10 data-[active=true]:!bg-primary/15 data-[active=true]:!text-primary w-full justify-start text-base py-2.5"
+                      />
                   ))}
+                   <NavLinkItem 
+                        href="https://t.me/desibaecommunity" 
+                        label="Join Telegram" 
+                        icon={Send} 
+                        target="_blank" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="!text-card-foreground hover:!bg-primary/10 w-full justify-start text-base py-2.5"
+                    />
                   {!user && (
                      <>
-                      <Button onClick={() => { signInWithGoogle(); setIsMobileMenuOpen(false); }} className="w-full justify-start text-base py-3 !rounded-lg bg-red-500 hover:bg-red-600 text-white"> <LogIn className="mr-2 h-5 w-5" /> Sign in with Google</Button>
+                      <Button onClick={() => { signInWithGoogle(); setIsMobileMenuOpen(false); }} className="w-full justify-start text-base py-3 !rounded-lg bg-red-500 hover:bg-red-600 text-white mt-2"> <LogIn className="mr-2 h-5 w-5" /> Sign in with Google</Button>
                       <Button onClick={() => { signInAnonymously(); setIsMobileMenuOpen(false);}} variant="outline" className="w-full justify-start text-base py-3 !rounded-lg !border-primary/50 !text-primary hover:!bg-primary/10"> <UserCircle className="mr-2 h-5 w-5" /> Continue as Guest</Button>
                      </>
                   )}
@@ -235,10 +251,10 @@ export function Header() {
                        </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-full rounded-xl shadow-xl border-border/30 bg-card text-card-foreground">
-                      <DropdownMenuRadioGroup value={theme} onValueChange={(v) => { setTheme(v); setIsMobileMenuOpen(false);}}>
-                        <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sun className="mr-2 h-4 w-4" /> Light</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Moon className="mr-2 h-4 w-4" /> Dark Soul</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Gulabi Mode</DropdownMenuRadioItem>
+                      <DropdownMenuRadioGroup value={theme} onValueChange={(v) => { setTheme(v); /* No need to close sheet, it's inside */}}>
+                        <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sun className="mr-2 h-4 w-4" /> Light & Bright</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Moon className="mr-2 h-4 w-4" /> Neon Dark</DropdownMenuRadioItem>
+                        <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary"><Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Vibrant Pink</DropdownMenuRadioItem>
                       </DropdownMenuRadioGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -257,4 +273,3 @@ export function Header() {
     </header>
   );
 }
-
