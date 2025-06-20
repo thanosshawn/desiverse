@@ -1,66 +1,92 @@
 
-// src/app/page.tsx - Character Selection Page
+// src/app/page.tsx - Character Selection Page & Stories Section
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Filter, Heart, Loader2, MessageCircle, Sparkles, Edit, Search } from 'lucide-react';
+import { Filter, Heart, Loader2, MessageCircle, Sparkles, Edit, Search, BookHeart, ChevronRight } from 'lucide-react'; // Added BookHeart, ChevronRight
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState, useMemo } from 'react';
-import { type CharacterMetadata } from '@/lib/types';
-import { getAllCharacters } from '@/lib/firebase/rtdb';
+import type { CharacterMetadata, InteractiveStory } from '@/lib/types'; // Added InteractiveStory
+import { getAllCharacters, getAllInteractiveStories } from '@/lib/firebase/rtdb'; // Added getAllInteractiveStories
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { CharacterCard } from '@/components/character/character-card'; 
+import { StoryCard } from '@/components/story/story-card'; // Added StoryCard
 import { cn } from '@/lib/utils';
 
-const tagColors: Record<string, string> = {
+const characterTagColors: Record<string, string> = {
   "Romantic": "bg-pink-500 hover:bg-pink-600",
   "Funny": "bg-yellow-500 hover:bg-yellow-600 text-black",
   "Shy": "bg-purple-500 hover:bg-purple-600",
-  "Bold": "bg-red-600 hover:bg-red-700", // Darker red for boldness
+  "Bold": "bg-red-600 hover:bg-red-700", 
   "Bollywood": "bg-orange-500 hover:bg-orange-600",
   "Flirty": "bg-rose-500 hover:bg-rose-600",
   "Witty": "bg-teal-500 hover:bg-teal-600",
   "Cultured": "bg-indigo-500 hover:bg-indigo-600",
-  "Techie": "bg-sky-600 hover:bg-sky-700", // Slightly deeper sky blue
+  "Techie": "bg-sky-600 hover:bg-sky-700", 
   "Foodie": "bg-lime-500 hover:bg-lime-600 text-black",
-  "Philosophical": "bg-slate-600 hover:bg-slate-700", // Deeper slate
+  "Philosophical": "bg-slate-600 hover:bg-slate-700", 
   "Traveler": "bg-cyan-500 hover:bg-cyan-600",
   "Musician": "bg-violet-500 hover:bg-violet-600",
   "Artist": "bg-emerald-500 hover:bg-emerald-600",
   "Poetic": "bg-fuchsia-500 hover:bg-fuchsia-600",
-  "Intellectual": "bg-blue-600 hover:bg-blue-700", // Deeper blue
+  "Intellectual": "bg-blue-600 hover:bg-blue-700", 
   "Spiritual": "bg-amber-500 hover:bg-amber-600 text-black",
 };
 
-export default function CharacterSelectionPage() {
+// Tag colors for Story Cards (can be the same or different)
+const storyTagColors: Record<string, string> = {
+  "Adventure": "bg-sky-500 hover:bg-sky-600",
+  "Romance": "bg-pink-500 hover:bg-pink-600",
+  "Mystery": "bg-purple-500 hover:bg-purple-600",
+  "Thriller": "bg-red-600 hover:bg-red-700",
+  "Sci-Fi": "bg-indigo-500 hover:bg-indigo-600",
+  "Fantasy": "bg-emerald-500 hover:bg-emerald-600",
+  "Comedy": "bg-yellow-400 hover:bg-yellow-500 text-black", 
+  "Drama": "bg-slate-600 hover:bg-slate-700",
+  "Heartwarming": "bg-rose-400 hover:bg-rose-500",
+  "Hinglish": "bg-orange-500 hover:bg-orange-600 text-black",
+  "Foodie": "bg-lime-500 hover:bg-lime-600 text-black",
+};
+
+
+export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
   const [characters, setCharacters] = useState<CharacterMetadata[]>([]);
+  const [stories, setStories] = useState<InteractiveStory[]>([]); // State for stories
   const [loadingCharacters, setLoadingCharacters] = useState(true);
+  const [loadingStories, setLoadingStories] = useState(true); // State for stories loading
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
-    async function fetchCharacters() {
+    async function fetchData() {
       try {
         setLoadingCharacters(true);
-        const fetchedCharacters = await getAllCharacters();
+        setLoadingStories(true);
+        const [fetchedCharacters, fetchedStories] = await Promise.all([
+            getAllCharacters(),
+            getAllInteractiveStories()
+        ]);
         setCharacters(fetchedCharacters);
+        setStories(fetchedStories.slice(0, 3)); // Get top 3 latest stories
       } catch (error) {
-        console.error("Failed to fetch characters:", error);
+        console.error("Failed to fetch data:", error);
         setCharacters([]);
+        setStories([]);
       } finally {
         setLoadingCharacters(false);
+        setLoadingStories(false);
       }
     }
     if (!authLoading) {
-        fetchCharacters();
+        fetchData();
     }
   }, [authLoading]);
 
-  const allTags = useMemo(() => {
+  const allCharacterTags = useMemo(() => {
     const tags = new Set<string>();
     characters.forEach(char => char.styleTags.forEach(tag => tags.add(tag)));
     return Array.from(tags).sort();
@@ -88,7 +114,7 @@ export default function CharacterSelectionPage() {
         <div className="flex-grow flex items-center justify-center p-4">
           <div className="text-center">
             <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
-            <p className="mt-4 text-lg font-body text-muted-foreground">Loading your Desi Baes...</p>
+            <p className="mt-4 text-lg font-body text-muted-foreground">Loading your Desi Baes & Stories...</p>
           </div>
         </div>
       </div>
@@ -100,6 +126,7 @@ export default function CharacterSelectionPage() {
       <Header />
 
       <section className="container mx-auto px-4 pt-20 md:pt-24 pb-12 flex-grow">
+        {/* Character Selection Section */}
         <div className="text-center mb-10 md:mb-12">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline mb-3 text-primary animate-fade-in drop-shadow-sm">
             Kaun Banegi Aapki <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">Crush</span>? 
@@ -115,17 +142,17 @@ export default function CharacterSelectionPage() {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
-              placeholder="Search by name or personality..."
+              placeholder="Search Baes by name or personality..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full !rounded-xl text-sm md:text-base pl-10 pr-4 py-2.5 border-border/50 focus:ring-primary focus:border-primary shadow-sm"
             />
           </div>
-          {allTags.length > 0 && (
+          {allCharacterTags.length > 0 && (
             <div className="flex flex-wrap gap-2 items-center pt-2">
               <Filter className="h-5 w-5 text-primary mr-1 hidden xs:inline-block sm:inline-block" />
               <span className="text-sm font-medium text-muted-foreground mr-2 hidden xs:inline-block sm:inline-block">Filter by Tags:</span>
-              {allTags.slice(0, 7).map(tag => ( // Show limited tags initially, could add a "more" button
+              {allCharacterTags.slice(0, 7).map(tag => (
                 <Button
                   key={tag}
                   variant={selectedTags.includes(tag) ? "default" : "outline"}
@@ -134,7 +161,7 @@ export default function CharacterSelectionPage() {
                   className={cn(
                     "rounded-full text-xs px-3.5 py-1.5 transition-all duration-200 ease-in-out transform hover:scale-105 shadow-sm",
                     selectedTags.includes(tag) ? 
-                      `${tagColors[tag] || 'bg-primary hover:bg-primary/90'} text-primary-foreground` : 
+                      `${characterTagColors[tag] || 'bg-primary hover:bg-primary/90'} text-primary-foreground` : 
                       'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/70 bg-card/70'
                   )}
                 >
@@ -147,7 +174,7 @@ export default function CharacterSelectionPage() {
 
         {loadingCharacters ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {[...Array(8)].map((_, i) => ( // Increased skeleton count
+            {[...Array(4)].map((_, i) => ( 
               <Skeleton key={i} className="bg-card/50 shadow-xl rounded-3xl overflow-hidden aspect-[3/4.5] flex flex-col">
                 <Skeleton className="w-full h-3/5 bg-muted/30" /> 
                 <div className="p-5 text-center space-y-3 flex-grow flex flex-col justify-between">
@@ -163,7 +190,7 @@ export default function CharacterSelectionPage() {
         ) : filteredCharacters.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
             {filteredCharacters.map((char) => (
-              <CharacterCard key={char.id} character={char} user={user} tagColors={tagColors} />
+              <CharacterCard key={char.id} character={char} user={user} tagColors={characterTagColors} />
             ))}
           </div>
         ) : (
@@ -178,6 +205,51 @@ export default function CharacterSelectionPage() {
             }
           </div>
         )}
+
+        {/* Stories Section */}
+        <div className="mt-16 md:mt-20 pt-10 border-t-2 border-dashed border-primary/20">
+            <div className="flex justify-between items-center mb-8 md:mb-10">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-headline text-primary animate-fade-in drop-shadow-sm">
+                    Latest <span className="bg-gradient-to-r from-secondary via-teal-500 to-sky-500 bg-clip-text text-transparent">Adventures</span>
+                    <BookHeart className="inline-block text-accent h-8 w-8 md:h-10 md:w-10 ml-2 animate-pulse" />
+                </h2>
+                <Link href="/stories" passHref>
+                    <Button variant="outline" className="!rounded-xl text-primary border-primary/50 hover:bg-primary/10 hover:text-primary shadow-sm group">
+                        View All Stories <ChevronRight className="h-5 w-5 ml-1 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                </Link>
+            </div>
+
+            {loadingStories ? (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    {[...Array(3)].map((_, i) => (
+                         <Skeleton key={`story-skel-${i}`} className="bg-card/50 shadow-xl rounded-3xl overflow-hidden aspect-[16/11.5] flex flex-col">
+                            <Skeleton className="w-full h-3/5 bg-muted/30" />
+                            <div className="p-5 space-y-3 flex-grow flex flex-col justify-between">
+                                <div>
+                                    <Skeleton className="h-7 w-3/4 mb-2 bg-muted/40" />
+                                    <Skeleton className="h-12 w-full mb-4 bg-muted/30" />
+                                </div>
+                                <Skeleton className="h-11 w-full rounded-xl bg-muted/40" />
+                            </div>
+                        </Skeleton>
+                    ))}
+                </div>
+            ) : stories.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                    {stories.map((story) => (
+                        // Character prop is optional here as snapshots should be reliable
+                        <StoryCard key={story.id} story={story} tagColors={storyTagColors} />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-10">
+                    <BookHeart className="mx-auto h-16 w-16 text-primary/20 mb-4" />
+                    <p className="text-muted-foreground font-body">No interactive stories available yet. Check back soon for new adventures!</p>
+                </div>
+            )}
+        </div>
+
 
         <div className="mt-16 text-center">
             <Link href="/admin/login" passHref>
