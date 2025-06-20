@@ -19,7 +19,7 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
 } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'; // For mobile menu
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'; // Added SheetHeader, SheetTitle
 import { usePathname } from 'next/navigation';
 import { listenToOnlineUsersCount, listenToTotalRegisteredUsers } from '@/lib/firebase/rtdb';
 import { useTheme } from 'next-themes';
@@ -203,16 +203,18 @@ export function Header() {
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] bg-card p-4 text-card-foreground shadow-2xl">
-              <div className="flex flex-col h-full">
-                <div className="mb-6">
-                  <Link href="/" passHref onClick={() => setIsMobileMenuOpen(false)}>
-                    <div className="flex items-center gap-2 cursor-pointer group mb-4">
-                      <Sparkles className="h-7 w-7 text-primary group-hover:animate-pulse" />
-                      <h1 className="text-2xl font-headline text-primary">DesiBae</h1>
-                    </div>
-                  </Link>
-                </div>
+            <SheetContent side="left" className="w-[280px] bg-card p-0 text-card-foreground shadow-2xl flex flex-col">
+              <SheetHeader className="p-4 border-b border-border">
+                <SheetTitle>
+                    <Link href="/" passHref onClick={() => setIsMobileMenuOpen(false)}>
+                        <div className="flex items-center gap-2 cursor-pointer group">
+                            <Sparkles className="h-7 w-7 text-primary group-hover:animate-pulse" />
+                            <span className="text-2xl font-headline text-primary">DesiBae Menu</span>
+                        </div>
+                    </Link>
+                </SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col flex-grow p-4 overflow-y-auto">
                 <nav className="flex flex-col space-y-2 flex-grow">
                   {navLinks.filter(link => link.label !== "History" || user).map(link => <NavLinkItem key={link.href} {...link} onClick={() => setIsMobileMenuOpen(false)} />)}
                    {user && userMenuItems.map(item => (
@@ -225,7 +227,7 @@ export function Header() {
                      </>
                   )}
                 </nav>
-                <div className="mt-auto space-y-2">
+                <div className="mt-auto space-y-2 pt-4 border-t border-border">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                        <Button variant="outline" className="w-full justify-between !rounded-lg text-muted-foreground border-border">
@@ -255,3 +257,4 @@ export function Header() {
     </header>
   );
 }
+
