@@ -124,7 +124,7 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50 text-foreground">
       <Header />
 
-      <section className="container mx-auto px-4 pt-20 md:pt-24 pb-12 flex-grow">
+      <section className="container mx-auto px-4 pt-8 md:pt-10 pb-12 flex-grow"> {/* Reduced top padding for header */}
         <div className="text-center mb-10 md:mb-12">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline mb-3 text-primary animate-fade-in drop-shadow-sm">
             Kaun Banegi Aapki <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">Crush</span>? 
@@ -135,7 +135,8 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mb-8 md:mb-10 p-4 bg-card rounded-2xl shadow-xl space-y-4 sticky top-[72px] md:top-[72px] z-30 border border-border">
+        {/* Search and Filter Bar - No longer sticky */}
+        <div className="mb-8 md:mb-10 p-4 bg-card rounded-2xl shadow-xl space-y-4 border border-border">
           <div className="relative w-full">
             <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
@@ -170,7 +171,7 @@ export default function HomePage() {
           )}
         </div>
         
-        <div className="mt-8"> {/* Added margin-top to ensure space below sticky filter bar */}
+        <div className="mt-8">
           {loadingCharacters ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
               {[...Array(4)].map((_, i) => ( 

@@ -90,7 +90,7 @@ export function Header() {
 
 
   return (
-    <header className="bg-gradient-header text-primary-foreground p-3 shadow-lg sticky top-0 z-50 h-18 flex items-center">
+    <header className="bg-gradient-to-br from-red-400 via-pink-500 to-violet-600 text-white p-8  shadow-xl top-0 z-50 h-18 flex items-center">
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" passHref>
           <div className="flex items-center gap-2.5 cursor-pointer group">
