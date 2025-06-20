@@ -135,15 +135,15 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mb-8 md:mb-10 p-4 bg-card rounded-2xl shadow-xl space-y-4 sticky top-18 md:top-20 z-30 border border-border">
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+        <div className="mb-8 md:mb-10 p-4 bg-card rounded-2xl shadow-xl space-y-4 sticky top-[72px] md:top-[72px] z-30 border border-border">
+          <div className="relative w-full">
+            <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               placeholder="Search Baes by name or personality..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full !rounded-xl text-sm md:text-base pl-10 pr-4 py-3 border-border/60 focus:ring-primary focus:border-primary shadow-sm"
+              className="w-full !rounded-full text-sm md:text-base pl-10 pr-4 py-3 bg-background border-border/60 focus:ring-2 focus:ring-primary focus:border-primary shadow-sm placeholder:text-xs placeholder:md:text-sm"
             />
           </div>
           {allCharacterTags.length > 0 && (
@@ -153,7 +153,7 @@ export default function HomePage() {
               {allCharacterTags.slice(0, 7).map(tag => (
                 <Button
                   key={tag}
-                  variant={selectedTags.includes(tag) ? "default" : "outline"}
+                  variant="outline"
                   size="sm"
                   onClick={() => toggleTag(tag)}
                   className={cn(
@@ -169,65 +169,68 @@ export default function HomePage() {
             </div>
           )}
         </div>
-
-        {loadingCharacters ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {[...Array(4)].map((_, i) => ( 
-              <Skeleton key={i} className="bg-card shadow-xl rounded-3xl overflow-hidden aspect-[3/4.5] flex flex-col border border-border">
-                <Skeleton className="w-full h-3/5 bg-muted/40" /> 
-                <div className="p-5 text-center space-y-3 flex-grow flex flex-col justify-between">
-                  <div>
-                    <Skeleton className="h-7 w-3/4 mx-auto mb-2 bg-muted/50" />
-                    <Skeleton className="h-10 w-full mx-auto mb-4 bg-muted/40" />
+        
+        <div className="mt-8"> {/* Added margin-top to ensure space below sticky filter bar */}
+          {loadingCharacters ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+              {[...Array(4)].map((_, i) => ( 
+                <Skeleton key={i} className="bg-card shadow-xl rounded-3xl overflow-hidden aspect-[3/4.5] flex flex-col border border-border">
+                  <Skeleton className="w-full h-3/5 bg-muted" /> 
+                  <div className="p-5 text-center space-y-3 flex-grow flex flex-col justify-between">
+                    <div>
+                      <Skeleton className="h-7 w-3/4 mx-auto mb-2 bg-muted" />
+                      <Skeleton className="h-10 w-full mx-auto mb-4 bg-muted" />
+                    </div>
+                    <Skeleton className="h-11 w-full rounded-xl bg-muted" />
                   </div>
-                  <Skeleton className="h-11 w-full rounded-xl bg-muted/50" />
-                </div>
-              </Skeleton>
-            ))}
-          </div>
-        ) : filteredCharacters.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
-            {filteredCharacters.map((char) => (
-              <CharacterCard key={char.id} character={char} user={user} tagColors={characterTagColors} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-             <MessageCircle className="mx-auto h-20 w-20 text-primary/20 mb-6 animate-pulse" />
-            <h3 className="text-2xl font-headline text-primary mb-3">Oops! Koi nahi mila... 😟</h3>
-            <p className="text-muted-foreground font-body mb-6 max-w-md mx-auto">
-              {searchTerm || selectedTags.length > 0 ? "Try adjusting your search or filters. Shayad aapki perfect match thodi alag hai!" : "No characters available right now. Hum jald hi naye AI Baes add karenge!"}
-            </p>
-            { (searchTerm || selectedTags.length > 0) &&
-                <Button onClick={() => { setSearchTerm(''); setSelectedTags([]); }} variant="outline" className="rounded-xl border-primary/50 text-primary hover:bg-primary/10">Clear Filters</Button>
-            }
-          </div>
-        )}
+                </Skeleton>
+              ))}
+            </div>
+          ) : filteredCharacters.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+              {filteredCharacters.map((char) => (
+                <CharacterCard key={char.id} character={char} user={user} tagColors={characterTagColors} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <MessageCircle className="mx-auto h-20 w-20 text-primary/20 mb-6 animate-pulse" />
+              <h3 className="text-2xl font-headline text-primary mb-3">Oops! Koi nahi mila... 😟</h3>
+              <p className="text-muted-foreground font-body mb-6 max-w-md mx-auto">
+                {searchTerm || selectedTags.length > 0 ? "Try adjusting your search or filters. Shayad aapki perfect match thodi alag hai!" : "No characters available right now. Hum jald hi naye AI Baes add karenge!"}
+              </p>
+              { (searchTerm || selectedTags.length > 0) &&
+                  <Button onClick={() => { setSearchTerm(''); setSelectedTags([]); }} variant="outline" className="rounded-xl border-primary/50 text-primary hover:bg-primary/10">Clear Filters</Button>
+              }
+            </div>
+          )}
+        </div>
+
 
         <div className="mt-16 md:mt-20 pt-10 border-t-2 border-dashed border-primary/20">
-            <div className="flex justify-between items-center mb-8 md:mb-10">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-headline text-primary animate-fade-in drop-shadow-sm">
-                    Latest <span className="bg-gradient-to-r from-secondary via-teal-500 to-sky-500 bg-clip-text text-transparent">Adventures</span>
-                    <BookHeart className="inline-block text-accent h-8 w-8 md:h-10 md:w-10 ml-2 animate-pulse" />
-                </h2>
-                <Link href="/stories" passHref>
-                    <Button variant="outline" className="!rounded-xl text-primary border-primary/50 hover:bg-primary/10 hover:text-primary shadow-sm group py-2.5 px-5 transform hover:scale-105 transition-transform">
-                        View All Stories <ChevronRight className="h-5 w-5 ml-1 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                </Link>
-            </div>
+          <div className="flex justify-between items-center mb-8 md:mb-10">
+            <h2 className="text-3xl sm:text-4xl font-semibold font-headline text-primary animate-fade-in drop-shadow-sm">
+                Latest <span className="bg-gradient-to-r from-secondary via-teal-500 to-sky-500 bg-clip-text text-transparent">Adventures</span>
+                <BookHeart className="inline-block text-accent h-8 w-8 md:h-9 md:w-9 ml-2 animate-pulse" />
+            </h2>
+            <Link href="/stories" passHref>
+                <Button variant="outline" className="!rounded-xl text-primary border-primary/50 hover:bg-primary/10 hover:text-primary shadow-sm group py-2.5 px-5 transform hover:scale-105 transition-transform">
+                    View All Stories <ChevronRight className="h-5 w-5 ml-1 group-hover:translate-x-1 transition-transform" />
+                </Button>
+            </Link>
+          </div>
 
             {loadingStories ? (
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {[...Array(3)].map((_, i) => (
                          <Skeleton key={`story-skel-${i}`} className="bg-card shadow-xl rounded-3xl overflow-hidden aspect-[16/11.5] flex flex-col border border-border">
-                            <Skeleton className="w-full h-3/5 bg-muted/40" />
+                            <Skeleton className="w-full h-3/5 bg-muted" />
                             <div className="p-5 space-y-3 flex-grow flex flex-col justify-between">
                                 <div>
-                                    <Skeleton className="h-7 w-3/4 mb-2 bg-muted/50" />
-                                    <Skeleton className="h-12 w-full mb-4 bg-muted/40" />
+                                    <Skeleton className="h-7 w-3/4 mb-2 bg-muted" />
+                                    <Skeleton className="h-12 w-full mb-4 bg-muted" />
                                 </div>
-                                <Skeleton className="h-11 w-full rounded-xl bg-muted/50" />
+                                <Skeleton className="h-11 w-full rounded-xl bg-muted" />
                             </div>
                         </Skeleton>
                     ))}
