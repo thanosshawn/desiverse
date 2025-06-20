@@ -1,4 +1,3 @@
-
 // src/app/story/[storyId]/page.tsx
 'use client';
 
@@ -13,10 +12,11 @@ import type { InteractiveStory, UserStoryProgress, StoryTurnOutput, CharacterMet
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { getInteractiveStory, getUserStoryProgress, getCharacterMetadata } from '@/lib/firebase/rtdb';
-import { handleStoryChoiceAction } from '../actions'; 
-import { Loader2, User, BookHeart, Sparkles, ChevronRight } from 'lucide-react'; // Removed Drama, Send, MessageCircle
+import { handleStoryMessageAction } from '../actions'; // Updated action name
+import { Loader2, User, BookHeart, Sparkles, SendHorizonal, MessageSquare } from 'lucide-react';
 import { getInitials, cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
+import { Textarea } from '@/components/ui/textarea';
 
 function StoryPlayerContent() {
   const { user, userProfile, loading: authLoading } = useAuth();
@@ -28,10 +28,14 @@ function StoryPlayerContent() {
   const [story, setStory] = useState<InteractiveStory | null>(null);
   const [storyCharacter, setStoryCharacter] = useState<CharacterMetadata | null>(null);
   const [userProgress, setUserProgress] = useState<UserStoryProgress | null>(null);
-  const [currentAiTurn, setCurrentAiTurn] = useState<StoryTurnOutput | null>(null);
+  
+  // currentAiTurn now only stores the latest narration
+  const [currentAiNarration, setCurrentAiNarration] = useState<string | null>(null);
+  
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessingChoice, setIsProcessingChoice] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+  const [userInput, setUserInput] = useState('');
 
   const fetchStoryData = useCallback(async () => {
     if (!storyId || !user || initialLoadComplete) return;
@@ -54,38 +58,32 @@ function StoryPlayerContent() {
       setStoryCharacter(charData);
 
       const progressData = await getUserStoryProgress(user.uid, storyId);
-      setUserProgress(progressData); // This now includes history
+      setUserProgress(progressData);
 
-      // Determine initial AI turn: if progress exists and has current choices, use them.
-      // Otherwise, call AI for the first turn or to resume.
-      if (progressData?.currentTurnContext?.summaryOfCurrentSituation && progressData.currentTurnContext.choiceA && progressData.currentTurnContext.choiceB) {
-        setCurrentAiTurn({
-          narrationForThisTurn: progressData.currentTurnContext.summaryOfCurrentSituation,
-          choiceA: progressData.currentTurnContext.choiceA,
-          choiceB: progressData.currentTurnContext.choiceB,
-        });
+      if (progressData?.currentTurnContext?.summaryOfCurrentSituation) {
+        setCurrentAiNarration(progressData.currentTurnContext.summaryOfCurrentSituation);
       } else {
-        // This is the first turn or a turn where choices weren't saved/are missing
-        const initialUserChoice = progressData?.currentTurnContext?.previousUserChoice || "Let's begin the story!";
-        const aiResult = await handleStoryChoiceAction(
+        // This is the first turn or a turn where narration is missing
+        const initialUserInput = progressData?.currentTurnContext?.previousUserChoice || "Let's begin the story!";
+        const aiResult = await handleStoryMessageAction( // Use new action name
           user.uid,
           userProfile?.name || user.displayName || 'Adventurer',
           storyId,
-          initialUserChoice
+          initialUserInput
         );
 
-        if (aiResult.error || !aiResult.aiResponse) {
+        if (aiResult.error || !aiResult.aiResponse?.narrationForThisTurn) {
           toast({ title: 'AI Error', description: aiResult.error || 'Could not start or continue story.', variant: 'destructive' });
-          setCurrentAiTurn(null); // Ensure choices are not shown if AI fails
+          setCurrentAiNarration("Sorry, I'm a bit lost for words! Please try starting again or contact support if this persists.");
         } else {
-          setCurrentAiTurn(aiResult.aiResponse);
-          if (aiResult.nextProgress) setUserProgress(aiResult.nextProgress); // Update progress with history
+          setCurrentAiNarration(aiResult.aiResponse.narrationForThisTurn);
+          if (aiResult.nextProgress) setUserProgress(aiResult.nextProgress);
         }
       }
       setInitialLoadComplete(true);
     } catch (error: any) {
       toast({ title: 'Error loading story', description: error.message, variant: 'destructive' });
-      setCurrentAiTurn(null);
+      setCurrentAiNarration("There was an error loading the story. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -99,29 +97,58 @@ function StoryPlayerContent() {
     }
   }, [authLoading, user, storyId, fetchStoryData, router]);
 
-  const handleChoice = async (choiceText: string) => {
-    if (!user || !story || isProcessingChoice || !currentAiTurn) return;
+  const handleSendMessage = async () => { // Renamed from handleChoice
+    if (!user || !story || isProcessingChoice || !userInput.trim()) return;
     setIsProcessingChoice(true);
+    const currentMessage = userInput.trim();
+    setUserInput(''); // Clear input field optimistically
 
     try {
-      const result = await handleStoryChoiceAction(
+      // Optimistically add user message to history for UI
+      const optimisticUserTurn: StoryTurnRecord = {
+        userChoice: currentMessage,
+        aiNarration: "", // AI narration will be filled by server response
+        timestamp: Date.now(),
+      };
+      setUserProgress(prev => ({
+          ...(prev ?? { 
+              userId: user.uid, 
+              storyId, 
+              currentTurnContext: { summaryOfCurrentSituation: currentAiNarration || story.initialSceneSummary, previousUserChoice: "" },
+              storyTitleSnapshot: story.title,
+              characterIdSnapshot: story.characterId,
+              lastPlayed: Date.now()
+          }),
+          history: [...(prev?.history || []), optimisticUserTurn]
+      }));
+
+
+      const result = await handleStoryMessageAction( // Use new action name
         user.uid,
         userProfile?.name || user.displayName || 'Adventurer',
         story.id,
-        choiceText
+        currentMessage
       );
 
-      if (result.error || !result.aiResponse) {
-        toast({ title: 'AI Error', description: result.error || 'Could not process choice.', variant: 'destructive' });
-        // Potentially keep currentAiTurn or clear it if the error is severe
+      if (result.error || !result.aiResponse?.narrationForThisTurn) {
+        toast({ title: 'AI Error', description: result.error || 'Could not process your message.', variant: 'destructive' });
+        // Revert optimistic update or show error message in thread
+        setUserProgress(prev => ({
+            ...prev!,
+            history: prev!.history?.slice(0, -1) // Remove optimistic user turn
+        }));
       } else {
-        setCurrentAiTurn(result.aiResponse); // This contains new narration & choices for the NEXT turn
+        setCurrentAiNarration(result.aiResponse.narrationForThisTurn);
         if (result.nextProgress) {
-          setUserProgress(result.nextProgress); // Update progress which now includes the new history item
+          setUserProgress(result.nextProgress); // Update progress with full history from server
         }
       }
     } catch (error: any) {
-      toast({ title: 'Error', description: 'Failed to process choice.', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Failed to process your message.', variant: 'destructive' });
+       setUserProgress(prev => ({
+            ...prev!,
+            history: prev!.history?.slice(0, -1) 
+        }));
     } finally {
       setIsProcessingChoice(false);
     }
@@ -154,7 +181,7 @@ function StoryPlayerContent() {
   }, [storyCharacter]);
 
 
-  if (isLoading || authLoading || !story || !storyCharacter ) { // Simpler loading check
+  if (isLoading || authLoading || !story || !storyCharacter ) {
     return (
       <div className="flex flex-col min-h-screen bg-background items-center justify-center p-4">
         <Header />
@@ -183,18 +210,16 @@ function StoryPlayerContent() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6 min-h-[300px] max-h-[calc(100vh-300px)] overflow-y-auto flex flex-col scroll-smooth">
-            {/* Display Full Story History */}
+          <CardContent className="p-4 md:p-6 space-y-4 md:space-y-6 min-h-[300px] max-h-[calc(100vh-350px)] overflow-y-auto flex flex-col scroll-smooth">
             {userProgress?.history?.map((turnRecord, index) => (
               <React.Fragment key={index}>
-                {/* User's Choice that led to this AI Narration */}
-                {turnRecord.userChoice !== "Story Started" && ( // Don't show "You Chose: Story Started"
+                {turnRecord.userChoice && turnRecord.userChoice !== "Story Started" && (
                    <div className="p-3 rounded-xl bg-secondary/10 border border-secondary/20 shadow-sm animate-slide-in-from-bottom self-end ml-auto max-w-[85%]">
                     <div className="flex items-start gap-2.5">
                       <User className="h-5 w-5 text-secondary flex-shrink-0 mt-1" />
                       <div>
-                        <p className="text-xs font-medium text-secondary/90 uppercase tracking-wider">You Chose:</p>
-                        <p className="text-foreground/90 text-sm italic leading-relaxed">
+                        <p className="text-xs font-medium text-secondary/90 uppercase tracking-wider">You:</p>
+                        <p className="text-foreground/90 text-sm leading-relaxed">
                           {turnRecord.userChoice}
                         </p>
                       </div>
@@ -202,61 +227,79 @@ function StoryPlayerContent() {
                   </div>
                 )}
 
-                {/* AI's Narration for that turn */}
-                <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/20 p-4 rounded-xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%]">
-                  <ReactMarkdown components={{ p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} /> }}>
-                    {turnRecord.aiNarration}
-                  </ReactMarkdown>
-                </div>
+                {turnRecord.aiNarration && (
+                    <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/20 p-4 rounded-xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%]">
+                    <ReactMarkdown components={{ p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} /> }}>
+                        {turnRecord.aiNarration}
+                    </ReactMarkdown>
+                    </div>
+                )}
                 
-                {index < userProgress.history!.length -1 && ( // Simple divider between turns
+                {index < userProgress.history!.length -1 && ( 
                   <div className="my-1 border-b border-dashed border-border/30"></div>
                 )}
               </React.Fragment>
             ))}
             
-            {/* If history is empty and currentAiTurn has the initial narration (first ever turn) */}
-            {(!userProgress?.history || userProgress.history.length === 0) && currentAiTurn?.narrationForThisTurn && (
+             {/* Display current AI narration if not already covered by history (e.g., very first turn) */}
+            {(!userProgress?.history || userProgress.history.length === 0) && currentAiNarration && (
                 <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/20 p-4 rounded-xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%]">
                     <ReactMarkdown components={{ p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} /> }}>
-                        {currentAiTurn.narrationForThisTurn}
+                        {currentAiNarration}
                     </ReactMarkdown>
                 </div>
             )}
 
+             {/* Loading indicator for AI response */}
+            {isProcessingChoice && (
+                <div className="flex items-center space-x-2.5 text-muted-foreground self-start mr-auto max-w-[85%] p-4">
+                    <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-accent/30">
+                        <AvatarImage src={storyCharacter.avatarUrl} alt={storyCharacter.name} />
+                        <AvatarFallback className="bg-accent/20 text-accent text-sm font-semibold">{getInitials(storyCharacter.name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="p-3 rounded-xl bg-muted/20 border border-border/30 shadow-sm">
+                        <Sparkles className="h-5 w-5 animate-pulse-spinner text-primary inline-block mr-2" />
+                        <span className="text-sm italic">{storyCharacter.name} is thinking...</span>
+                    </div>
+                </div>
+            )}
+
+
           </CardContent>
-          <CardFooter className="p-4 md:p-6 border-t border-border/30 bg-card/50">
+          <CardFooter className="p-3 md:p-4 border-t border-border/30 bg-card/50">
             {isProcessingChoice ? (
-              <div className="w-full flex justify-center items-center py-4">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <p className="ml-3 text-muted-foreground font-medium">Waiting for {storyCharacter.name}'s reply...</p>
-              </div>
-            ) : currentAiTurn && currentAiTurn.choiceA && currentAiTurn.choiceB ? (
-              <div className="w-full space-y-3">
-                 <p className="text-center text-sm text-muted-foreground font-semibold mb-2">What happens next, {userProfile?.name || 'jaan'}? <Sparkles className="inline h-4 w-4 text-yellow-400 animate-pulse" /></p>
-                {[currentAiTurn.choiceA, currentAiTurn.choiceB].map((choice, index) => (
-                  <Button
-                    key={index}
-                    onClick={() => handleChoice(choice)}
-                    variant="default"
-                    className="w-full !rounded-xl text-base py-3.5 shadow-lg hover:shadow-primary/30 transition-all duration-200 ease-in-out transform hover:scale-[1.02] group bg-gradient-to-r from-primary/80 via-rose-500/80 to-pink-600/80 hover:from-primary hover:via-rose-500 hover:to-pink-600 text-primary-foreground flex items-center justify-between"
-                    aria-label={`Choice ${index === 0 ? 'A' : 'B'}: ${choice}`}
-                  >
-                    <span className="text-left flex-grow">{choice}</span>
-                    <ChevronRight className="h-5 w-5 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-transform duration-200" />
-                  </Button>
-                ))}
+              <div className="w-full flex justify-center items-center py-3.5">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <p className="ml-3 text-muted-foreground font-medium">Processing...</p>
               </div>
             ) : (
-                 <div className="w-full text-center py-4">
-                    <p className="text-muted-foreground">Loading story choices or end of current path...</p>
-                     {/* Add a button to retry fetching initial story if currentAiTurn is null and not processing */}
-                    {!currentAiTurn && !isProcessingChoice && (
-                        <Button onClick={() => { setInitialLoadComplete(false); fetchStoryData(); }} className="mt-2 !rounded-lg">
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin"/> Retry Loading Story
-                        </Button>
-                    )}
-                </div>
+              <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="w-full flex items-end gap-2">
+                <Textarea
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  placeholder={`What do you say or do, ${userProfile?.name || 'jaan'}?`}
+                  className="flex-grow resize-none max-h-28 p-3 rounded-xl shadow-inner focus:ring-2 focus:ring-primary focus:border-primary bg-background/80 border-border/70 text-sm md:text-base"
+                  rows={1}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  disabled={isProcessingChoice}
+                  aria-label="Your response in the story"
+                />
+                <Button
+                  type="submit"
+                  variant="default"
+                  size="icon"
+                  disabled={isProcessingChoice || !userInput.trim()}
+                  className="bg-gradient-to-br from-primary via-rose-500 to-pink-600 hover:shadow-glow-primary text-primary-foreground rounded-xl p-3 aspect-square shadow-lg transform transition-transform hover:scale-105 focus:ring-2 ring-primary ring-offset-2 ring-offset-background h-12 w-12 md:h-[52px] md:w-[52px]"
+                  title="Send your message"
+                >
+                  <SendHorizonal className="h-5 w-5 md:h-6 md:w-6" />
+                </Button>
+              </form>
             )}
           </CardFooter>
         </Card>

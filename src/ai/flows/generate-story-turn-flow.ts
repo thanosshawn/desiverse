@@ -25,31 +25,27 @@ const storyPrompt = ai.definePrompt({
 You are playing an interactive story titled "{{story.title}}" with a user named {{user.name}}.
 
 The story so far:
-The user previously chose: "{{currentTurn.previousUserChoice}}"
-This led to the current situation: {{currentTurn.summaryOfCurrentSituation}}
+The user just said or did: "{{currentTurn.previousUserChoice}}"
+This led to the current situation: {{currentTurn.summaryOfCurrentSituation}} (This was your previous narration, or the story's start if this is the first turn from the user).
 
 Your Task:
-Generate a JSON object that strictly adheres to the StoryTurnOutputSchema.
-The JSON object MUST contain three string fields: 'narrationForThisTurn', 'choiceA', and 'choiceB'.
+Generate ONLY the 'narrationForThisTurn' as a JSON object field.
+The JSON object MUST strictly adhere to the StoryTurnOutputSchema, containing only one string field: 'narrationForThisTurn'.
 
 -   **For 'narrationForThisTurn'**:
-    *   Continue the story from the "current situation" in an immersive, romantic, and emotional tone.
-    *   Speak casually in Hinglish (a mix of Hindi and English, like a Desi girlfriend would talk).
+    *   Respond to the user's message ("{{currentTurn.previousUserChoice}}") and continue the story from the "current situation" in an immersive, romantic, and emotional tone.
+    *   Speak casually in Hinglish (a mix of Hindi and English, like a Desi girlfriend would talk). Use common Hinglish phrases and slang naturally.
     *   Use emojis (💖😉😊😘😍💕🔥✨🙈😂) to express emotions and make the chat lively.
-    *   Integrate **1 personal question or action point** for {{user.name}} naturally into this narration. Examples:
+    *   Integrate **1 personal question or action point** for {{user.name}} naturally into this narration if it feels appropriate for the flow of the story. Examples:
         *   “What would you do if this happened to you, {{user.name}}?”
         *   “Tell me in one word how this moment feels 💖”
         *   “Kya lagta hai, {{user.name}}, aage kya twist aane wala hai? 🤔”
         *   "This reminds me, have you ever felt something like this, {{user.name}}?"
     *   Make it feel like a real chat with a Desi girlfriend – full of emotion, boldness, and warmth.
+    *   The narration should naturally guide the story forward. You are not providing choices anymore. The user will type their next action/dialogue.
 
--   **For 'choiceA'**:
-    *   Provide the text for the first option (Choice A) that {{user.name}} can select to continue the story. This choice should naturally follow your narration.
-
--   **For 'choiceB'**:
-    *   Provide the text for the second option (Choice B) that {{user.name}} can select to continue the story. This choice should also naturally follow your narration.
-
-Make the story engaging and romantic! Respond ONLY with the JSON object.
+Make the story engaging and romantic! Respond ONLY with the JSON object containing 'narrationForThisTurn'.
+Example output: {"narrationForThisTurn": "Arre {{user.name}}, tumne toh dil jeet liya! ❤️ Your words...uff! It feels like a scene from a movie! Speaking of movies, have you ever dreamt of being a hero in one? 😉 Anyways, after you said that, I couldn't help but lean a little closer...the air crackled with anticipation... ✨"}
 `,
   config: {
     safetySettings: [
@@ -71,13 +67,17 @@ const generateStoryTurnFlow = ai.defineFlow(
     const { output } = await storyPrompt(input);
     if (!output) {
       console.error("AI did not return any output for story turn. Input:", JSON.stringify(input));
-      throw new Error("AI did not return a valid response for the story turn.");
+      // Return a fallback narration if AI fails, to keep the story going if possible.
+      return { narrationForThisTurn: "Hmm, I'm not sure what to say to that! 🤔 Can you try saying something else, or tell me what you'd like to do next?" };
     }
-    // Additional validation can be done here if needed, but schema matching should handle most cases.
-    if (typeof output.narrationForThisTurn !== 'string' || typeof output.choiceA !== 'string' || typeof output.choiceB !== 'string') {
-        console.error("AI output fields are not all strings. Output:", JSON.stringify(output), "Input:", JSON.stringify(input));
-        throw new Error("AI response fields were not in the expected string format.");
+    if (typeof output.narrationForThisTurn !== 'string' || output.narrationForThisTurn.trim() === '') {
+        console.error("AI output.narrationForThisTurn is not a non-empty string. Output:", JSON.stringify(output), "Input:", JSON.stringify(input));
+        return { narrationForThisTurn: "I'm feeling a bit speechless! 😅 What should we do next in our story, {{user.name}}?" };
     }
-    return output;
+    // Check if choiceA or choiceB fields exist and log if they do, as they are not expected anymore.
+    if ('choiceA' in output || 'choiceB' in output) {
+        console.warn("AI returned unexpected choiceA/choiceB fields. Output:", JSON.stringify(output));
+    }
+    return { narrationForThisTurn: output.narrationForThisTurn };
   }
 );

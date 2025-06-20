@@ -143,8 +143,8 @@ export type InteractiveStoryAdminFormValues = Omit<InteractiveStory, 'id' | 'cre
 
 // Represents a single completed turn in the story's history
 export interface StoryTurnRecord {
-  userChoice: string;       // The choice the user made
-  aiNarration: string;      // The AI's narration that resulted from that choice
+  userChoice: string;       // The choice OR typed message from the user
+  aiNarration: string;      // The AI's narration that resulted from that choice/message
   timestamp: number | object; // Timestamp of when this turn was completed/saved
 }
 
@@ -153,9 +153,8 @@ export interface UserStoryProgress {
   storyId: string;
   currentTurnContext: {
     summaryOfCurrentSituation: string; // AI's current narration (same as last history item's aiNarration)
-    previousUserChoice: string;      // User's choice that led to the current summary
-    choiceA?: string;                // Current Option A available to the user
-    choiceB?: string;                // Current Option B available to the user
+    previousUserChoice: string;      // User's choice OR typed message that led to the current summary
+    // choiceA and choiceB are removed as interaction is now free-form text
   };
   storyTitleSnapshot: string;
   characterIdSnapshot: string;
@@ -178,14 +177,13 @@ export const StoryTurnInputSchema = z.object({
   }),
   currentTurn: z.object({
     summaryOfCurrentSituation: z.string().describe("A summary of the current scene or situation in the story. This is typically the AI's narration from the previous turn, or the initial story summary if it's the first turn."),
-    previousUserChoice: z.string().describe("The choice the user made in the previous turn to reach this situation. For the first turn, this could be a placeholder like 'Let's begin!'."),
+    previousUserChoice: z.string().describe("The user's typed message or action in the previous turn to reach this situation. For the first turn, this could be a placeholder like 'Let's begin!'."),
   }),
 });
 export type StoryTurnInput = z.infer<typeof StoryTurnInputSchema>;
 
 export const StoryTurnOutputSchema = z.object({
-  narrationForThisTurn: z.string().describe("The AI character's story narration for the current turn, continuing from the user's choice. Should be in Hinglish, immersive, romantic, and emotional, with emojis. This narration should also include any personal question for the user if applicable, integrated naturally within the text."),
-  choiceA: z.string().describe("The text for the first choice (Option A) for the user to continue the story."),
-  choiceB: z.string().describe("The text for the second choice (Option B) for the user to continue the story."),
+  narrationForThisTurn: z.string().describe("The AI character's story narration for the current turn, responding to the user's message and continuing the story. Should be in Hinglish, immersive, romantic, and emotional, with emojis. This narration should also include any personal question for the user if applicable, integrated naturally within the text."),
+  // choiceA and choiceB are removed
 });
 export type StoryTurnOutput = z.infer<typeof StoryTurnOutputSchema>;

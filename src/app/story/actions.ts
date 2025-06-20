@@ -11,11 +11,12 @@ interface StoryTurnResponse {
   nextProgress?: UserStoryProgress; // Send back the updated progress
 }
 
-export async function handleStoryChoiceAction(
+// Renamed from handleStoryChoiceAction to handleStoryMessageAction
+export async function handleStoryMessageAction(
   userId: string,
   userName: string, // User's display name
   storyId: string,
-  userChoiceText: string // The text of the choice the user just made
+  userMessage: string // User's typed message
 ): Promise<StoryTurnResponse> {
   try {
     const story = await getInteractiveStory(storyId);
@@ -30,14 +31,10 @@ export async function handleStoryChoiceAction(
 
     let currentUserProgress = await getUserStoryProgress(userId, storyId);
     
-    // Determine the AI's context (summaryOfCurrentSituation) for this turn
     let summaryForAICurrentTurn: string;
-    if (currentUserProgress?.currentTurnContext?.summaryOfCurrentSituation && userChoiceText !== "Let's begin the story!") {
-      // If there's existing progress and it's not the initial call,
-      // the summaryOfCurrentSituation from *that* progress is the context.
+    if (currentUserProgress?.currentTurnContext?.summaryOfCurrentSituation && userMessage !== "Let's begin the story!") {
       summaryForAICurrentTurn = currentUserProgress.currentTurnContext.summaryOfCurrentSituation;
     } else {
-      // This is for the very first turn or if "Let's begin the story!" is passed
       summaryForAICurrentTurn = story.initialSceneSummary;
     }
 
@@ -54,8 +51,8 @@ export async function handleStoryChoiceAction(
         name: userName,
       },
       currentTurn: {
-        summaryOfCurrentSituation: summaryForAICurrentTurn, // AI's previous narration or initial summary
-        previousUserChoice: userChoiceText, // User's choice that leads to the NEW situation
+        summaryOfCurrentSituation: summaryForAICurrentTurn, 
+        previousUserChoice: userMessage, // User's typed message
       },
     };
 
@@ -64,48 +61,40 @@ export async function handleStoryChoiceAction(
     if (
       !aiResponse ||
       typeof aiResponse.narrationForThisTurn !== 'string' ||
-      aiResponse.narrationForThisTurn.trim() === '' ||
-      typeof aiResponse.choiceA !== 'string' ||
-      aiResponse.choiceA.trim() === '' ||
-      typeof aiResponse.choiceB !== 'string' ||
-      aiResponse.choiceB.trim() === ''
+      aiResponse.narrationForThisTurn.trim() === ''
     ) {
       console.error(
-        'AI response missing required fields, fields are not strings, or fields are empty. StoryId:', storyId, 
+        'AI response missing narrationForThisTurn or it is empty. StoryId:', storyId, 
         'Input to AI:', JSON.stringify(aiInput),
         'AI Response:', JSON.stringify(aiResponse)
       );
       return { error: 'Failed to get a complete story response from AI. Please try again.' };
     }
     
-    // This newCurrentTurnContext will be saved as the "current" state for the next user interaction.
-    // The aiResponse.narrationForThisTurn is the AI's output for *this* turn.
+    // No longer expecting choiceA or choiceB from aiResponse
     const newCurrentTurnContext: UserStoryProgress['currentTurnContext'] = {
-      summaryOfCurrentSituation: aiResponse.narrationForThisTurn, // AI's new narration for this turn
-      previousUserChoice: userChoiceText,                         // User's choice that led to this narration
-      choiceA: aiResponse.choiceA,                                // New choice A from AI
-      choiceB: aiResponse.choiceB,                                // New choice B from AI
+      summaryOfCurrentSituation: aiResponse.narrationForThisTurn, 
+      previousUserChoice: userMessage,                        
+      // choiceA and choiceB are removed
     };
 
-    // Data to be passed to updateUserStoryProgress for creating the history entry
-    // and updating the overall progress document.
     const progressUpdateData = {
       currentTurnContext: newCurrentTurnContext,
       storyTitleSnapshot: story.title,
       characterIdSnapshot: story.characterId,
-      userChoiceThatLedToThis: userChoiceText,        // The user's choice just made
-      newAiNarration: aiResponse.narrationForThisTurn, // The AI's narration in response to that choice
+      userChoiceThatLedToThis: userMessage,        
+      newAiNarration: aiResponse.narrationForThisTurn, 
     };
     
     await updateUserStoryProgress(userId, storyId, progressUpdateData);
     
-    // Fetch the just-updated progress to ensure consistency and include the new history
     const updatedProgress = await getUserStoryProgress(userId, storyId); 
 
-    return { aiResponse, nextProgress: updatedProgress };
+    // Return only narration, as choices are no longer part of the output
+    return { aiResponse: { narrationForThisTurn: aiResponse.narrationForThisTurn }, nextProgress: updatedProgress };
 
   } catch (error) {
-    console.error('Error in handleStoryChoiceAction. StoryId:', storyId, 'UserChoice:', userChoiceText, error);
+    console.error('Error in handleStoryMessageAction. StoryId:', storyId, 'UserMessage:', userMessage, error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred with the story AI.';
     return { error: errorMessage };
   }
