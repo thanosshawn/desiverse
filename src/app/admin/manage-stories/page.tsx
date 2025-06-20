@@ -27,12 +27,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { formatDistanceToNowStrict } from 'date-fns';
+import { deleteStoryAction } from '../actions'; // Import the delete action
 
 export default function ManageStoriesPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [stories, setStories] = useState<InteractiveStory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null); // Track deleting story ID
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [authStatusChecked, setAuthStatusChecked] = useState(false);
@@ -48,27 +50,29 @@ export default function ManageStoriesPage() {
     }
   }, [router, toast, authStatusChecked]);
 
+  const fetchStories = async () => {
+    setIsLoading(true);
+    try {
+      const fetchedStories = await getAllInteractiveStories();
+      // Ensure createdAt is a number for sorting, defaulting if necessary
+      // Already sorted by RTDB query
+      setStories(fetchedStories);
+    } catch (error) {
+      console.error("Error fetching stories:", error);
+      toast({ title: 'Error', description: 'Could not load stories.', variant: 'destructive' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
   useEffect(() => {
     if (isAdminLoggedIn && authStatusChecked) {
-      const fetchStories = async () => {
-        setIsLoading(true);
-        try {
-          const fetchedStories = await getAllInteractiveStories();
-          // Ensure createdAt is a number for sorting, defaulting if necessary
-          fetchedStories.sort((a, b) => (typeof b.createdAt === 'number' ? b.createdAt : 0) - (typeof a.createdAt === 'number' ? a.createdAt : 0));
-          setStories(fetchedStories);
-        } catch (error) {
-          console.error("Error fetching stories:", error);
-          toast({ title: 'Error', description: 'Could not load stories.', variant: 'destructive' });
-        } finally {
-          setIsLoading(false);
-        }
-      };
       fetchStories();
     } else if (authStatusChecked && !isAdminLoggedIn) {
         setIsLoading(false);
     }
-  }, [isAdminLoggedIn, authStatusChecked, toast]);
+  }, [isAdminLoggedIn, authStatusChecked]); // Removed toast from deps
 
   const handleLogout = () => {
     localStorage.removeItem('isAdminLoggedIn');
@@ -77,20 +81,33 @@ export default function ManageStoriesPage() {
   };
 
   const handleDeleteStory = async (storyId: string, storyTitle: string) => {
-    toast({
-      title: `Deletion Action (Simulated for ${storyTitle})`,
-      description: `If fully implemented, this would delete '${storyTitle}' (ID: ${storyId}) from the database. This is a placeholder action.`,
-      variant: 'default',
-      duration: 5000,
-    });
-    console.log(`TODO: Implement RTDB delete for story ID: ${storyId}, Title: ${storyTitle}`);
-    // To visually remove, you might re-fetch or filter the list:
-    // setStories(prev => prev.filter(s => s.id !== storyId));
+    setIsDeleting(storyId);
+    const result = await deleteStoryAction(storyId);
+    if (result.success) {
+      toast({
+        title: 'Story Deleted',
+        description: `Story "${storyTitle}" has been successfully deleted.`,
+        variant: 'default',
+      });
+      setStories(prevStories => prevStories.filter(story => story.id !== storyId));
+    } else {
+      toast({
+        title: 'Deletion Failed',
+        description: result.message,
+        variant: 'destructive',
+      });
+    }
+    setIsDeleting(null);
   };
   
   const formatDate = (timestamp: number | object | undefined) => {
-    if (typeof timestamp === 'number') {
-      return formatDistanceToNowStrict(new Date(timestamp), { addSuffix: true });
+    if (typeof timestamp === 'number' && timestamp > 0) { // Check if timestamp is a valid number
+      try {
+        return formatDistanceToNowStrict(new Date(timestamp), { addSuffix: true });
+      } catch (e) {
+        console.warn("Error formatting date, timestamp:", timestamp, e);
+        return "Invalid Date";
+      }
     }
     return 'N/A';
   };
@@ -120,7 +137,7 @@ export default function ManageStoriesPage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
-        <Card className="max-w-4xl mx-auto bg-card/90 backdrop-blur-lg shadow-xl rounded-2xl">
+        <Card className="max-w-4xl mx-auto bg-card shadow-xl rounded-2xl">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6">
             <div>
               <CardTitle className="text-2xl font-headline text-primary flex items-center">
@@ -210,8 +227,14 @@ export default function ManageStoriesPage() {
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="icon" title="Delete Story" className="hover:text-destructive hover:border-destructive rounded-md">
-                              <Trash2 className="h-4 w-4" />
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              title="Delete Story" 
+                              className="hover:text-destructive hover:border-destructive rounded-md"
+                              disabled={isDeleting === story.id}
+                            >
+                              {isDeleting === story.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="rounded-xl">
@@ -219,7 +242,7 @@ export default function ManageStoriesPage() {
                               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 This action cannot be undone. This will permanently delete the
-                                story &quot;{story.title}&quot;. (Deletion is simulated in this prototype)
+                                story &quot;{story.title}&quot; and all associated user progress.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -227,7 +250,9 @@ export default function ManageStoriesPage() {
                               <AlertDialogAction
                                 onClick={() => handleDeleteStory(story.id, story.title)}
                                 className="bg-destructive hover:bg-destructive/90 !rounded-lg"
+                                disabled={isDeleting === story.id}
                               >
+                                {isDeleting === story.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                 Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -245,3 +270,5 @@ export default function ManageStoriesPage() {
     </div>
   );
 }
+
+```

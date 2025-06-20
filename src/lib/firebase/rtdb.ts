@@ -1,3 +1,4 @@
+
 // src/lib/firebase/rtdb.ts
 import {
   ref,
@@ -14,6 +15,7 @@ import {
   update,
   onDisconnect,
   runTransaction,
+  remove, // Added for delete operation
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
 import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult, InteractiveStory, UserStoryProgress, StoryTurnRecord } from '@/lib/types';
@@ -22,25 +24,25 @@ import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
 // --- User Profile ---
 
 type NewUserProfileWritePayload = Omit<Partial<UserProfile>, 'uid' | 'joinedAt' | 'lastActive'> & {
-  joinedAt: object; 
-  lastActive: object; 
+  joinedAt: object;
+  lastActive: object;
 };
 
 export async function createUserProfile(uid: string, data: NewUserProfileWritePayload): Promise<void> {
   const userRef = ref(db, `users/${uid}`);
   const profileDataForWrite = {
-    uid, 
+    uid,
     name: data.name ?? "Desi User",
     email: data.email ?? null,
     avatarUrl: data.avatarUrl ?? null,
     subscriptionTier: data.subscriptionTier ?? 'free',
-    selectedTheme: data.selectedTheme ?? 'light', 
-    languagePreference: data.languagePreference ?? 'hinglish', 
-    joinedAt: data.joinedAt, 
-    lastActive: data.lastActive, 
+    selectedTheme: data.selectedTheme ?? 'light',
+    languagePreference: data.languagePreference ?? 'hinglish',
+    joinedAt: data.joinedAt,
+    lastActive: data.lastActive,
   };
   await set(userRef, profileDataForWrite);
-  await incrementTotalRegisteredUsers(); 
+  await incrementTotalRegisteredUsers();
 }
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
@@ -131,7 +133,7 @@ export async function addCharacter(characterId: string, data: Omit<CharacterMeta
 
 export async function updateCharacter(characterId: string, data: Partial<Omit<CharacterMetadata, 'id' | 'createdAt'>>): Promise<void> {
   const characterRef = ref(db, `characters/${characterId}`);
-  const { id, createdAt, ...updateData } = data as any; 
+  const { id, createdAt, ...updateData } = data as any;
   await update(characterRef, updateData);
 }
 
@@ -226,13 +228,13 @@ export async function addMessageToChat(
     timestamp: typeof messageData.timestamp === 'number' ? messageData.timestamp : (messageData.timestamp || rtdbServerTimestamp()),
     audioUrl: messageData.audioUrl || null,
     videoUrl: messageData.videoUrl || null,
-    sentGiftId: messageData.sentGiftId || null, 
+    sentGiftId: messageData.sentGiftId || null,
   } as MessageDocument;
 
   await set(newMessageRef, finalMessageData);
 
   const chatMetadataUpdates: Partial<UserChatSessionMetadata> & {lastMessageTimestamp?: object} = {
-    lastMessageText: messageData.text.substring(0, 100), 
+    lastMessageText: messageData.text.substring(0, 100),
     lastMessageTimestamp: finalMessageData.timestamp,
   };
   await updateChatSessionMetadata(userId, characterId, chatMetadataUpdates);
@@ -365,7 +367,7 @@ export async function setOfflineStatus(uid: string): Promise<void> {
   const userStatusRef = ref(db, `status/${uid}`);
    const status = {
     online: false,
-    name: null, 
+    name: null,
     lastChanged: rtdbServerTimestamp(),
   };
   await set(userStatusRef, status);
@@ -426,27 +428,26 @@ export function listenToTotalRegisteredUsers(callback: (count: number) => void):
 
 
 // --- Interactive Stories ---
-export async function addInteractiveStory(storyId: string, data: Omit<InteractiveStory, 'id' | 'createdAt'> & { createdAt?: number | object }): Promise<void> {
+export async function addInteractiveStory(storyId: string, data: Omit<InteractiveStory, 'id' | 'createdAt' | 'updatedAt'> & { createdAt?: number | object; updatedAt?: number | object }): Promise<void> {
   const storyRef = ref(db, `interactiveStories/${storyId}`);
   const storyDataForWrite = {
     ...data,
-    id: storyId, 
+    id: storyId,
     createdAt: data.createdAt || rtdbServerTimestamp(),
-    updatedAt: rtdbServerTimestamp(),
+    updatedAt: data.updatedAt || rtdbServerTimestamp(),
   };
   await set(storyRef, storyDataForWrite);
 }
 
 export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
   const storiesRef = ref(db, 'interactiveStories');
-  // Client-side sorting will be done after fetching, to avoid indexing issues.
-  const snapshot = await get(query(storiesRef)); 
+  const snapshot = await get(query(storiesRef, orderByChild('createdAt')));
   const stories: InteractiveStory[] = [];
   if (snapshot.exists()) {
     snapshot.forEach((childSnapshot) => {
       const val = childSnapshot.val();
       const key = childSnapshot.key;
-      if (key && val && typeof val === 'object' && 
+      if (key && val && typeof val === 'object' &&
           val.title && typeof val.title === 'string' &&
           val.characterId && typeof val.characterId === 'string' &&
           val.initialSceneSummary && typeof val.initialSceneSummary === 'string'
@@ -462,7 +463,7 @@ export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
           tags: Array.isArray(val.tags) ? val.tags.filter((tag: any) => typeof tag === 'string') : [],
           initialSceneSummary: val.initialSceneSummary,
           createdAt: typeof val.createdAt === 'number' ? val.createdAt : 0,
-          updatedAt: typeof val.updatedAt === 'number' ? val.updatedAt : undefined,
+          updatedAt: typeof val.updatedAt === 'number' ? val.updatedAt : 0,
         } as InteractiveStory);
       } else {
         console.warn(`Skipping malformed story data for key: ${key}. Received:`, val);
@@ -470,8 +471,7 @@ export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
     });
   }
   // Sort stories by createdAt in descending order (newest first) on the client side
-  stories.sort((a, b) => (b.createdAt as number) - (a.createdAt as number));
-  return stories;
+  return stories.reverse(); // Since RTDB returns in ascending by default when ordered
 }
 
 
@@ -481,7 +481,7 @@ export async function getInteractiveStory(storyId: string): Promise<InteractiveS
   if (snapshot.exists()) {
       const val = snapshot.val();
       const key = snapshot.key;
-       if (key && val && typeof val === 'object' && 
+       if (key && val && typeof val === 'object' &&
           val.title && typeof val.title === 'string' &&
           val.characterId && typeof val.characterId === 'string' &&
           val.initialSceneSummary && typeof val.initialSceneSummary === 'string'
@@ -497,7 +497,7 @@ export async function getInteractiveStory(storyId: string): Promise<InteractiveS
           tags: Array.isArray(val.tags) ? val.tags.filter((tag: any) => typeof tag === 'string') : [],
           initialSceneSummary: val.initialSceneSummary,
           createdAt: typeof val.createdAt === 'number' ? val.createdAt : 0,
-          updatedAt: typeof val.updatedAt === 'number' ? val.updatedAt : undefined,
+          updatedAt: typeof val.updatedAt === 'number' ? val.updatedAt : 0,
         } as InteractiveStory;
       } else {
         console.warn(`Malformed story data fetched for ID: ${storyId}. Received:`, val);
@@ -507,14 +507,29 @@ export async function getInteractiveStory(storyId: string): Promise<InteractiveS
   return null;
 }
 
+export async function deleteInteractiveStory(storyId: string): Promise<void> {
+  const storyRef = ref(db, `interactiveStories/${storyId}`);
+  await remove(storyRef);
+  // Also remove any user progress associated with this story
+  const usersRef = ref(db, 'users');
+  const usersSnapshot = await get(usersRef);
+  if (usersSnapshot.exists()) {
+    usersSnapshot.forEach(userSnap => {
+      const userStoryProgressRef = ref(db, `users/${userSnap.key}/userStoryProgress/${storyId}`);
+      remove(userStoryProgressRef).catch(err => console.warn(`Could not remove story progress for user ${userSnap.key} and story ${storyId}:`, err));
+    });
+  }
+}
+
+
 // --- User Story Progress ---
 export async function getUserStoryProgress(userId: string, storyId: string): Promise<UserStoryProgress | null> {
   const progressRef = ref(db, `users/${userId}/userStoryProgress/${storyId}`);
   const snapshot = await get(progressRef);
   if (snapshot.exists()) {
     const data = snapshot.val() as UserStoryProgress;
-    return { 
-      ...data, 
+    return {
+      ...data,
       history: data.history || [],
       currentTurnContext: {
         ...data.currentTurnContext,
@@ -530,13 +545,13 @@ export async function updateUserStoryProgress(
   userId: string,
   storyId: string,
   data: {
-    currentTurnContext: UserStoryProgress['currentTurnContext']; // This will now include optional choiceA, choiceB
+    currentTurnContext: UserStoryProgress['currentTurnContext'];
     storyTitleSnapshot: string;
     characterIdSnapshot: string;
-    userChoiceThatLedToThis: string; // User's typed message OR the text of the choice they picked
+    userChoiceThatLedToThis: string;
     newAiNarration: string;
-    offeredChoiceA?: string | null; // The choiceA text if AI offered it for THIS turn
-    offeredChoiceB?: string | null; // The choiceB text if AI offered it for THIS turn
+    offeredChoiceA?: string | null;
+    offeredChoiceB?: string | null;
   }
 ): Promise<void> {
   const progressRef = ref(db, `users/${userId}/userStoryProgress/${storyId}`);
@@ -554,17 +569,17 @@ export async function updateUserStoryProgress(
   if (snapshot.exists()) {
     existingHistory = snapshot.val()?.history || [];
   }
-  
+
   const updatedHistory = [...existingHistory, newHistoryEntry];
 
   if (data.userChoiceThatLedToThis === "Let's begin the story!" && existingHistory.length === 0) {
-    updatedHistory[0].userChoice = "Story Started"; 
+    updatedHistory[0].userChoice = "Story Started";
   }
-  
+
   const updatePayload: UserStoryProgress = {
     userId,
     storyId,
-    currentTurnContext: data.currentTurnContext, 
+    currentTurnContext: data.currentTurnContext,
     storyTitleSnapshot: data.storyTitleSnapshot,
     characterIdSnapshot: data.characterIdSnapshot,
     lastPlayed: rtdbServerTimestamp(),

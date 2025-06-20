@@ -1,3 +1,4 @@
+
 // src/app/admin/actions.ts
 'use server';
 
@@ -8,8 +9,9 @@ import {
   getAdminCredentials,
   getAllCharacters,
   updateCharacter,
-  addInteractiveStory, // Added for stories
-  getCharacterMetadata // Added for stories
+  addInteractiveStory, 
+  getCharacterMetadata,
+  deleteInteractiveStory // Added for story deletion
 } from '@/lib/firebase/rtdb';
 import type { CharacterMetadata, CharacterCreationAdminFormValues, InteractiveStoryAdminFormValues, InteractiveStory } from '@/lib/types';
 import { ref, get } from 'firebase/database';
@@ -351,6 +353,38 @@ export async function createStoryAction(
       message: `Failed to create story: ${errorMessage}`,
       success: false,
       errors: null,
+    };
+  }
+}
+
+// --- Story Deletion Action ---
+export interface DeleteStoryActionState {
+  success: boolean;
+  message: string;
+  storyId?: string;
+}
+
+export async function deleteStoryAction(
+  storyId: string,
+  prevState?: DeleteStoryActionState // Make prevState optional for direct calls
+): Promise<DeleteStoryActionState> {
+  if (!storyId) {
+    return { success: false, message: 'Story ID is required for deletion.' };
+  }
+  try {
+    await deleteInteractiveStory(storyId);
+    return {
+      success: true,
+      message: `Story (ID: ${storyId}) and associated user progress deleted successfully.`,
+      storyId,
+    };
+  } catch (error) {
+    console.error(`Error deleting story (ID: ${storyId}):`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during deletion.';
+    return {
+      success: false,
+      message: `Failed to delete story: ${errorMessage}`,
+      storyId,
     };
   }
 }
