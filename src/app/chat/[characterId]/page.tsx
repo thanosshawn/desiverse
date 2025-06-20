@@ -55,10 +55,10 @@ export default function ChatPage() {
       const rootStyle = getComputedStyle(htmlEl);
       const bgHslString = rootStyle.getPropertyValue('--background').trim();
       const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?(?:\s*\))?/);
-      let overlayColor = 'hsla(var(--background), 0.7)'; // Default overlay using theme's background
+      let overlayColor = 'hsla(var(--background), 0.7)'; 
 
       if (hslMatch && hslMatch.length >= 4) {
-        const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.7 : 0.7; // Use existing alpha or default to 0.7
+        const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.7 : 0.7; 
         overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, ${alpha})`;
       }
       
@@ -68,7 +68,6 @@ export default function ChatPage() {
       bodyEl.style.backgroundRepeat = 'no-repeat';
       bodyEl.style.backgroundAttachment = 'fixed';
       
-      // For loading state
       if (pageLoading) {
         htmlEl.style.setProperty('--chat-page-initial-bg-image', `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`);
       }
@@ -77,7 +76,7 @@ export default function ChatPage() {
       htmlEl.style.removeProperty('--chat-page-initial-bg-image');
     }
 
-    return () => { // Cleanup styles
+    return () => { 
       bodyEl.style.backgroundImage = '';
       bodyEl.style.backgroundSize = '';
       bodyEl.style.backgroundPosition = '';
@@ -155,7 +154,7 @@ export default function ChatPage() {
                 iconName: 'Gift', 
                 description: "A lovely gift", 
                 aiReactionPrompt: "", 
-                isPremium: true, // Assume gifts are premium for now
+                isPremium: true, 
             };
           }
           return baseMessage;
@@ -314,7 +313,7 @@ export default function ChatPage() {
     } finally {
       setIsLoadingMessage(false);
     }
-  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast, userDisplayName]); // Removed scrollToBottom
+  }, [user, currentCharacterMeta, currentChatSessionMeta, characterId, messages, toast, userDisplayName]);
 
   const toggleFavoriteChat = async () => {
     if (!user || !characterId) return;
@@ -370,7 +369,7 @@ export default function ChatPage() {
 
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-transparent"> {/* Ensure bg is transparent here to let body bg show */}
+    <div className="flex flex-col h-screen overflow-hidden bg-transparent"> 
       <Header />
       <ChatPageHeader
         characterMeta={currentCharacterMeta}
@@ -380,7 +379,7 @@ export default function ChatPage() {
         currentStreakData={currentStreakData}
         router={router}
       />
-      <main className="flex-grow overflow-hidden"> {/* This main needs to be flexible */}
+      <main className="flex-grow overflow-hidden"> 
         <ChatLayout
           messages={messages}
           onSendMessage={handleSendMessage}
@@ -392,9 +391,11 @@ export default function ChatPage() {
           characterIsPremium={currentCharacterMeta.isPremium}
           userSubscriptionTier={userProfile?.subscriptionTier}
           userDisplayName={userDisplayName}
+          userProfileAvatarUrl={userProfile?.avatarUrl} // Pass userProfile avatar
+          userFirebaseAuthAvatarUrl={user?.photoURL} // Pass Firebase Auth avatar
         />
       </main>
-      <div ref={messagesEndRef} /> {/* For scrolling to bottom */}
+      <div ref={messagesEndRef} /> 
     </div>
   );
 }

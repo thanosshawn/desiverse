@@ -1,8 +1,7 @@
-
 // src/components/chat/chat-layout.tsx
 'use client';
 
-import type { ChatMessageUI, CharacterName, UserProfile, VirtualGift } from '@/lib/types'; // Added VirtualGift
+import type { ChatMessageUI, CharacterName, UserProfile, VirtualGift } from '@/lib/types';
 import { ChatAvatar } from './chat-avatar';
 import { ChatMessages } from './chat-messages';
 import { ChatInput } from './chat-input';
@@ -10,7 +9,7 @@ import React from 'react';
 
 interface ChatLayoutProps {
   messages: ChatMessageUI[];
-  onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request', gift?: VirtualGift) => void; // Updated gift type
+  onSendMessage: (message: string, type?: 'text' | 'audio_request' | 'video_request', gift?: VirtualGift) => void;
   isLoading: boolean;
   currentCharacterName: CharacterName;
   currentCharacterAvatar: string; 
@@ -19,6 +18,8 @@ interface ChatLayoutProps {
   characterIsPremium?: boolean;
   userSubscriptionTier?: UserProfile['subscriptionTier'];
   userDisplayName?: string; 
+  userProfileAvatarUrl?: string | null; // Added
+  userFirebaseAuthAvatarUrl?: string | null; // Added
 }
 
 export function ChatLayout({
@@ -32,13 +33,14 @@ export function ChatLayout({
   characterIsPremium,
   userSubscriptionTier,
   userDisplayName, 
+  userProfileAvatarUrl, // Added
+  userFirebaseAuthAvatarUrl // Added
 }: ChatLayoutProps) {
   
   const latestAiVideoSrcForAvatar = currentVideoMessageSrc;
 
   return (
     <div className="flex flex-col md:flex-row flex-grow overflow-hidden h-full">
-      {/* Avatar section for larger screens */}
       <div className="hidden md:flex md:w-[320px] lg:w-[360px] p-4 flex-col items-center justify-start border-r border-border/20 bg-card/60 backdrop-blur-sm sticky top-0 h-full overflow-y-auto shadow-lg">
         <ChatAvatar 
           characterName={currentCharacterName}
@@ -54,6 +56,8 @@ export function ChatLayout({
             characterBubbleStyle={characterMessageBubbleStyle}
             aiAvatarUrl={currentCharacterAvatar} 
             userDisplayName={userDisplayName} 
+            userProfileAvatarUrl={userProfileAvatarUrl} // Pass down
+            userFirebaseAuthAvatarUrl={userFirebaseAuthAvatarUrl} // Pass down
         />
         <ChatInput 
             onSendMessage={onSendMessage} 

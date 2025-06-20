@@ -10,15 +10,23 @@ interface ChatMessagesProps {
   messages: ChatMessageType[];
   characterBubbleStyle?: string;
   aiAvatarUrl: string; 
-  userDisplayName?: string; // Added prop
+  userDisplayName?: string;
+  userProfileAvatarUrl?: string | null; // Added
+  userFirebaseAuthAvatarUrl?: string | null; // Added
 }
 
-export function ChatMessages({ messages, characterBubbleStyle, aiAvatarUrl, userDisplayName }: ChatMessagesProps) {
+export function ChatMessages({ 
+  messages, 
+  characterBubbleStyle, 
+  aiAvatarUrl, 
+  userDisplayName,
+  userProfileAvatarUrl, // Added
+  userFirebaseAuthAvatarUrl // Added
+}: ChatMessagesProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (viewportRef.current) {
-      // Smooth scroll for new messages
       viewportRef.current.scrollTo({
         top: viewportRef.current.scrollHeight,
         behavior: 'smooth'
@@ -27,9 +35,7 @@ export function ChatMessages({ messages, characterBubbleStyle, aiAvatarUrl, user
   }, [messages]);
 
   return (
-    // ScrollArea should take full available height and enable vertical scrolling
     <ScrollArea className="flex-grow" viewportRef={viewportRef}>
-      {/* Padding around the messages container */}
       <div className="space-y-3 p-4 md:p-6">
         {messages.map((msg) => (
           <ChatMessage 
@@ -37,7 +43,9 @@ export function ChatMessages({ messages, characterBubbleStyle, aiAvatarUrl, user
             message={msg} 
             characterBubbleStyle={characterBubbleStyle} 
             aiAvatarUrl={aiAvatarUrl} 
-            userDisplayName={userDisplayName} // Pass down
+            userDisplayName={userDisplayName}
+            userProfileAvatarUrl={userProfileAvatarUrl} // Pass down
+            userFirebaseAuthAvatarUrl={userFirebaseAuthAvatarUrl} // Pass down
           />
         ))}
       </div>

@@ -1,10 +1,9 @@
-
 // src/components/chat/chat-message.tsx
 'use client';
 
 import type { ChatMessageUI, VirtualGift } from '@/lib/types'; 
 import { cn, getInitials } from '@/lib/utils'; 
-import { Bot, User, AlertTriangle, Loader2, Gift as GiftIconLucide, Sparkles } from 'lucide-react'; 
+import { Bot, User, AlertTriangle, Sparkles } from 'lucide-react'; 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; 
@@ -16,9 +15,18 @@ interface ChatMessageProps {
   characterBubbleStyle?: string; 
   aiAvatarUrl: string; 
   userDisplayName?: string; 
+  userProfileAvatarUrl?: string | null; // Added
+  userFirebaseAuthAvatarUrl?: string | null; // Added
 }
 
-export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDisplayName }: ChatMessageProps) {
+export function ChatMessage({ 
+  message, 
+  characterBubbleStyle, 
+  aiAvatarUrl, 
+  userDisplayName,
+  userProfileAvatarUrl, // Added
+  userFirebaseAuthAvatarUrl // Added
+}: ChatMessageProps) {
   const isUser = message.sender === 'user';
   
   const [clientFormattedTimestamp, setClientFormattedTimestamp] = useState<string | null>(null);
@@ -36,7 +44,7 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
   }, [message.timestamp]);
 
   const getBubbleStyle = () => {
-    let baseClasses = 'p-3 md:p-3.5 rounded-2xl shadow-md break-words text-sm md:text-base transition-all duration-300 ease-in-out max-w-full'; // Ensure max-width for responsiveness
+    let baseClasses = 'p-3 md:p-3.5 rounded-2xl shadow-md break-words text-sm md:text-base transition-all duration-300 ease-in-out max-w-full'; 
     
     if (isUser) {
       if (message.type === 'gift_sent') {
@@ -45,16 +53,15 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
       return `${baseClasses} bg-gradient-to-br from-primary via-rose-500 to-pink-600 text-primary-foreground rounded-br-lg group-hover:shadow-lg`;
     }
     
-    if (characterBubbleStyle === 'bubble-priya') { // Example for specific character style
+    if (characterBubbleStyle === 'bubble-priya') { 
         return `${baseClasses} bg-gradient-to-tr from-teal-400 via-cyan-500 to-sky-500 text-white rounded-bl-lg shadow-glow-accent`;
     }
-    // Default AI bubble: subtle gradient on card background or solid card color
     return `${baseClasses} bg-card text-card-foreground rounded-bl-lg shadow-soft-lg border border-border/60 group-hover:border-accent/60`;
   };
 
   const renderGiftIcon = (gift: VirtualGift) => {
     const IconComponent = Icons[gift.iconName] as React.ElementType;
-    return IconComponent ? <IconComponent className="h-6 w-6 inline-block mr-2 text-amber-600 flex-shrink-0" /> : <GiftIconLucide className="h-6 w-6 inline-block mr-2 text-amber-600 flex-shrink-0"/>;
+    return IconComponent ? <IconComponent className="h-6 w-6 inline-block mr-2 text-amber-600 flex-shrink-0" /> : <Icons.Gift className="h-6 w-6 inline-block mr-2 text-amber-600 flex-shrink-0"/>;
   };
 
   const renderContent = () => {
@@ -133,8 +140,8 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
   return (
     <div
       className={cn(
-        'flex items-end space-x-2 group animate-fade-in w-fit', // Changed max-w to w-fit for natural sizing
-        isUser ? 'justify-end self-end ml-auto pl-[10%] sm:pl-[15%]' : 'justify-start self-start mr-auto pr-[10%] sm:pr-[15%]' // Added padding to opposite side to prevent full width
+        'flex items-end space-x-2 group animate-fade-in w-fit', 
+        isUser ? 'justify-end self-end ml-auto pl-[10%] sm:pl-[15%]' : 'justify-start self-start mr-auto pr-[10%] sm:pr-[15%]'
       )}
     >
       {!isUser && (
@@ -162,7 +169,7 @@ export function ChatMessage({ message, characterBubbleStyle, aiAvatarUrl, userDi
       </div>
        {isUser && ( 
          <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-secondary/30 group-hover:border-secondary transition-all">
-            <AvatarImage src={userProfile?.avatarUrl || user?.photoURL || undefined} />
+            <AvatarImage src={userProfileAvatarUrl || userFirebaseAuthAvatarUrl || undefined} />
             <AvatarFallback className="bg-secondary/20 text-secondary-foreground text-sm font-semibold">
               {userDisplayName ? getInitials(userDisplayName) : <User size={18}/>}
             </AvatarFallback>
