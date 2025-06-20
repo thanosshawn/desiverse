@@ -86,9 +86,9 @@ export default {
         '3xl': 'calc(var(--radius) + 16px)', 
       },
       boxShadow: { 
-        'glow-primary': '0 0 20px 4px hsl(var(--primary) / 0.6)', /* Enhanced glow */
-        'glow-accent': '0 0 20px 4px hsl(var(--accent) / 0.5)', /* Enhanced glow */
-        'soft-lg': '0 8px 20px -4px rgba(0, 0, 0, 0.25), 0 3px 8px -3px rgba(0, 0, 0, 0.25)', /* Adjusted for dark theme visibility */
+        'glow-primary': '0 0 20px 4px hsl(var(--primary) / 0.6)', 
+        'glow-accent': '0 0 20px 4px hsl(var(--accent) / 0.5)', 
+        'soft-lg': '0 8px 20px -4px rgba(0, 0, 0, 0.25), 0 3px 8px -3px rgba(0, 0, 0, 0.25)', 
       },
       keyframes: {
         'accordion-down': {
@@ -109,17 +109,17 @@ export default {
         },
         pulseSpinner: {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-          '50%': { opacity: '0.7', transform: 'scale(0.95)' }, /* Adjusted for dark */
+          '50%': { opacity: '0.7', transform: 'scale(0.95)' }, 
         },
         heartbeat: {
           '0%': { transform: 'scale(1)' },
-          '14%': { transform: 'scale(1.25)' }, /* More pronounced beat */
+          '14%': { transform: 'scale(1.25)' }, 
           '28%': { transform: 'scale(1)' },
           '42%': { transform: 'scale(1.25)' },
           '70%': { transform: 'scale(1)' }
         },
         "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(10px)" }, /* Smoother entry */
+          "0%": { opacity: "0", transform: "translateY(10px)" }, 
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "fade-out": {
@@ -127,20 +127,20 @@ export default {
           "100%": { opacity: "0" },
         },
         "slide-in-from-bottom": {
-          "0%": { transform: "translateY(30px)", opacity: "0" }, /* More noticeable slide */
+          "0%": { transform: "translateY(30px)", opacity: "0" }, 
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
         "hue-rotate-glow": { 
-          "0%": { filter: "hue-rotate(0deg) drop-shadow(0 0 10px hsl(var(--primary) / 0.75))" }, /* More glow */
-          "50%": { filter: "hue-rotate(15deg) drop-shadow(0 0 16px hsl(var(--primary) / 0.85))" }, /* More glow */
-          "100%": { filter: "hue-rotate(0deg) drop-shadow(0 0 10px hsl(var(--primary) / 0.75))" }, /* More glow */
+          "0%": { filter: "hue-rotate(0deg) drop-shadow(0 0 10px hsl(var(--primary) / 0.75))" }, 
+          "50%": { filter: "hue-rotate(15deg) drop-shadow(0 0 16px hsl(var(--primary) / 0.85))" }, 
+          "100%": { filter: "hue-rotate(0deg) drop-shadow(0 0 10px hsl(var(--primary) / 0.75))" }, 
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.25s ease-out',
         'accordion-up': 'accordion-up 0.25s ease-out',
         'pulse-spinner': 'pulseSpinner 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'heartbeat': 'heartbeat 1s ease-in-out infinite', /* Faster heartbeat */
+        'heartbeat': 'heartbeat 1s ease-in-out infinite', 
         "fade-in": "fade-in 0.5s ease-out forwards",
         "fade-out": "fade-out 0.5s ease-in forwards",
         "slide-in-from-bottom": "slide-in-from-bottom 0.6s ease-out forwards",
@@ -149,7 +149,7 @@ export default {
       backgroundImage: { 
         'gradient-primary-accent': 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)))',
         'gradient-secondary-muted': 'linear-gradient(to right, hsl(var(--secondary)), hsl(var(--muted)))',
-        'gradient-header': 'linear-gradient(110deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%)', /* Updated for romantic red/yellow, opaque */
+        'gradient-header': 'linear-gradient(110deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)', /* Updated to use primary (red) and secondary (violet) */
       }
     },
   },
