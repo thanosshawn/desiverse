@@ -7,142 +7,142 @@
 
 @layer base {
   :root {
-    /* Light Mode - Colorful Bright (Refined & Opaque) */
-    --background: hsl(35 100% 98%); 
-    --foreground: hsl(240 10% 20%); 
+    /* Enforcing Dark Theme Values for :root (default light) */
+    --background: hsl(240 18% 10%); /* Very Dark Blue/Black */
+    --foreground: hsl(35 100% 96%); /* Off-white / Light Beige */
     
-    --card: hsl(0 0% 100%); /* Fully Opaque */
-    --card-foreground: hsl(240 10% 20%);
+    --card: hsl(240 18% 14%); /* Slightly lighter dark for cards */
+    --card-foreground: hsl(35 100% 95%);
     
-    --popover: hsl(0 0% 100%); /* Fully Opaque */
-    --popover-foreground: hsl(240 10% 20%);
+    --popover: hsl(240 18% 13%); /* Dark for popovers */
+    --popover-foreground: hsl(35 100% 95%);
     
-    --primary: hsl(325 90% 55%); 
+    --primary: hsl(325 100% 68%); /* Vibrant Pink */
+    --primary-foreground: hsl(0 0% 100%); /* White */
+    
+    --secondary: hsl(175 85% 50%); /* Bright Teal */
+    --secondary-foreground: hsl(175 100% 10%); /* Dark Teal for contrast on bright secondary */
+    
+    --muted: hsl(240 12% 20%); /* Darker Muted */
+    --muted-foreground: hsl(35 30% 75%); /* Light Muted Text */
+    
+    --accent: hsl(50 100% 60%); /* Bright Yellow/Gold */
+    --accent-foreground: hsl(50 90% 15%); /* Dark Yellow for contrast */
+    
+    --destructive: hsl(0 80% 60%); /* Bright Red */
+    --destructive-foreground: hsl(0 0% 100%); /* White */
+    
+    --border: hsl(240 12% 25%); /* Subtle Dark Border */
+    --input: hsl(240 12% 16%); /* Dark Input Background */
+    --ring: hsl(325 100% 68%); /* Ring matches primary */
+    
+    --chart-1: 325 100% 68%; 
+    --chart-2: 175 85% 50%;  
+    --chart-3: 50 100% 60%;   
+    --chart-4: 250 65% 75%;  
+    --chart-5: 25 100% 65%;  
+    
+    --radius: 0.85rem;
+
+    --sidebar-background: hsl(240 18% 9%);
+    --sidebar-foreground: hsl(35 100% 92%);
+    --sidebar-primary: hsl(325 95% 63%);
+    --sidebar-primary-foreground: hsl(0 0% 100%);
+    --sidebar-accent: hsl(240 18% 12%);
+    --sidebar-accent-foreground: hsl(325 95% 70%);
+    --sidebar-border: hsl(240 12% 18%);
+    --sidebar-ring: hsl(325 95% 63%);
+  }
+
+  .dark {
+    /* Dark Mode - Ensuring it uses the same values as :root for consistency */
+    --background: hsl(240 18% 10%); 
+    --foreground: hsl(35 100% 96%); 
+    
+    --card: hsl(240 18% 14%); 
+    --card-foreground: hsl(35 100% 95%);
+    
+    --popover: hsl(240 18% 13%); 
+    --popover-foreground: hsl(35 100% 95%);
+    
+    --primary: hsl(325 100% 68%); 
     --primary-foreground: hsl(0 0% 100%); 
     
-    --secondary: hsl(175 75% 45%); 
-    --secondary-foreground: hsl(0 0% 100%); 
+    --secondary: hsl(175 85% 50%); 
+    --secondary-foreground: hsl(175 100% 10%); 
     
-    --muted: hsl(35 100% 96%); 
-    --muted-foreground: hsl(35 30% 55%);
+    --muted: hsl(240 12% 20%);
+    --muted-foreground: hsl(35 30% 75%); 
     
     --accent: hsl(50 100% 60%); 
-    --accent-foreground: hsl(50 90% 28%); 
+    --accent-foreground: hsl(50 90% 15%); 
     
     --destructive: hsl(0 80% 60%); 
     --destructive-foreground: hsl(0 0% 100%);
     
-    --border: hsl(35 50% 90%); /* Slightly adjusted for definition */
-    --input: hsl(35 60% 97%); 
-    --ring: hsl(325 90% 60%); 
-    
-    --chart-1: 325 90% 55%; 
-    --chart-2: 175 75% 45%;  
+    --border: hsl(240 12% 25%); 
+    --input: hsl(240 12% 16%); 
+    --ring: hsl(325 100% 68%); 
+
+    --chart-1: 325 100% 68%; 
+    --chart-2: 175 85% 50%;  
     --chart-3: 50 100% 60%;   
-    --chart-4: 250 65% 70%;  
-    --chart-5: 25 100% 62%;  
-    
-    --radius: 0.85rem;
+    --chart-4: 250 65% 75%;  
+    --chart-5: 25 100% 65%;
 
-    --sidebar-background: hsl(35 85% 97%); 
-    --sidebar-foreground: hsl(240 10% 28%); 
-    --sidebar-primary: hsl(325 88% 50%); 
+    --sidebar-background: hsl(240 18% 9%);
+    --sidebar-foreground: hsl(35 100% 92%);
+    --sidebar-primary: hsl(325 95% 63%);
     --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(35 100% 95%); 
-    --sidebar-accent-foreground: hsl(325 88% 50%);
-    --sidebar-border: hsl(35 50% 90%);
-    --sidebar-ring: hsl(325 88% 50%);
+    --sidebar-accent: hsl(240 18% 12%);
+    --sidebar-accent-foreground: hsl(325 95% 70%);
+    --sidebar-border: hsl(240 12% 18%);
+    --sidebar-ring: hsl(325 95% 63%);
   }
 
-  .dark {
-    /* Dark Mode - Colorful Bright (Neon/Vibrant against Dark - Opaque) */
-    --background: hsl(240 18% 12%); 
-    --foreground: hsl(35 100% 94%); 
+  .pink { /* Refreshed Pink Theme - Now also points to Dark Values */
+    --background: hsl(240 18% 10%); 
+    --foreground: hsl(35 100% 96%); 
     
-    --card: hsl(240 18% 16%); /* Fully Opaque */
-    --card-foreground: hsl(35 100% 94%);
+    --card: hsl(240 18% 14%); 
+    --card-foreground: hsl(35 100% 95%);
     
-    --popover: hsl(240 18% 15%); /* Fully Opaque */
-    --popover-foreground: hsl(35 100% 94%);
+    --popover: hsl(240 18% 13%); 
+    --popover-foreground: hsl(35 100% 95%);
     
-    --primary: hsl(325 100% 70%); 
+    --primary: hsl(325 100% 68%); 
     --primary-foreground: hsl(0 0% 100%); 
     
-    --secondary: hsl(175 85% 55%); 
-    --secondary-foreground: hsl(175 100% 12%); 
+    --secondary: hsl(175 85% 50%); 
+    --secondary-foreground: hsl(175 100% 10%); 
     
-    --muted: hsl(240 12% 22%);
-    --muted-foreground: hsl(35 30% 78%); 
+    --muted: hsl(240 12% 20%);
+    --muted-foreground: hsl(35 30% 75%); 
     
-    --accent: hsl(50 100% 65%); 
-    --accent-foreground: hsl(50 90% 18%); 
+    --accent: hsl(50 100% 60%); 
+    --accent-foreground: hsl(50 90% 15%); 
     
-    --destructive: hsl(0 80% 65%); 
+    --destructive: hsl(0 80% 60%); 
     --destructive-foreground: hsl(0 0% 100%);
     
-    --border: hsl(240 12% 28%); /* Slightly adjusted for definition */
-    --input: hsl(240 12% 18%); 
-    --ring: hsl(325 100% 70%); 
+    --border: hsl(240 12% 25%); 
+    --input: hsl(240 12% 16%); 
+    --ring: hsl(325 100% 68%);  
 
-    --chart-1: 325 100% 70%; 
-    --chart-2: 175 85% 55%;  
-    --chart-3: 50 100% 65%;   
-    --chart-4: 250 55% 75%;  
-    --chart-5: 25 100% 70%;
+    --chart-1: 325 100% 68%; 
+    --chart-2: 175 85% 50%;  
+    --chart-3: 50 100% 60%;   
+    --chart-4: 250 65% 75%;  
+    --chart-5: 25 100% 65%;
 
-    --sidebar-background: hsl(240 18% 10%);
-    --sidebar-foreground: hsl(35 100% 90%);
-    --sidebar-primary: hsl(325 95% 65%);
+    --sidebar-background: hsl(240 18% 9%);
+    --sidebar-foreground: hsl(35 100% 92%);
+    --sidebar-primary: hsl(325 95% 63%);
     --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(240 18% 14%);
-    --sidebar-accent-foreground: hsl(325 95% 75%);
-    --sidebar-border: hsl(240 12% 20%);
-    --sidebar-ring: hsl(325 95% 65%);
-  }
-
-  .pink { /* Refreshed Pink Theme - Bright & Playful (Opaque) */
-    --background: hsl(330 100% 98%); 
-    --foreground: hsl(330 60% 30%); 
-    
-    --card: hsl(330 100% 99.5%); /* Fully Opaque */
-    --card-foreground: hsl(330 60% 30%);
-    
-    --popover: hsl(330 100% 99.5%); /* Fully Opaque */
-    --popover-foreground: hsl(330 60% 30%);
-    
-    --primary: hsl(325 90% 60%); 
-    --primary-foreground: hsl(0 0% 100%); 
-    
-    --secondary: hsl(50 100% 65%); 
-    --secondary-foreground: hsl(50 80% 25%); 
-    
-    --muted: hsl(330 100% 96%); 
-    --muted-foreground: hsl(330 40% 60%);
-    
-    --accent: hsl(175 75% 50%); 
-    --accent-foreground: hsl(0 0% 100%); 
-    
-    --destructive: hsl(0 80% 63%); 
-    --destructive-foreground: hsl(0 0% 100%);
-    
-    --border: hsl(330 80% 92%); /* Slightly adjusted for definition */
-    --input: hsl(330 90% 97%); 
-    --ring: hsl(325 90% 60%); 
-
-    --chart-1: 325 90% 60%; 
-    --chart-2: 175 75% 50%;  
-    --chart-3: 50 100% 65%;   
-    --chart-4: 290 65% 80%;  
-    --chart-5: 330 55% 82%; 
-
-    --sidebar-background: hsl(330 90% 97%);
-    --sidebar-foreground: hsl(330 60% 35%);
-    --sidebar-primary: hsl(325 88% 55%);
-    --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(330 100% 95%);
-    --sidebar-accent-foreground: hsl(325 88% 55%);
-    --sidebar-border: hsl(330 80% 92%);
-    --sidebar-ring: hsl(325 88% 55%);
+    --sidebar-accent: hsl(240 18% 12%);
+    --sidebar-accent-foreground: hsl(325 95% 70%);
+    --sidebar-border: hsl(240 12% 18%);
+    --sidebar-ring: hsl(325 95% 63%);
   }
 }
 
@@ -158,17 +158,12 @@
     @apply font-headline;
   }
   
+  /* Adjusted text shadow for dark theme */
   .font-headline { 
-    text-shadow: 1px 1px 3px hsla(var(--primary), 0.15);
-  }
-  .dark .font-headline {
     text-shadow: 1px 1px 4px hsla(var(--primary), 0.3);
   }
-  .pink .font-headline {
-    text-shadow: 1px 1px 4px hsla(var(--primary), 0.25);
-  }
 
-  /* Refined global gradient background overlay */
+  /* Refined global gradient background overlay for dark theme */
   body::before {
     content: '';
     position: fixed;
@@ -177,18 +172,10 @@
     right: 0;
     bottom: 0;
     z-index: -1; 
-    background-image: linear-gradient(135deg, hsla(var(--primary), 0.08), hsla(var(--secondary), 0.08) 45%, hsla(var(--accent), 0.08) 85%, hsla(var(--background), 0.03));
-    opacity: 0.75;
+    background-image: linear-gradient(135deg, hsla(var(--primary), 0.12), hsla(var(--secondary), 0.12) 45%, hsla(var(--accent), 0.12) 85%, hsla(var(--background), 0.07));
+    opacity: 0.6; /* Slightly increased opacity for dark theme richness */
     transition: opacity 0.5s ease-in-out;
     pointer-events: none;
-  }
-  .dark body::before {
-    background-image: linear-gradient(135deg, hsla(var(--primary), 0.1), hsla(var(--secondary), 0.1) 45%, hsla(var(--accent), 0.1) 85%, hsla(var(--background), 0.05));
-    opacity: 0.55;
-  }
-   .pink body::before {
-    background-image: linear-gradient(135deg, hsla(var(--primary), 0.09), hsla(var(--secondary), 0.08) 45%, hsla(var(--accent), 0.08) 85%, hsla(var(--background), 0.03));
-    opacity: 0.65;
   }
 }
 
@@ -202,7 +189,7 @@
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.8); 
+    background: hsl(var(--primary) / 0.7); /* Slightly less opaque for dark theme */
     border-radius: 10px;
     border: 2px solid transparent;
     background-clip: content-box;

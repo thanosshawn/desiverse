@@ -86,9 +86,9 @@ export default {
         '3xl': 'calc(var(--radius) + 16px)', 
       },
       boxShadow: { 
-        'glow-primary': '0 0 18px 3px hsl(var(--primary) / 0.45)',
-        'glow-accent': '0 0 18px 3px hsl(var(--accent) / 0.35)',
-        'soft-lg': '0 10px 20px -5px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.08)',
+        'glow-primary': '0 0 18px 3px hsl(var(--primary) / 0.55)', /* Increased intensity for dark theme */
+        'glow-accent': '0 0 18px 3px hsl(var(--accent) / 0.45)', /* Increased intensity */
+        'soft-lg': '0 8px 16px -4px rgba(0, 0, 0, 0.2), 0 3px 6px -3px rgba(0, 0, 0, 0.2)', /* Adjusted for dark theme visibility */
       },
       keyframes: {
         'accordion-down': {
@@ -109,7 +109,7 @@ export default {
         },
         pulseSpinner: {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-          '50%': { opacity: '0.5', transform: 'scale(0.9)' },
+          '50%': { opacity: '0.6', transform: 'scale(0.95)' }, /* Adjusted for dark */
         },
         heartbeat: {
           '0%': { transform: 'scale(1)' },
@@ -130,10 +130,10 @@ export default {
           "0%": { transform: "translateY(25px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
-        "hue-rotate-glow": {
-          "0%": { filter: "hue-rotate(0deg) drop-shadow(0 0 6px hsl(var(--primary)))" },
-          "50%": { filter: "hue-rotate(12deg) drop-shadow(0 0 12px hsl(var(--primary)))" },
-          "100%": { filter: "hue-rotate(0deg) drop-shadow(0 0 6px hsl(var(--primary)))" },
+        "hue-rotate-glow": { /* Adjusted for more visible glow on dark */
+          "0%": { filter: "hue-rotate(0deg) drop-shadow(0 0 8px hsl(var(--primary) / 0.7))" },
+          "50%": { filter: "hue-rotate(12deg) drop-shadow(0 0 14px hsl(var(--primary) / 0.8))" },
+          "100%": { filter: "hue-rotate(0deg) drop-shadow(0 0 8px hsl(var(--primary) / 0.7))" },
         }
       },
       animation: {
@@ -149,7 +149,7 @@ export default {
       backgroundImage: { 
         'gradient-primary-accent': 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)))',
         'gradient-secondary-muted': 'linear-gradient(to right, hsl(var(--secondary)), hsl(var(--muted)))',
-        'gradient-header': 'linear-gradient(110deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--accent)) 100%)',
+        'gradient-header': 'linear-gradient(110deg, hsl(var(--primary) / 0.85) 0%, hsl(var(--secondary) / 0.85) 50%, hsl(var(--accent) / 0.85) 100%)', /* Darker, richer gradient for header on black theme */
       }
     },
   },
