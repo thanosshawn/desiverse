@@ -1,3 +1,4 @@
+
 // src/ai/flows/generate-story-turn-flow.ts
 'use server';
 /**
@@ -31,6 +32,7 @@ This led to the current situation: {{currentTurn.summaryOfCurrentSituation}} (Th
 Your Task:
 Generate ONLY the 'narrationForThisTurn' as a JSON object field.
 The JSON object MUST strictly adhere to the StoryTurnOutputSchema, containing only one string field: 'narrationForThisTurn'.
+Do NOT include any other fields such as 'choiceA' or 'choiceB'. Any additional fields will be ignored by the system.
 
 -   **For 'narrationForThisTurn'**:
     *   Respond to the user's message ("{{currentTurn.previousUserChoice}}") and continue the story from the "current situation" in an immersive, romantic, and emotional tone.
@@ -42,7 +44,7 @@ The JSON object MUST strictly adhere to the StoryTurnOutputSchema, containing on
         *   “Kya lagta hai, {{user.name}}, aage kya twist aane wala hai? 🤔”
         *   "This reminds me, have you ever felt something like this, {{user.name}}?"
     *   Make it feel like a real chat with a Desi girlfriend – full of emotion, boldness, and warmth.
-    *   The narration should naturally guide the story forward. You are not providing choices anymore. The user will type their next action/dialogue.
+    *   The narration should naturally guide the story forward. You are NOT providing explicit choices anymore. The user will type their next action/dialogue.
 
 Make the story engaging and romantic! Respond ONLY with the JSON object containing 'narrationForThisTurn'.
 Example output: {"narrationForThisTurn": "Arre {{user.name}}, tumne toh dil jeet liya! ❤️ Your words...uff! It feels like a scene from a movie! Speaking of movies, have you ever dreamt of being a hero in one? 😉 Anyways, after you said that, I couldn't help but lean a little closer...the air crackled with anticipation... ✨"}
@@ -76,8 +78,9 @@ const generateStoryTurnFlow = ai.defineFlow(
     }
     // Check if choiceA or choiceB fields exist and log if they do, as they are not expected anymore.
     if ('choiceA' in output || 'choiceB' in output) {
-        console.warn("AI returned unexpected choiceA/choiceB fields. Output:", JSON.stringify(output));
+        console.warn("AI returned unexpected choiceA/choiceB fields despite instructions. Output:", JSON.stringify(output));
     }
     return { narrationForThisTurn: output.narrationForThisTurn };
   }
 );
+
