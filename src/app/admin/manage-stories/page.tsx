@@ -1,3 +1,4 @@
+
 // src/app/admin/manage-stories/page.tsx
 'use client';
 
@@ -72,7 +73,7 @@ export default function ManageStoriesPage() {
     } else if (authStatusChecked && !isAdminLoggedIn) {
         setIsLoading(false);
     }
-  }, [isAdminLoggedIn, authStatusChecked]); // Removed toast from deps
+  }, [isAdminLoggedIn, authStatusChecked, toast]); // Added toast to deps as it's used in fetchStories potentially
 
   const handleLogout = () => {
     localStorage.removeItem('isAdminLoggedIn');
@@ -270,5 +271,3 @@ export default function ManageStoriesPage() {
     </div>
   );
 }
-
-```
