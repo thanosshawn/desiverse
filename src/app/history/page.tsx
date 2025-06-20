@@ -142,7 +142,7 @@ export default function ChatHistoryPage() {
             <p className="text-base md:text-lg font-body text-muted-foreground animate-slide-in-from-bottom">Relive your favorite moments and spicy conversations! 🔥</p>
         </div>
         
-        <div className="mb-6 md:mb-8 sticky top-18 md:top-20 z-30 bg-card/85 backdrop-blur-lg p-4 rounded-2xl shadow-xl border border-border/40">
+        <div className="mb-6 md:mb-8 sticky top-18 md:top-20 z-30 bg-card p-4 rounded-2xl shadow-xl border border-border">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
@@ -173,8 +173,8 @@ export default function ChatHistoryPage() {
             <Card 
                 key={session.characterId} 
                 className={cn(
-                    "bg-card/90 backdrop-blur-md shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-primary/30 border-2 animate-slide-in-from-bottom",
-                    session.isFavorite ? 'border-yellow-400/70 shadow-yellow-400/20' : 'border-transparent hover:border-primary/20'
+                    "bg-card shadow-xl rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-primary/30 border-2 animate-slide-in-from-bottom",
+                    session.isFavorite ? 'border-yellow-400/70 shadow-yellow-400/20' : 'border-border hover:border-primary/20'
                 )}
             >
               <CardContent className="p-0">
@@ -214,7 +214,7 @@ export default function ChatHistoryPage() {
                                             <Trash2 className="h-4 w-4" />
                                         </Button>
                                     </AlertDialogTrigger>
-                                    <AlertDialogContent className="rounded-2xl shadow-2xl border-border/30 bg-card">
+                                    <AlertDialogContent className="rounded-2xl shadow-2xl border-border bg-card">
                                         <AlertDialogHeader>
                                         <AlertDialogTitle className="font-headline text-xl text-primary">Are you absolutely sure?</AlertDialogTitle>
                                         <AlertDialogDescription className="font-body text-muted-foreground">

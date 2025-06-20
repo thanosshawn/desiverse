@@ -7,32 +7,32 @@
 
 @layer base {
   :root {
-    /* Light Mode - Colorful Bright (Refined) */
+    /* Light Mode - Colorful Bright (Refined & Opaque) */
     --background: hsl(35 100% 98%); 
     --foreground: hsl(240 10% 20%); 
     
-    --card: hsl(0 0% 100%); 
+    --card: hsl(0 0% 100%); /* Fully Opaque */
     --card-foreground: hsl(240 10% 20%);
     
-    --popover: hsl(0 0% 100%);
+    --popover: hsl(0 0% 100%); /* Fully Opaque */
     --popover-foreground: hsl(240 10% 20%);
     
-    --primary: hsl(325 90% 55%); /* Maintained Bright Fuchsia */
+    --primary: hsl(325 90% 55%); 
     --primary-foreground: hsl(0 0% 100%); 
     
-    --secondary: hsl(175 75% 45%); /* Slightly deeper Teal */
+    --secondary: hsl(175 75% 45%); 
     --secondary-foreground: hsl(0 0% 100%); 
     
-    --muted: hsl(35 100% 96%); /* Lighter Sunshine Yellow */
+    --muted: hsl(35 100% 96%); 
     --muted-foreground: hsl(35 30% 55%);
     
-    --accent: hsl(50 100% 60%); /* Vibrant Sunny Yellow/Gold */
+    --accent: hsl(50 100% 60%); 
     --accent-foreground: hsl(50 90% 28%); 
     
     --destructive: hsl(0 80% 60%); 
     --destructive-foreground: hsl(0 0% 100%);
     
-    --border: hsl(35 50% 92%); /* Softer Yellowish Border */
+    --border: hsl(35 50% 90%); /* Slightly adjusted for definition */
     --input: hsl(35 60% 97%); 
     --ring: hsl(325 90% 60%); 
     
@@ -42,7 +42,7 @@
     --chart-4: 250 65% 70%;  
     --chart-5: 25 100% 62%;  
     
-    --radius: 0.85rem; /* Slightly more rounded default */
+    --radius: 0.85rem;
 
     --sidebar-background: hsl(35 85% 97%); 
     --sidebar-foreground: hsl(240 10% 28%); 
@@ -55,32 +55,32 @@
   }
 
   .dark {
-    /* Dark Mode - Colorful Bright (Neon/Vibrant against Dark - Refined) */
+    /* Dark Mode - Colorful Bright (Neon/Vibrant against Dark - Opaque) */
     --background: hsl(240 18% 12%); 
     --foreground: hsl(35 100% 94%); 
     
-    --card: hsl(240 18% 16%); 
+    --card: hsl(240 18% 16%); /* Fully Opaque */
     --card-foreground: hsl(35 100% 94%);
     
-    --popover: hsl(240 18% 15%);
+    --popover: hsl(240 18% 15%); /* Fully Opaque */
     --popover-foreground: hsl(35 100% 94%);
     
-    --primary: hsl(325 100% 70%); /* Brighter Fuchsia for dark mode */
+    --primary: hsl(325 100% 70%); 
     --primary-foreground: hsl(0 0% 100%); 
     
-    --secondary: hsl(175 85% 55%); /* Brighter Teal for dark mode */
+    --secondary: hsl(175 85% 55%); 
     --secondary-foreground: hsl(175 100% 12%); 
     
     --muted: hsl(240 12% 22%);
     --muted-foreground: hsl(35 30% 78%); 
     
-    --accent: hsl(50 100% 65%); /* Brighter Sunny Yellow for dark mode */
+    --accent: hsl(50 100% 65%); 
     --accent-foreground: hsl(50 90% 18%); 
     
     --destructive: hsl(0 80% 65%); 
     --destructive-foreground: hsl(0 0% 100%);
     
-    --border: hsl(240 12% 25%); 
+    --border: hsl(240 12% 28%); /* Slightly adjusted for definition */
     --input: hsl(240 12% 18%); 
     --ring: hsl(325 100% 70%); 
 
@@ -100,32 +100,32 @@
     --sidebar-ring: hsl(325 95% 65%);
   }
 
-  .pink { /* Refreshed Pink Theme - Bright & Playful (Refined) */
+  .pink { /* Refreshed Pink Theme - Bright & Playful (Opaque) */
     --background: hsl(330 100% 98%); 
     --foreground: hsl(330 60% 30%); 
     
-    --card: hsl(330 100% 99.5%); 
+    --card: hsl(330 100% 99.5%); /* Fully Opaque */
     --card-foreground: hsl(330 60% 30%);
     
-    --popover: hsl(330 100% 99.5%);
+    --popover: hsl(330 100% 99.5%); /* Fully Opaque */
     --popover-foreground: hsl(330 60% 30%);
     
-    --primary: hsl(325 90% 60%); /* Consistent Bright Fuchsia from main theme */
+    --primary: hsl(325 90% 60%); 
     --primary-foreground: hsl(0 0% 100%); 
     
-    --secondary: hsl(50 100% 65%); /* Sunny Yellow as secondary */
+    --secondary: hsl(50 100% 65%); 
     --secondary-foreground: hsl(50 80% 25%); 
     
     --muted: hsl(330 100% 96%); 
     --muted-foreground: hsl(330 40% 60%);
     
-    --accent: hsl(175 75% 50%); /* Teal as accent */
+    --accent: hsl(175 75% 50%); 
     --accent-foreground: hsl(0 0% 100%); 
     
     --destructive: hsl(0 80% 63%); 
     --destructive-foreground: hsl(0 0% 100%);
     
-    --border: hsl(330 80% 94%); 
+    --border: hsl(330 80% 92%); /* Slightly adjusted for definition */
     --input: hsl(330 90% 97%); 
     --ring: hsl(325 90% 60%); 
 
@@ -152,20 +152,20 @@
   }
   body {
     @apply bg-background text-foreground font-body antialiased;
-    transition: background-color 0.4s ease-in-out, color 0.4s ease-in-out; /* Smoother transition */
+    transition: background-color 0.4s ease-in-out, color 0.4s ease-in-out;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline;
   }
   
-  .font-headline { /* Slightly softer shadow for headlines */
-    text-shadow: 1px 1px 3px hsla(var(--primary), 0.1);
+  .font-headline { 
+    text-shadow: 1px 1px 3px hsla(var(--primary), 0.15);
   }
   .dark .font-headline {
-    text-shadow: 1px 1px 4px hsla(var(--primary), 0.25);
+    text-shadow: 1px 1px 4px hsla(var(--primary), 0.3);
   }
   .pink .font-headline {
-    text-shadow: 1px 1px 4px hsla(var(--primary), 0.2);
+    text-shadow: 1px 1px 4px hsla(var(--primary), 0.25);
   }
 
   /* Refined global gradient background overlay */
@@ -176,34 +176,33 @@
     left: 0;
     right: 0;
     bottom: 0;
-    z-index: -1; /* Behind everything */
-    background-image: linear-gradient(135deg, hsla(var(--primary), 0.05), hsla(var(--secondary), 0.05) 45%, hsla(var(--accent), 0.05) 85%, hsla(var(--background), 0.02));
-    opacity: 0.65;
+    z-index: -1; 
+    background-image: linear-gradient(135deg, hsla(var(--primary), 0.08), hsla(var(--secondary), 0.08) 45%, hsla(var(--accent), 0.08) 85%, hsla(var(--background), 0.03));
+    opacity: 0.75;
     transition: opacity 0.5s ease-in-out;
     pointer-events: none;
   }
   .dark body::before {
-    background-image: linear-gradient(135deg, hsla(var(--primary), 0.08), hsla(var(--secondary), 0.08) 45%, hsla(var(--accent), 0.08) 85%, hsla(var(--background), 0.03));
-    opacity: 0.45;
+    background-image: linear-gradient(135deg, hsla(var(--primary), 0.1), hsla(var(--secondary), 0.1) 45%, hsla(var(--accent), 0.1) 85%, hsla(var(--background), 0.05));
+    opacity: 0.55;
   }
    .pink body::before {
-    background-image: linear-gradient(135deg, hsla(var(--primary), 0.07), hsla(var(--secondary), 0.06) 45%, hsla(var(--accent), 0.06) 85%, hsla(var(--background), 0.02));
-    opacity: 0.55;
+    background-image: linear-gradient(135deg, hsla(var(--primary), 0.09), hsla(var(--secondary), 0.08) 45%, hsla(var(--accent), 0.08) 85%, hsla(var(--background), 0.03));
+    opacity: 0.65;
   }
 }
 
-/* Custom scrollbar for a more aesthetic look */
 @layer utilities {
   ::-webkit-scrollbar {
-    width: 8px; /* Slightly thinner */
+    width: 8px; 
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: hsl(var(--muted) / 0.4); /* More transparent track */
+    background: hsl(var(--muted) / 0.6); 
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.7); /* More transparent thumb */
+    background: hsl(var(--primary) / 0.8); 
     border-radius: 10px;
     border: 2px solid transparent;
     background-clip: content-box;
@@ -212,13 +211,11 @@
     background: hsl(var(--primary));
   }
 
-  /* Global transition for interactive elements */
   .transition-interactive {
     @apply transition-all duration-200 ease-in-out;
   }
 }
 
-/* Additional animation classes if needed for page transitions or specific elements */
 @layer utilities {
   .animate-slide-up {
     animation: slide-up 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;

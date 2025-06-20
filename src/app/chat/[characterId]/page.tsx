@@ -56,10 +56,10 @@ export default function ChatPage() {
       const rootStyle = getComputedStyle(htmlEl);
       const bgHslString = rootStyle.getPropertyValue('--background').trim();
       const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?(?:\s*\))?/);
-      let overlayColor = 'hsla(var(--background), 0.75)'; // Slightly less transparent
+      let overlayColor = 'hsla(var(--background), 0.92)'; // Increased opacity for better readability
 
       if (hslMatch && hslMatch.length >= 4) {
-        const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.75 : 0.75; 
+        const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.92 : 0.92; 
         overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, ${alpha})`;
       }
       
@@ -73,7 +73,6 @@ export default function ChatPage() {
         htmlEl.style.setProperty('--chat-page-initial-bg-image', `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`);
       }
     } else {
-      // Ensure fallback to theme background if no image
       bodyEl.style.backgroundImage = 'var(--background)'; 
       htmlEl.style.removeProperty('--chat-page-initial-bg-image');
     }
@@ -361,7 +360,7 @@ export default function ChatPage() {
         <Header />
         <div className="flex-grow flex flex-col items-center justify-center text-center p-4">
           <Loader2 className="h-16 w-16 animate-spin text-primary mb-4" />
-          <p className="text-xl font-headline text-muted-foreground bg-card/80 p-4 rounded-2xl shadow-lg">
+          <p className="text-xl font-headline text-muted-foreground bg-card p-4 rounded-2xl shadow-lg border border-border">
             Thoda intezaar... <Sparkles className="inline h-6 w-6 text-yellow-400 animate-pulse" /> Aapki chat {currentCharacterMeta?.name || 'aapki Bae'} ke saath load ho rahi hai! 💖
           </p>
         </div>

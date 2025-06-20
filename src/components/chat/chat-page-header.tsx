@@ -35,7 +35,7 @@ export function ChatPageHeader({
   router,
 }: ChatPageHeaderProps) {
   return (
-    <div className="bg-card/80 backdrop-blur-md shadow-lg border-b border-border/30 sticky top-16 md:top-18 z-40">
+    <div className="bg-card shadow-lg border-b border-border sticky top-16 md:top-18 z-40">
       <div className="container mx-auto flex items-center justify-between px-3 py-2.5">
         <div className="flex items-center gap-2 overflow-hidden">
           <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-primary hover:bg-primary/10 rounded-full flex-shrink-0">
@@ -67,10 +67,9 @@ export function ChatPageHeader({
                 <MoreVertical className="h-5 w-5"/>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="rounded-xl shadow-lg border-border/30 bg-card">
+            <DropdownMenuContent align="end" className="rounded-xl shadow-lg border-border bg-popover">
               <DropdownMenuItem onClick={() => router.push('/')} className="cursor-pointer focus:bg-primary/10">Change Character</DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer focus:bg-primary/10">Report (Coming Soon)</DropdownMenuItem>
-              {/* Add more actions here if needed */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -27,7 +27,7 @@ const StoryCardComponent = ({ story, character, tagColors }: StoryCardProps) => 
 
   return (
     <Card
-      className="bg-card/85 backdrop-blur-md shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.035] transition-transform duration-300 flex flex-col group hover:shadow-primary/40 animate-fade-in border-2 border-transparent hover:border-primary/30"
+      className="bg-card shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.035] transition-transform duration-300 flex flex-col group hover:shadow-primary/40 animate-fade-in border border-border hover:border-primary/30"
     >
       <CardHeader className="p-0 relative w-full aspect-[16/9.5] group-hover:shadow-glow-primary transition-shadow duration-300">
         <Image

@@ -1,3 +1,4 @@
+
 // src/components/chat/chat-layout.tsx
 'use client';
 
@@ -18,8 +19,8 @@ interface ChatLayoutProps {
   characterIsPremium?: boolean;
   userSubscriptionTier?: UserProfile['subscriptionTier'];
   userDisplayName?: string; 
-  userProfileAvatarUrl?: string | null; // Added
-  userFirebaseAuthAvatarUrl?: string | null; // Added
+  userProfileAvatarUrl?: string | null;
+  userFirebaseAuthAvatarUrl?: string | null;
 }
 
 export function ChatLayout({
@@ -33,15 +34,15 @@ export function ChatLayout({
   characterIsPremium,
   userSubscriptionTier,
   userDisplayName, 
-  userProfileAvatarUrl, // Added
-  userFirebaseAuthAvatarUrl // Added
+  userProfileAvatarUrl,
+  userFirebaseAuthAvatarUrl
 }: ChatLayoutProps) {
   
   const latestAiVideoSrcForAvatar = currentVideoMessageSrc;
 
   return (
     <div className="flex flex-col md:flex-row flex-grow overflow-hidden h-full">
-      <div className="hidden md:flex md:w-[320px] lg:w-[360px] p-4 flex-col items-center justify-start border-r border-border/20 bg-card/60 backdrop-blur-sm sticky top-0 h-full overflow-y-auto shadow-lg">
+      <div className="hidden md:flex md:w-[320px] lg:w-[360px] p-4 flex-col items-center justify-start border-r border-border bg-card sticky top-0 h-full overflow-y-auto shadow-lg">
         <ChatAvatar 
           characterName={currentCharacterName}
           staticAvatarSrc={currentCharacterAvatar}
@@ -56,8 +57,8 @@ export function ChatLayout({
             characterBubbleStyle={characterMessageBubbleStyle}
             aiAvatarUrl={currentCharacterAvatar} 
             userDisplayName={userDisplayName} 
-            userProfileAvatarUrl={userProfileAvatarUrl} // Pass down
-            userFirebaseAuthAvatarUrl={userFirebaseAuthAvatarUrl} // Pass down
+            userProfileAvatarUrl={userProfileAvatarUrl}
+            userFirebaseAuthAvatarUrl={userFirebaseAuthAvatarUrl}
         />
         <ChatInput 
             onSendMessage={onSendMessage} 

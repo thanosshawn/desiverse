@@ -190,10 +190,10 @@ function StoryPlayerContent() {
        const rootStyle = getComputedStyle(htmlEl);
        const bgHslString = rootStyle.getPropertyValue('--background').trim();
        const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?(?:\s*\))?/);
-       let overlayColor = 'hsla(var(--background), 0.88)'; 
+       let overlayColor = 'hsla(var(--background), 0.92)'; // Increased opacity for better readability
 
        if (hslMatch && hslMatch.length >= 4) {
-         const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.88 : 0.88;
+         const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.92 : 0.92;
          overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, ${alpha})`;
        }
       bodyEl.style.backgroundImage = `linear-gradient(${overlayColor}, ${overlayColor}), url(${storyCharacter.backgroundImageUrl})`;
@@ -225,8 +225,8 @@ function StoryPlayerContent() {
     <div className="flex flex-col min-h-screen bg-transparent">
       <Header />
       <main className="flex-grow container mx-auto px-2 sm:px-4 pt-20 md:pt-22 pb-8 flex flex-col items-center">
-        <Card className="w-full max-w-2xl bg-card/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden animate-fade-in border-2 border-primary/20 flex flex-col">
-          <CardHeader className="p-4 md:p-5 border-b border-border/30 bg-gradient-to-br from-primary/10 via-card to-secondary/10">
+        <Card className="w-full max-w-2xl bg-card shadow-2xl rounded-3xl overflow-hidden animate-fade-in border border-border flex flex-col">
+          <CardHeader className="p-4 md:p-5 border-b border-border/70 bg-muted/30">
             <div className="flex items-center gap-3 md:gap-4">
               <Avatar className="h-14 w-14 md:h-16 md:w-16 border-2 border-primary/50 rounded-xl shadow-md">
                 <AvatarImage src={storyCharacter.avatarUrl || story.characterAvatarSnapshot} alt={storyCharacter.name} className="rounded-lg"/>
@@ -242,7 +242,7 @@ function StoryPlayerContent() {
             {userProgress?.history?.map((turnRecord, index) => (
               <React.Fragment key={index}>
                 {turnRecord.userChoice && turnRecord.userChoice !== "Story Started" && (
-                   <div className="p-3.5 rounded-2xl bg-secondary/15 border border-secondary/25 shadow-sm animate-slide-in-from-bottom self-end ml-auto max-w-[85%]">
+                   <div className="p-3.5 rounded-2xl bg-secondary/20 border border-secondary/30 shadow-sm animate-slide-in-from-bottom self-end ml-auto max-w-[85%]">
                     <div className="flex items-start gap-3">
                       <User className="h-5 w-5 text-secondary flex-shrink-0 mt-0.5" />
                       <div>
@@ -256,7 +256,7 @@ function StoryPlayerContent() {
                 )}
 
                 {turnRecord.aiNarration && (
-                    <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/30 p-4 rounded-2xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%]">
+                    <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/50 p-4 rounded-2xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%] border border-border/50">
                     <ReactMarkdown components={{ p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} /> }}>
                         {turnRecord.aiNarration}
                     </ReactMarkdown>
@@ -264,13 +264,13 @@ function StoryPlayerContent() {
                 )}
                 
                 {index < userProgress.history!.length -1 && ( 
-                  <div className="my-1.5 border-b border-dashed border-border/40"></div>
+                  <div className="my-1.5 border-b border-dashed border-border/60"></div>
                 )}
               </React.Fragment>
             ))}
             
             {currentAiTurn?.narrationForThisTurn && (!userProgress?.history || userProgress.history.length === 0 || userProgress.history[userProgress.history.length -1].aiNarration !== currentAiTurn.narrationForThisTurn) && (
-                 <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/30 p-4 rounded-2xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%]">
+                 <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/50 p-4 rounded-2xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%] border border-border/50">
                     <ReactMarkdown components={{ p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} /> }}>
                         {currentAiTurn.narrationForThisTurn}
                     </ReactMarkdown>
@@ -283,7 +283,7 @@ function StoryPlayerContent() {
                         <AvatarImage src={storyCharacter.avatarUrl} alt={storyCharacter.name} />
                         <AvatarFallback className="bg-accent/20 text-accent text-sm font-semibold">{getInitials(storyCharacter.name)}</AvatarFallback>
                     </Avatar>
-                    <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 shadow-sm">
+                    <div className="p-3.5 rounded-xl bg-muted/50 border border-border/50 shadow-sm">
                         <Sparkles className="h-5 w-5 animate-pulse-spinner text-primary inline-block mr-2" />
                         <span className="text-sm italic">{storyCharacter.name} is crafting the next part...</span>
                     </div>
@@ -291,7 +291,7 @@ function StoryPlayerContent() {
             )}
           </CardContent>
 
-          <CardFooter className="p-3 md:p-4 border-t border-border/30 bg-card/60">
+          <CardFooter className="p-3 md:p-4 border-t border-border/70 bg-muted/30">
             {isProcessing && !displayChoices ? (
               <div className="w-full flex justify-center items-center py-3.5">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -302,7 +302,7 @@ function StoryPlayerContent() {
                 <Button
                   onClick={() => processUserInput(currentAiTurn!.choiceA!)}
                   variant="outline"
-                  className="w-full !rounded-xl text-base py-3.5 border-primary/50 text-primary hover:bg-primary/10 hover:border-primary shadow-md transition-all duration-200 hover:shadow-lg"
+                  className="w-full !rounded-xl text-base py-3.5 border-primary/60 text-primary hover:bg-primary/10 hover:border-primary shadow-md transition-all duration-200 hover:shadow-lg"
                   disabled={isProcessing}
                 >
                   {currentAiTurn!.choiceA}
@@ -310,7 +310,7 @@ function StoryPlayerContent() {
                 <Button
                   onClick={() => processUserInput(currentAiTurn!.choiceB!)}
                   variant="outline"
-                  className="w-full !rounded-xl text-base py-3.5 border-primary/50 text-primary hover:bg-primary/10 hover:border-primary shadow-md transition-all duration-200 hover:shadow-lg"
+                  className="w-full !rounded-xl text-base py-3.5 border-primary/60 text-primary hover:bg-primary/10 hover:border-primary shadow-md transition-all duration-200 hover:shadow-lg"
                   disabled={isProcessing}
                 >
                   {currentAiTurn!.choiceB}
@@ -322,7 +322,7 @@ function StoryPlayerContent() {
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   placeholder={`What do you say or do, ${userProfile?.name || 'jaan'}?`}
-                  className="flex-grow resize-none max-h-28 p-3.5 rounded-xl shadow-inner focus:ring-2 focus:ring-primary focus:border-primary bg-background/80 border-border/70 text-sm md:text-base"
+                  className="flex-grow resize-none max-h-28 p-3.5 rounded-xl shadow-inner focus:ring-2 focus:ring-primary focus:border-primary bg-background border-border text-sm md:text-base"
                   rows={1}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {

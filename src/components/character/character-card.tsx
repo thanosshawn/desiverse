@@ -27,7 +27,7 @@ const CharacterCardComponent = ({ character, user, tagColors }: CharacterCardPro
   return (
     <Card
         key={character.id}
-        className="bg-card/85 backdrop-blur-md shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.035] transition-transform duration-300 flex flex-col group hover:shadow-primary/50 animate-fade-in border-2 border-transparent hover:border-primary/40"
+        className="bg-card shadow-2xl rounded-3xl overflow-hidden transform hover:scale-[1.035] transition-transform duration-300 flex flex-col group hover:shadow-primary/50 animate-fade-in border border-border hover:border-primary/40"
     >
       <CardHeader className="p-0 relative w-full aspect-[3/4.2] group-hover:shadow-glow-primary transition-shadow duration-300">
         <Image

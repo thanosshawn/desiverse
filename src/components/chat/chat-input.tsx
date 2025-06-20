@@ -132,7 +132,7 @@ export function ChatInput({
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-3 md:p-4 border-t border-border/30 bg-card/90 backdrop-blur-md flex items-end space-x-1.5 sm:space-x-2 sticky bottom-0 shadow-[-2px_0px_15px_rgba(0,0,0,0.08)]"
+      className="p-3 md:p-4 border-t border-border bg-card flex items-end space-x-1.5 sm:space-x-2 sticky bottom-0 shadow-[-2px_0px_15px_rgba(0,0,0,0.08)]"
       aria-label="Chat input form"
     >
       <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
@@ -151,7 +151,7 @@ export function ChatInput({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-            className="w-auto p-0 border-border/50 shadow-2xl bg-popover mb-2 rounded-2xl backdrop-blur-lg"
+            className="w-auto p-0 border-border shadow-2xl bg-popover mb-2 rounded-2xl"
             side="top" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()} 
@@ -189,7 +189,7 @@ export function ChatInput({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-            className="w-80 p-3 border-border/50 shadow-2xl bg-popover backdrop-blur-lg mb-2 rounded-2xl"
+            className="w-80 p-3 border-border shadow-2xl bg-popover mb-2 rounded-2xl"
             side="top" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()}
@@ -256,7 +256,7 @@ export function ChatInput({
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         placeholder={`Message ${characterName}...`}
-        className="flex-grow resize-none max-h-36 p-3.5 rounded-2xl shadow-inner focus:ring-2 focus:ring-primary focus:border-primary bg-background/80 border-border/70 text-sm md:text-base transition-shadow duration-200 focus:shadow-md"
+        className="flex-grow resize-none max-h-36 p-3.5 rounded-2xl shadow-inner focus:ring-2 focus:ring-primary focus:border-primary bg-background border-border text-sm md:text-base transition-shadow duration-200 focus:shadow-md"
         rows={1}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && !e.shiftKey) {

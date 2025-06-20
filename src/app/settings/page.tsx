@@ -133,8 +133,8 @@ export default function SettingsPage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-24 pb-12">
-        <Card className="max-w-2xl mx-auto bg-card/90 backdrop-blur-xl shadow-2xl rounded-3xl border-2 border-primary/10 animate-fade-in">
-          <CardHeader className="text-center p-6 md:p-8 border-b border-border/20">
+        <Card className="max-w-2xl mx-auto bg-card shadow-2xl rounded-3xl border border-border animate-fade-in">
+          <CardHeader className="text-center p-6 md:p-8 border-b border-border/70">
             <SettingsIcon className="mx-auto h-12 w-12 text-primary mb-3 animate-pulse-spinner" />
             <CardTitle className="text-3xl md:text-4xl font-headline text-primary">Settings</CardTitle>
             <CardDescription className="font-body text-muted-foreground text-base">Apni profile aur app preferences yahaan manage karo.</CardDescription>
@@ -183,7 +183,7 @@ export default function SettingsPage() {
                     )}
                   />
                 </div>
-                <Separator className="my-6 bg-border/30"/>
+                <Separator className="my-6 bg-border/50"/>
 
                 <div className="space-y-6">
                     <h3 className="text-xl font-headline text-primary/90 flex items-center"><Palette className="mr-2.5 h-6 w-6 text-accent"/> Appearance</h3>
@@ -217,7 +217,7 @@ export default function SettingsPage() {
                       )}
                     />
                 </div>
-                <Separator className="my-6 bg-border/30"/>
+                <Separator className="my-6 bg-border/50"/>
                 
                 <div className="space-y-6">
                     <h3 className="text-xl font-headline text-primary/90 flex items-center"><Languages className="mr-2.5 h-6 w-6 text-accent"/> Language</h3>
@@ -235,11 +235,11 @@ export default function SettingsPage() {
                         <FormDescription className="text-xs">Baat karne ka style. More options soon!</FormDescription>
                     </FormItem>
                 </div>
-                <Separator className="my-6 bg-border/30"/>
+                <Separator className="my-6 bg-border/50"/>
                 
                  <div className="space-y-6">
                     <h3 className="text-xl font-headline text-primary/90 flex items-center"><Gem className="mr-2.5 h-6 w-6 text-yellow-400"/> Subscription</h3>
-                    <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl shadow-sm">
+                    <div className="p-4 bg-muted/50 border border-border/50 rounded-xl shadow-sm">
                         <p className="text-base font-medium text-card-foreground">Current Plan: <span className="capitalize font-semibold text-primary">{userProfile?.subscriptionTier || 'Free'}</span></p>
                         {userProfile?.subscriptionTier === 'free' && (
                              <Link href="/subscribe?feature=SettingsUpgrade" className="mt-3 block">
@@ -253,7 +253,7 @@ export default function SettingsPage() {
                         )}
                     </div>
                 </div>
-                <Separator className="my-6 bg-border/30"/>
+                <Separator className="my-6 bg-border/50"/>
 
 
                 <div className="space-y-4">
@@ -266,7 +266,7 @@ export default function SettingsPage() {
                     </Button>
                 </div>
               </CardContent>
-              <CardFooter className="p-6 md:p-8 border-t border-border/20">
+              <CardFooter className="p-6 md:p-8 border-t border-border/70 bg-muted/30">
                 <Button type="submit" className="w-full bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground !rounded-xl text-lg py-3.5 shadow-lg hover:shadow-primary/40 transition-all duration-200 ease-in-out transform hover:scale-[1.02]" disabled={isSaving || !mounted}>
                   {isSaving ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
                   Save Changes

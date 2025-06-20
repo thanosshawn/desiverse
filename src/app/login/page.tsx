@@ -51,7 +51,7 @@ function LoginFormComponent() {
 
   return (
     <div className="flex flex-col min-h-screen items-center justify-center bg-gradient-to-br from-pink-200 via-rose-100 to-yellow-100 p-4">
-      <Card className="w-full max-w-md bg-card/90 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden animate-fade-in border-2 border-primary/20">
+      <Card className="w-full max-w-md bg-card shadow-2xl rounded-3xl overflow-hidden animate-fade-in border-2 border-primary/20">
         <CardHeader className="text-center p-6 md:p-8 bg-gradient-to-br from-primary via-rose-500 to-pink-600">
           <Sparkles className="mx-auto h-16 w-16 text-yellow-300 mb-4 animate-pulse" />
           <CardTitle className="text-3xl md:text-4xl font-headline text-white">DesiBae Mein Swagat Hai!</CardTitle>
@@ -78,7 +78,7 @@ function LoginFormComponent() {
             Guest Mode Mein Enter Karo
           </Button>
         </CardContent>
-        <CardFooter className="p-6 md:p-8 text-center border-t border-border/20 bg-card/50">
+        <CardFooter className="p-6 md:p-8 text-center border-t border-border/40 bg-muted/30">
           <p className="text-xs text-muted-foreground font-body">
             By continuing, you agree to our <Link href="/terms" className="underline hover:text-primary transition-colors">Terms of Service</Link> and <Link href="/privacy" className="underline hover:text-primary transition-colors">Privacy Policy</Link>.
           </p>

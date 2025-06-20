@@ -72,7 +72,7 @@ function SubscribeContent() {
 
   if (authLoading) {
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/10 items-center justify-center">
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/5 items-center justify-center">
         <Header />
         <Loader2 className="h-16 w-16 animate-spin text-primary"/>
         <p className="mt-3 text-lg text-muted-foreground">Loading your details...</p>
@@ -82,10 +82,10 @@ function SubscribeContent() {
 
   if (userProfile?.subscriptionTier === 'premium' || userProfile?.subscriptionTier === 'spicy') {
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/10">
+      <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/5">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8 md:py-12 flex items-center justify-center">
-           <Card className="w-full max-w-lg bg-card/95 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden transform transition-all animate-fade-in border-2 border-green-500/50">
+           <Card className="w-full max-w-lg bg-card shadow-2xl rounded-3xl overflow-hidden transform transition-all animate-fade-in border-2 border-green-500/50">
              <CardHeader className="text-center p-6 md:p-8 bg-gradient-to-br from-green-500 via-teal-500 to-emerald-600">
                 <CheckCircle className="mx-auto h-16 w-16 text-white mb-4 animate-pulse" />
                 <CardTitle className="text-3xl md:text-4xl font-headline text-white">You're Already Premium! 🎉</CardTitle>
@@ -96,7 +96,7 @@ function SubscribeContent() {
             <CardContent className="p-6 md:p-8">
                 <p className="text-center text-muted-foreground">You can continue enjoying all the exclusive content and features. Happy chatting!</p>
             </CardContent>
-            <CardFooter className="p-6 md:p-8 text-center border-t border-border/20 bg-card/80">
+            <CardFooter className="p-6 md:p-8 text-center border-t border-border/40 bg-muted/30">
                  <Button variant="default" onClick={() => router.back()} className="w-full !rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30 py-3">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Go Back & Enjoy!
                 </Button>
@@ -109,10 +109,10 @@ function SubscribeContent() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary/20 via-secondary/10 to-accent/10">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary/10 via-secondary/5 to-accent/5">
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8 md:py-12 flex items-center justify-center">
-        <Card className="w-full max-w-lg bg-card/95 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden transform transition-all animate-fade-in border-2 border-primary/30">
+        <Card className="w-full max-w-lg bg-card shadow-2xl rounded-3xl overflow-hidden transform transition-all animate-fade-in border-2 border-primary/30">
           <CardHeader className="text-center p-6 md:p-8 bg-gradient-to-br from-primary via-rose-500 to-pink-600">
             <Gem className="mx-auto h-16 w-16 text-yellow-300 mb-4 animate-pulse-spinner" />
             <CardTitle className="text-3xl md:text-4xl font-headline text-white drop-shadow-md">{title}</CardTitle>
@@ -142,7 +142,7 @@ function SubscribeContent() {
                 <p className="text-sm text-destructive text-center mt-2">{state.message}</p>
             )}
           </CardContent>
-          <CardFooter className="p-6 md:p-8 text-center border-t border-border/20 bg-card/80">
+          <CardFooter className="p-6 md:p-8 text-center border-t border-border/40 bg-muted/30">
             <Button variant="ghost" onClick={() => router.back()} className="text-muted-foreground hover:text-primary transition-colors !rounded-lg py-2.5">
               <ArrowLeft className="mr-2 h-4 w-4" /> No thanks, take me back
             </Button>

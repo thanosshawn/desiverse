@@ -1,3 +1,4 @@
+
 // src/app/admin/analytics/page.tsx
 'use client';
 
@@ -74,7 +75,7 @@ export default function AnalyticsPage() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-background/90 backdrop-blur-sm p-3 rounded-lg shadow-lg border border-border text-sm">
+        <div className="bg-card p-3 rounded-lg shadow-lg border border-border text-sm">
           <p className="font-semibold text-foreground">{`${label}`}</p>
           <p className="text-primary">{`Chat Sessions: ${payload[0].value}`}</p>
         </div>
@@ -107,7 +108,7 @@ export default function AnalyticsPage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50">
       <Header />
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-22 pb-8">
-        <Card className="max-w-4xl mx-auto bg-card/90 backdrop-blur-lg shadow-xl rounded-2xl">
+        <Card className="max-w-4xl mx-auto bg-card shadow-xl rounded-2xl border border-border">
           <CardHeader className="flex flex-row justify-between items-center p-6">
             <div>
               <CardTitle className="text-2xl font-headline text-primary flex items-center">
@@ -196,7 +197,7 @@ export default function AnalyticsPage() {
               </p>
             </section>
 
-             <Card className="bg-amber-50 border-amber-200 dark:bg-amber-900/30 dark:border-amber-700/50 p-4 rounded-lg">
+             <Card className="bg-amber-100 border-amber-300 dark:bg-amber-900/50 dark:border-amber-700/70 p-4 rounded-lg">
                 <CardHeader className="p-0 mb-2">
                     <CardTitle className="text-lg text-amber-700 dark:text-amber-300 flex items-center">
                         <AlertTriangle className="h-5 w-5 mr-2"/>Advanced Analytics (Coming Soon)

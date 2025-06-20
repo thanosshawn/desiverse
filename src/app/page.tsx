@@ -135,7 +135,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mb-8 md:mb-10 p-4 bg-card/85 backdrop-blur-lg rounded-2xl shadow-xl space-y-4 sticky top-18 md:top-20 z-30 border border-border/40">
+        <div className="mb-8 md:mb-10 p-4 bg-card rounded-2xl shadow-xl space-y-4 sticky top-18 md:top-20 z-30 border border-border">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
@@ -160,7 +160,7 @@ export default function HomePage() {
                     "rounded-full text-xs px-3.5 py-1.5 transition-all duration-200 ease-in-out transform hover:scale-105 shadow-sm",
                     selectedTags.includes(tag) ? 
                       `${characterTagColors[tag] || 'bg-primary hover:bg-primary/90'} text-primary-foreground border-transparent` : 
-                      'border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/80 bg-card/80'
+                      'border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/80 bg-card'
                   )}
                 >
                   {tag}
@@ -173,7 +173,7 @@ export default function HomePage() {
         {loadingCharacters ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
             {[...Array(4)].map((_, i) => ( 
-              <Skeleton key={i} className="bg-card/60 shadow-xl rounded-3xl overflow-hidden aspect-[3/4.5] flex flex-col">
+              <Skeleton key={i} className="bg-card shadow-xl rounded-3xl overflow-hidden aspect-[3/4.5] flex flex-col border border-border">
                 <Skeleton className="w-full h-3/5 bg-muted/40" /> 
                 <div className="p-5 text-center space-y-3 flex-grow flex flex-col justify-between">
                   <div>
@@ -220,7 +220,7 @@ export default function HomePage() {
             {loadingStories ? (
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {[...Array(3)].map((_, i) => (
-                         <Skeleton key={`story-skel-${i}`} className="bg-card/60 shadow-xl rounded-3xl overflow-hidden aspect-[16/11.5] flex flex-col">
+                         <Skeleton key={`story-skel-${i}`} className="bg-card shadow-xl rounded-3xl overflow-hidden aspect-[16/11.5] flex flex-col border border-border">
                             <Skeleton className="w-full h-3/5 bg-muted/40" />
                             <div className="p-5 space-y-3 flex-grow flex flex-col justify-between">
                                 <div>
@@ -256,7 +256,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer className="py-8 text-center border-t border-border/20 bg-card/50 backdrop-blur-sm">
+      <footer className="py-8 text-center border-t border-border bg-card">
         <p className="text-sm text-muted-foreground font-body">&copy; {new Date().getFullYear()} DesiVerse Bae. Made with <Heart className="inline h-4 w-4 text-primary animate-heartbeat" /> in India.</p>
       </footer>
     </div>
