@@ -1,4 +1,3 @@
-
 // src/lib/firebase/rtdb.ts
 import {
   ref,
@@ -22,28 +21,26 @@ import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
 
 // --- User Profile ---
 
-// Type for data structure when writing a new user profile to RTDB.
-// Timestamps are 'object' because they are Firebase ServerValue.TIMESTAMP placeholders.
 type NewUserProfileWritePayload = Omit<Partial<UserProfile>, 'uid' | 'joinedAt' | 'lastActive'> & {
-  joinedAt: object; // Firebase Server Timestamp Placeholder
-  lastActive: object; // Firebase Server Timestamp Placeholder
+  joinedAt: object; 
+  lastActive: object; 
 };
 
 export async function createUserProfile(uid: string, data: NewUserProfileWritePayload): Promise<void> {
   const userRef = ref(db, `users/${uid}`);
   const profileDataForWrite = {
-    uid, // Use the passed uid
+    uid, 
     name: data.name ?? "Desi User",
     email: data.email ?? null,
     avatarUrl: data.avatarUrl ?? null,
     subscriptionTier: data.subscriptionTier ?? 'free',
-    selectedTheme: data.selectedTheme ?? 'light', // Default if not in data
-    languagePreference: data.languagePreference ?? 'hinglish', // Default if not in data
-    joinedAt: data.joinedAt, // This IS the placeholder object from data
-    lastActive: data.lastActive, // This IS the placeholder object from data
+    selectedTheme: data.selectedTheme ?? 'light', 
+    languagePreference: data.languagePreference ?? 'hinglish', 
+    joinedAt: data.joinedAt, 
+    lastActive: data.lastActive, 
   };
   await set(userRef, profileDataForWrite);
-  await incrementTotalRegisteredUsers(); // Increment total users when a new profile is created
+  await incrementTotalRegisteredUsers(); 
 }
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
@@ -52,8 +49,6 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
   return snapshot.exists() ? (snapshot.val() as UserProfile) : null;
 }
 
-// Type for data structure when updating a user profile.
-// lastActive can be a number (client-set timestamp) or an object (server timestamp placeholder).
 type UserProfileUpdateData = Omit<Partial<UserProfile>, 'lastActive'> & {
   lastActive?: number | object;
 };
@@ -136,10 +131,7 @@ export async function addCharacter(characterId: string, data: Omit<CharacterMeta
 
 export async function updateCharacter(characterId: string, data: Partial<Omit<CharacterMetadata, 'id' | 'createdAt'>>): Promise<void> {
   const characterRef = ref(db, `characters/${characterId}`);
-  // Ensure 'id' and 'createdAt' are not part of the update payload directly,
-  // as these should generally be immutable or handled specifically if they need to change.
-  // For this implementation, we assume they don't change during an edit.
-  const { id, createdAt, ...updateData } = data as any; // Cast to any to satisfy Omit not liking id and createdAt
+  const { id, createdAt, ...updateData } = data as any; 
   await update(characterRef, updateData);
 }
 
@@ -234,13 +226,13 @@ export async function addMessageToChat(
     timestamp: typeof messageData.timestamp === 'number' ? messageData.timestamp : (messageData.timestamp || rtdbServerTimestamp()),
     audioUrl: messageData.audioUrl || null,
     videoUrl: messageData.videoUrl || null,
-    sentGiftId: messageData.sentGiftId || null, // Ensure sentGiftId is saved
+    sentGiftId: messageData.sentGiftId || null, 
   } as MessageDocument;
 
   await set(newMessageRef, finalMessageData);
 
   const chatMetadataUpdates: Partial<UserChatSessionMetadata> & {lastMessageTimestamp?: object} = {
-    lastMessageText: messageData.text.substring(0, 100), // Keep last message text concise
+    lastMessageText: messageData.text.substring(0, 100), 
     lastMessageTimestamp: finalMessageData.timestamp,
   };
   await updateChatSessionMetadata(userId, characterId, chatMetadataUpdates);
@@ -295,20 +287,16 @@ export async function updateUserChatStreak(userId: string, characterId: string):
     const yesterdayDateString = yesterdayDate.toISOString().split('T')[0];
 
     if (lastChatDateString === currentDateString) {
-      // Chatting again on the same day
       currentStreakValue = streakData.currentStreak;
       status = 'maintained_same_day';
     } else if (lastChatDateString === yesterdayDateString) {
-      // Streak continued from yesterday
       currentStreakValue = streakData.currentStreak + 1;
       status = 'continued';
     } else {
-      // Streak broken
       currentStreakValue = 1;
       status = 'reset';
     }
   } else {
-    // No previous streak data, start a new streak
     currentStreakValue = 1;
     status = 'first_ever';
   }
@@ -377,7 +365,7 @@ export async function setOfflineStatus(uid: string): Promise<void> {
   const userStatusRef = ref(db, `status/${uid}`);
    const status = {
     online: false,
-    name: null, // Or keep the name if preferred when offline
+    name: null, 
     lastChanged: rtdbServerTimestamp(),
   };
   await set(userStatusRef, status);
@@ -442,7 +430,7 @@ export async function addInteractiveStory(storyId: string, data: Omit<Interactiv
   const storyRef = ref(db, `interactiveStories/${storyId}`);
   const storyDataForWrite = {
     ...data,
-    id: storyId, // ensure id is part of the written object
+    id: storyId, 
     createdAt: data.createdAt || rtdbServerTimestamp(),
     updatedAt: rtdbServerTimestamp(),
   };
@@ -451,7 +439,7 @@ export async function addInteractiveStory(storyId: string, data: Omit<Interactiv
 
 export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
   const storiesRef = ref(db, 'interactiveStories');
-  // Removed orderByChild to avoid indexing error, will sort client-side
+  // Client-side sorting will be done after fetching, to avoid indexing issues.
   const snapshot = await get(query(storiesRef)); 
   const stories: InteractiveStory[] = [];
   if (snapshot.exists()) {
@@ -481,7 +469,7 @@ export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
       }
     });
   }
-  // Client-side sorting as a workaround for potential indexing issues.
+  // Sort stories by createdAt in descending order (newest first) on the client side
   stories.sort((a, b) => (b.createdAt as number) - (a.createdAt as number));
   return stories;
 }
@@ -525,8 +513,15 @@ export async function getUserStoryProgress(userId: string, storyId: string): Pro
   const snapshot = await get(progressRef);
   if (snapshot.exists()) {
     const data = snapshot.val() as UserStoryProgress;
-    // Ensure history is an array, even if it's missing or null in the DB
-    return { ...data, history: data.history || [] };
+    return { 
+      ...data, 
+      history: data.history || [],
+      currentTurnContext: {
+        ...data.currentTurnContext,
+        choiceA: data.currentTurnContext.choiceA || null,
+        choiceB: data.currentTurnContext.choiceB || null,
+      }
+    };
   }
   return null;
 }
@@ -535,11 +530,13 @@ export async function updateUserStoryProgress(
   userId: string,
   storyId: string,
   data: {
-    currentTurnContext: UserStoryProgress['currentTurnContext'];
+    currentTurnContext: UserStoryProgress['currentTurnContext']; // This will now include optional choiceA, choiceB
     storyTitleSnapshot: string;
     characterIdSnapshot: string;
-    userChoiceThatLedToThis: string;
+    userChoiceThatLedToThis: string; // User's typed message OR the text of the choice they picked
     newAiNarration: string;
+    offeredChoiceA?: string | null; // The choiceA text if AI offered it for THIS turn
+    offeredChoiceB?: string | null; // The choiceB text if AI offered it for THIS turn
   }
 ): Promise<void> {
   const progressRef = ref(db, `users/${userId}/userStoryProgress/${storyId}`);
@@ -548,6 +545,8 @@ export async function updateUserStoryProgress(
     userChoice: data.userChoiceThatLedToThis,
     aiNarration: data.newAiNarration,
     timestamp: rtdbServerTimestamp(),
+    offeredChoiceA: data.offeredChoiceA || null,
+    offeredChoiceB: data.offeredChoiceB || null,
   };
 
   const snapshot = await get(progressRef);
@@ -558,17 +557,14 @@ export async function updateUserStoryProgress(
   
   const updatedHistory = [...existingHistory, newHistoryEntry];
 
-  // Special handling for the very first turn to ensure `history` starts correctly
   if (data.userChoiceThatLedToThis === "Let's begin the story!" && existingHistory.length === 0) {
-    // The 'userChoice' for the first history entry is a placeholder representing the start.
-    // The 'aiNarration' is the actual first narration from the AI.
     updatedHistory[0].userChoice = "Story Started"; 
   }
   
   const updatePayload: UserStoryProgress = {
     userId,
     storyId,
-    currentTurnContext: data.currentTurnContext, // This contains the AI's latest narration and new choices
+    currentTurnContext: data.currentTurnContext, 
     storyTitleSnapshot: data.storyTitleSnapshot,
     characterIdSnapshot: data.characterIdSnapshot,
     lastPlayed: rtdbServerTimestamp(),

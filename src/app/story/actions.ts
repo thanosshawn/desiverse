@@ -8,15 +8,14 @@ import { getCharacterMetadata, getInteractiveStory, getUserStoryProgress, update
 interface StoryTurnResponse {
   aiResponse?: StoryTurnOutput;
   error?: string;
-  nextProgress?: UserStoryProgress; // Send back the updated progress
+  nextProgress?: UserStoryProgress;
 }
 
-// Renamed from handleStoryChoiceAction to handleStoryMessageAction
 export async function handleStoryMessageAction(
   userId: string,
-  userName: string, // User's display name
+  userName: string,
   storyId: string,
-  userMessage: string // User's typed message
+  userMessageOrChoice: string // This can be user's typed message OR text of a choice button
 ): Promise<StoryTurnResponse> {
   try {
     const story = await getInteractiveStory(storyId);
@@ -32,7 +31,7 @@ export async function handleStoryMessageAction(
     let currentUserProgress = await getUserStoryProgress(userId, storyId);
     
     let summaryForAICurrentTurn: string;
-    if (currentUserProgress?.currentTurnContext?.summaryOfCurrentSituation && userMessage !== "Let's begin the story!") {
+    if (currentUserProgress?.currentTurnContext?.summaryOfCurrentSituation && userMessageOrChoice !== "Let's begin the story!") {
       summaryForAICurrentTurn = currentUserProgress.currentTurnContext.summaryOfCurrentSituation;
     } else {
       summaryForAICurrentTurn = story.initialSceneSummary;
@@ -51,8 +50,8 @@ export async function handleStoryMessageAction(
         name: userName,
       },
       currentTurn: {
-        summaryOfCurrentSituation: summaryForAICurrentTurn, 
-        previousUserChoice: userMessage, // User's typed message
+        summaryOfCurrentSituation: summaryForAICurrentTurn,
+        previousUserChoice: userMessageOrChoice,
       },
     };
 
@@ -71,30 +70,31 @@ export async function handleStoryMessageAction(
       return { error: 'Failed to get a complete story response from AI. Please try again.' };
     }
     
-    // No longer expecting choiceA or choiceB from aiResponse
     const newCurrentTurnContext: UserStoryProgress['currentTurnContext'] = {
-      summaryOfCurrentSituation: aiResponse.narrationForThisTurn, 
-      previousUserChoice: userMessage,                        
-      // choiceA and choiceB are removed
+      summaryOfCurrentSituation: aiResponse.narrationForThisTurn,
+      previousUserChoice: userMessageOrChoice,
+      choiceA: aiResponse.choiceA || null, // Store null if not provided
+      choiceB: aiResponse.choiceB || null, // Store null if not provided
     };
 
     const progressUpdateData = {
       currentTurnContext: newCurrentTurnContext,
       storyTitleSnapshot: story.title,
       characterIdSnapshot: story.characterId,
-      userChoiceThatLedToThis: userMessage,        
-      newAiNarration: aiResponse.narrationForThisTurn, 
+      userChoiceThatLedToThis: userMessageOrChoice,
+      newAiNarration: aiResponse.narrationForThisTurn,
+      offeredChoiceA: aiResponse.choiceA || null,
+      offeredChoiceB: aiResponse.choiceB || null,
     };
     
     await updateUserStoryProgress(userId, storyId, progressUpdateData);
     
-    const updatedProgress = await getUserStoryProgress(userId, storyId); 
+    const updatedProgress = await getUserStoryProgress(userId, storyId);
 
-    // Return only narration, as choices are no longer part of the output
-    return { aiResponse: { narrationForThisTurn: aiResponse.narrationForThisTurn }, nextProgress: updatedProgress };
+    return { aiResponse, nextProgress: updatedProgress };
 
   } catch (error) {
-    console.error('Error in handleStoryMessageAction. StoryId:', storyId, 'UserMessage:', userMessage, error);
+    console.error('Error in handleStoryMessageAction. StoryId:', storyId, 'UserMessageOrChoice:', userMessageOrChoice, error);
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred with the story AI.';
     return { error: errorMessage };
   }

@@ -116,53 +116,52 @@ export interface StreakUpdateResult {
   status: 'first_ever' | 'continued' | 'maintained_same_day' | 'reset';
 }
 
-// For premium feature checks
 export type PremiumFeature =
   | 'premium_character_chat'
   | 'premium_voice_message'
   | 'premium_gift';
 
-// --- Interactive Story Types ---
 export interface InteractiveStory {
   id: string;
   title: string;
   description: string;
-  characterId: string; // ID of the CharacterMetadata to use
-  characterNameSnapshot: string; // Snapshot of character name at time of story creation
-  characterAvatarSnapshot: string; // Snapshot of character avatar
+  characterId: string;
+  characterNameSnapshot: string;
+  characterAvatarSnapshot: string;
   coverImageUrl?: string | null;
   tags: string[];
-  initialSceneSummary: string; // The first prompt/summary for the AI to start the story
-  createdAt: number | object; // RTDB timestamp
-  updatedAt?: number | object; // RTDB timestamp
+  initialSceneSummary: string;
+  createdAt: number | object;
+  updatedAt?: number | object;
 }
 
 export type InteractiveStoryAdminFormValues = Omit<InteractiveStory, 'id' | 'createdAt' | 'updatedAt' | 'characterNameSnapshot' | 'characterAvatarSnapshot'> & {
-  tagsString: string; // For form input
+  tagsString: string;
 };
 
-// Represents a single completed turn in the story's history
 export interface StoryTurnRecord {
-  userChoice: string;       // The choice OR typed message from the user
-  aiNarration: string;      // The AI's narration that resulted from that choice/message
-  timestamp: number | object; // Timestamp of when this turn was completed/saved
+  userChoice: string; // User's typed message OR the text of the choice they picked
+  aiNarration: string;
+  timestamp: number | object;
+  offeredChoiceA?: string | null; // Text of choice A if offered
+  offeredChoiceB?: string | null; // Text of choice B if offered
 }
 
 export interface UserStoryProgress {
   userId: string;
   storyId: string;
   currentTurnContext: {
-    summaryOfCurrentSituation: string; // AI's current narration (same as last history item's aiNarration)
-    previousUserChoice: string;      // User's choice OR typed message that led to the current summary
-    // choiceA and choiceB are removed as interaction is now free-form text
+    summaryOfCurrentSituation: string; // AI's current narration
+    previousUserChoice: string; // User's typed message OR the text of the choice they picked
+    choiceA?: string | null; // Current choice A text, if AI provided choices for this turn
+    choiceB?: string | null; // Current choice B text, if AI provided choices for this turn
   };
   storyTitleSnapshot: string;
   characterIdSnapshot: string;
   lastPlayed: number | object;
-  history?: StoryTurnRecord[];     // Array to store the sequence of past turns
+  history?: StoryTurnRecord[];
 }
 
-// Genkit Flow for Story Turns
 export const StoryTurnInputSchema = z.object({
   character: z.object({
     name: z.string().describe("The AI character's name."),
@@ -183,7 +182,8 @@ export const StoryTurnInputSchema = z.object({
 export type StoryTurnInput = z.infer<typeof StoryTurnInputSchema>;
 
 export const StoryTurnOutputSchema = z.object({
-  narrationForThisTurn: z.string().describe("The AI character's story narration for the current turn, responding to the user's message and continuing the story. Should be in Hinglish, immersive, romantic, and emotional, with emojis. This narration should also include any personal question for the user if applicable, integrated naturally within the text."),
-  // choiceA and choiceB are removed
+  narrationForThisTurn: z.string().describe("The AI character's story narration for the current turn, responding to the user's message/choice and continuing the story. Should be in Hinglish, immersive, romantic, and emotional, with emojis. This narration should also include any personal question for the user if applicable, integrated naturally within the text."),
+  choiceA: z.string().optional().describe("Optional: A short, engaging text for choice A if the AI decides to offer choices. If not offering choices, omit this field or leave it empty/null."),
+  choiceB: z.string().optional().describe("Optional: A short, engaging text for choice B if the AI decides to offer choices. If not offering choices, omit this field or leave it empty/null."),
 });
 export type StoryTurnOutput = z.infer<typeof StoryTurnOutputSchema>;
