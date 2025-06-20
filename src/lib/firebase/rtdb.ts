@@ -462,8 +462,8 @@ export async function getAllInteractiveStories(): Promise<InteractiveStory[]> {
           coverImageUrl: val.coverImageUrl || null,
           tags: Array.isArray(val.tags) ? val.tags.filter((tag: any) => typeof tag === 'string') : [],
           initialSceneSummary: val.initialSceneSummary,
-          createdAt: typeof val.createdAt === 'number' ? val.createdAt : 0,
-          updatedAt: typeof val.updatedAt === 'number' ? val.updatedAt : 0,
+          createdAt:  val.createdAt,
+          updatedAt: val.updatedAt ,
         } as InteractiveStory);
       } else {
         console.warn(`Skipping malformed story data for key: ${key}. Received:`, val);
@@ -496,8 +496,8 @@ export async function getInteractiveStory(storyId: string): Promise<InteractiveS
           coverImageUrl: val.coverImageUrl || null,
           tags: Array.isArray(val.tags) ? val.tags.filter((tag: any) => typeof tag === 'string') : [],
           initialSceneSummary: val.initialSceneSummary,
-          createdAt: typeof val.createdAt === 'number' ? val.createdAt : 0,
-          updatedAt: typeof val.updatedAt === 'number' ? val.updatedAt : 0,
+          createdAt: val.createdAt ,
+          updatedAt: val.updatedAt ,
         } as InteractiveStory;
       } else {
         console.warn(`Malformed story data fetched for ID: ${storyId}. Received:`, val);
