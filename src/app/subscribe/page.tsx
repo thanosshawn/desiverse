@@ -25,12 +25,11 @@ function SubscribeContent() {
   const { user, loading: authLoading, userProfile } = useAuth();
   const { toast } = useToast();
   
-  // useActionState for handling the server action
   const [state, formAction, isPending] = useActionState(
     async (prevState: SubscriptionUpgradeState, formData: FormData) => {
       if (!user?.uid) {
           toast({ title: "Login Required", description: "Please log in to upgrade your subscription.", variant: "destructive"});
-          router.push('/login?redirect=/subscribe'); // Redirect to login
+          router.push('/login?redirect=/subscribe'); 
           return { success: false, message: "User not logged in."};
       }
       const result = await processSubscriptionUpgrade(user.uid);
@@ -41,10 +40,7 @@ function SubscribeContent() {
           variant: "default",
           duration: 5000,
         });
-        // AuthContext will eventually pick up the change on next profile fetch or reload
-        // For immediate UI update reflecting premium, typically the AuthContext would need a manual refresh trigger
-        // or the app would rely on the user navigating away and back, or a full reload.
-        router.back(); // Or router.push('/profile') or similar
+        router.back(); 
       } else {
         toast({
           title: "Upgrade Failed 😔",
@@ -101,7 +97,7 @@ function SubscribeContent() {
                 <p className="text-center text-muted-foreground">You can continue enjoying all the exclusive content and features. Happy chatting!</p>
             </CardContent>
             <CardFooter className="p-6 md:p-8 text-center border-t border-border/20 bg-card/80">
-                 <Button variant="default" onClick={() => router.back()} className="w-full !rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30">
+                 <Button variant="default" onClick={() => router.back()} className="w-full !rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30 py-3">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Go Back & Enjoy!
                 </Button>
             </CardFooter>
@@ -147,7 +143,7 @@ function SubscribeContent() {
             )}
           </CardContent>
           <CardFooter className="p-6 md:p-8 text-center border-t border-border/20 bg-card/80">
-            <Button variant="ghost" onClick={() => router.back()} className="text-muted-foreground hover:text-primary transition-colors !rounded-lg">
+            <Button variant="ghost" onClick={() => router.back()} className="text-muted-foreground hover:text-primary transition-colors !rounded-lg py-2.5">
               <ArrowLeft className="mr-2 h-4 w-4" /> No thanks, take me back
             </Button>
           </CardFooter>

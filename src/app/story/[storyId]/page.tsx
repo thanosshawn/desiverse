@@ -1,3 +1,4 @@
+
 // src/app/story/[storyId]/page.tsx
 'use client';
 
@@ -13,7 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { getInteractiveStory, getUserStoryProgress, getCharacterMetadata, updateUserStoryProgress } from '@/lib/firebase/rtdb';
 import { handleStoryMessageAction } from '../actions';
-import { Loader2, User, BookHeart, Sparkles, SendHorizonal, MessageSquare, Drama } from 'lucide-react';
+import { Loader2, User, BookHeart, Sparkles, SendHorizonal, MessageSquare } from 'lucide-react';
 import { getInitials, cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,11 +30,10 @@ function StoryPlayerContent() {
   const [storyCharacter, setStoryCharacter] = useState<CharacterMetadata | null>(null);
   const [userProgress, setUserProgress] = useState<UserStoryProgress | null>(null);
   
-  // currentAiTurn now stores the full StoryTurnOutput, which includes optional choices
   const [currentAiTurn, setCurrentAiTurn] = useState<StoryTurnOutput | null>(null);
   
   const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false); // Generic processing state
+  const [isProcessing, setIsProcessing] = useState(false); 
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [userInput, setUserInput] = useState('');
   const storyContentRef = useRef<HTMLDivElement>(null);
@@ -75,7 +75,6 @@ function StoryPlayerContent() {
          });
          setUserProgress(progressData);
       } else {
-        // This is the first turn or a turn where narration is missing/reset
         const initialUserMessage = "Let's begin the story!";
         const aiResult = await handleStoryMessageAction(
           user.uid,
@@ -90,7 +89,7 @@ function StoryPlayerContent() {
         } else {
           setCurrentAiTurn(aiResult.aiResponse);
           if (aiResult.nextProgress) setUserProgress(aiResult.nextProgress);
-          else { // Manually construct first progress if not returned (e.g. first turn)
+          else { 
             const initialProgress: UserStoryProgress = {
               userId: user.uid,
               storyId,
@@ -136,13 +135,12 @@ function StoryPlayerContent() {
     if (!user || !story || isProcessing || !message.trim()) return;
     setIsProcessing(true);
     const currentMessage = message.trim();
-    setUserInput(''); // Clear input field optimistically if it's from textarea
+    setUserInput(''); 
 
     const optimisticUserTurn: StoryTurnRecord = {
         userChoice: currentMessage,
-        aiNarration: "", // Placeholder, will be filled by AI
+        aiNarration: "", 
         timestamp: Date.now(),
-        // We don't know offered choices yet for this optimistic turn
     };
 
     setUserProgress(prev => ({
@@ -156,7 +154,7 @@ function StoryPlayerContent() {
         }),
         history: [...(prev?.history || []), optimisticUserTurn]
     }));
-    setCurrentAiTurn(null); // Clear current AI turn to show loading for narration
+    setCurrentAiTurn(null); 
 
     try {
       const result = await handleStoryMessageAction(
@@ -169,7 +167,6 @@ function StoryPlayerContent() {
       if (result.error || !result.aiResponse?.narrationForThisTurn) {
         toast({ title: 'AI Error', description: result.error || 'Could not process your message.', variant: 'destructive' });
         setCurrentAiTurn({ narrationForThisTurn: "Oops, something went wrong with my response. Please try again!" });
-        // Revert optimistic update if AI failed
         setUserProgress(prev => ({ ...prev!, history: prev!.history?.slice(0, -1) }));
       } else {
         setCurrentAiTurn(result.aiResponse);
@@ -193,10 +190,10 @@ function StoryPlayerContent() {
        const rootStyle = getComputedStyle(htmlEl);
        const bgHslString = rootStyle.getPropertyValue('--background').trim();
        const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?(?:\s*\))?/);
-       let overlayColor = 'hsla(var(--background), 0.85)'; 
+       let overlayColor = 'hsla(var(--background), 0.88)'; 
 
        if (hslMatch && hslMatch.length >= 4) {
-         const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.85 : 0.85;
+         const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.88 : 0.88;
          overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, ${alpha})`;
        }
       bodyEl.style.backgroundImage = `linear-gradient(${overlayColor}, ${overlayColor}), url(${storyCharacter.backgroundImageUrl})`;
@@ -222,17 +219,17 @@ function StoryPlayerContent() {
     );
   }
   
-  const displayChoices = currentAiTurn?.choiceA && currentAiTurn?.choiceB;
+  const displayChoices = currentAiTurn?.choiceA && currentAiTurn?.choiceB && currentAiTurn.choiceA.trim() && currentAiTurn.choiceB.trim();
 
   return (
     <div className="flex flex-col min-h-screen bg-transparent">
       <Header />
-      <main className="flex-grow container mx-auto px-4 pt-20 md:pt-24 pb-8 flex flex-col items-center">
+      <main className="flex-grow container mx-auto px-2 sm:px-4 pt-20 md:pt-22 pb-8 flex flex-col items-center">
         <Card className="w-full max-w-2xl bg-card/90 backdrop-blur-lg shadow-2xl rounded-3xl overflow-hidden animate-fade-in border-2 border-primary/20 flex flex-col">
-          <CardHeader className="p-4 md:p-6 border-b border-border/30 bg-gradient-to-br from-primary/10 via-card to-secondary/10">
+          <CardHeader className="p-4 md:p-5 border-b border-border/30 bg-gradient-to-br from-primary/10 via-card to-secondary/10">
             <div className="flex items-center gap-3 md:gap-4">
               <Avatar className="h-14 w-14 md:h-16 md:w-16 border-2 border-primary/50 rounded-xl shadow-md">
-                <AvatarImage src={storyCharacter.avatarUrl} alt={storyCharacter.name} className="rounded-lg"/>
+                <AvatarImage src={storyCharacter.avatarUrl || story.characterAvatarSnapshot} alt={storyCharacter.name} className="rounded-lg"/>
                 <AvatarFallback className="bg-pink-100 text-pink-600 rounded-xl font-semibold">{getInitials(storyCharacter.name)}</AvatarFallback>
               </Avatar>
               <div>
@@ -241,15 +238,15 @@ function StoryPlayerContent() {
               </div>
             </div>
           </CardHeader>
-          <CardContent ref={storyContentRef} className="p-4 md:p-6 space-y-4 md:space-y-6 min-h-[300px] max-h-[calc(100vh-400px)] md:max-h-[calc(100vh-420px)] overflow-y-auto flex flex-col scroll-smooth">
+          <CardContent ref={storyContentRef} className="p-4 md:p-6 space-y-4 md:space-y-5 min-h-[300px] max-h-[calc(100vh-400px)] md:max-h-[calc(100vh-420px)] overflow-y-auto flex flex-col scroll-smooth">
             {userProgress?.history?.map((turnRecord, index) => (
               <React.Fragment key={index}>
                 {turnRecord.userChoice && turnRecord.userChoice !== "Story Started" && (
-                   <div className="p-3 rounded-xl bg-secondary/10 border border-secondary/20 shadow-sm animate-slide-in-from-bottom self-end ml-auto max-w-[85%]">
-                    <div className="flex items-start gap-2.5">
-                      <User className="h-5 w-5 text-secondary flex-shrink-0 mt-1" />
+                   <div className="p-3.5 rounded-2xl bg-secondary/15 border border-secondary/25 shadow-sm animate-slide-in-from-bottom self-end ml-auto max-w-[85%]">
+                    <div className="flex items-start gap-3">
+                      <User className="h-5 w-5 text-secondary flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-xs font-medium text-secondary/90 uppercase tracking-wider">You:</p>
+                        <p className="text-xs font-medium text-secondary/90 uppercase tracking-wider">You said:</p>
                         <p className="text-foreground/90 text-sm leading-relaxed">
                           {turnRecord.userChoice}
                         </p>
@@ -259,7 +256,7 @@ function StoryPlayerContent() {
                 )}
 
                 {turnRecord.aiNarration && (
-                    <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/20 p-4 rounded-xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%]">
+                    <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/30 p-4 rounded-2xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%]">
                     <ReactMarkdown components={{ p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} /> }}>
                         {turnRecord.aiNarration}
                     </ReactMarkdown>
@@ -267,14 +264,13 @@ function StoryPlayerContent() {
                 )}
                 
                 {index < userProgress.history!.length -1 && ( 
-                  <div className="my-1 border-b border-dashed border-border/30"></div>
+                  <div className="my-1.5 border-b border-dashed border-border/40"></div>
                 )}
               </React.Fragment>
             ))}
             
-            {/* Display current AI narration if it's a new turn and not yet in history */}
             {currentAiTurn?.narrationForThisTurn && (!userProgress?.history || userProgress.history.length === 0 || userProgress.history[userProgress.history.length -1].aiNarration !== currentAiTurn.narrationForThisTurn) && (
-                 <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/20 p-4 rounded-xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%]">
+                 <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none bg-muted/30 p-4 rounded-2xl shadow-inner text-foreground/90 leading-relaxed font-body animate-fade-in self-start mr-auto max-w-[85%]">
                     <ReactMarkdown components={{ p: ({node, ...props}) => <p className="mb-3 last:mb-0" {...props} /> }}>
                         {currentAiTurn.narrationForThisTurn}
                     </ReactMarkdown>
@@ -282,31 +278,31 @@ function StoryPlayerContent() {
             )}
             
             {isProcessing && !currentAiTurn?.narrationForThisTurn && (
-                <div className="flex items-center space-x-2.5 text-muted-foreground self-start mr-auto max-w-[85%] p-4">
-                    <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-accent/30">
+                <div className="flex items-center space-x-3 text-muted-foreground self-start mr-auto max-w-[85%] p-4">
+                    <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-accent/40">
                         <AvatarImage src={storyCharacter.avatarUrl} alt={storyCharacter.name} />
                         <AvatarFallback className="bg-accent/20 text-accent text-sm font-semibold">{getInitials(storyCharacter.name)}</AvatarFallback>
                     </Avatar>
-                    <div className="p-3 rounded-xl bg-muted/20 border border-border/30 shadow-sm">
+                    <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 shadow-sm">
                         <Sparkles className="h-5 w-5 animate-pulse-spinner text-primary inline-block mr-2" />
-                        <span className="text-sm italic">{storyCharacter.name} is thinking...</span>
+                        <span className="text-sm italic">{storyCharacter.name} is crafting the next part...</span>
                     </div>
                 </div>
             )}
           </CardContent>
 
-          <CardFooter className="p-3 md:p-4 border-t border-border/30 bg-card/50">
-            {isProcessing && !displayChoices ? ( // Show loader only if not displaying choices already from previous turn
+          <CardFooter className="p-3 md:p-4 border-t border-border/30 bg-card/60">
+            {isProcessing && !displayChoices ? (
               <div className="w-full flex justify-center items-center py-3.5">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                <p className="ml-3 text-muted-foreground font-medium">Processing...</p>
+                <p className="ml-3 text-muted-foreground font-medium">Processing your choice...</p>
               </div>
             ) : displayChoices ? (
-              <div className="w-full space-y-2.5">
+              <div className="w-full space-y-3">
                 <Button
                   onClick={() => processUserInput(currentAiTurn!.choiceA!)}
                   variant="outline"
-                  className="w-full !rounded-xl text-base py-3 border-primary/40 text-primary hover:bg-primary/10 hover:border-primary shadow-sm"
+                  className="w-full !rounded-xl text-base py-3.5 border-primary/50 text-primary hover:bg-primary/10 hover:border-primary shadow-md transition-all duration-200 hover:shadow-lg"
                   disabled={isProcessing}
                 >
                   {currentAiTurn!.choiceA}
@@ -314,19 +310,19 @@ function StoryPlayerContent() {
                 <Button
                   onClick={() => processUserInput(currentAiTurn!.choiceB!)}
                   variant="outline"
-                  className="w-full !rounded-xl text-base py-3 border-primary/40 text-primary hover:bg-primary/10 hover:border-primary shadow-sm"
+                  className="w-full !rounded-xl text-base py-3.5 border-primary/50 text-primary hover:bg-primary/10 hover:border-primary shadow-md transition-all duration-200 hover:shadow-lg"
                   disabled={isProcessing}
                 >
                   {currentAiTurn!.choiceB}
                 </Button>
               </div>
             ) : (
-              <form onSubmit={(e) => { e.preventDefault(); processUserInput(userInput); }} className="w-full flex items-end gap-2">
+              <form onSubmit={(e) => { e.preventDefault(); processUserInput(userInput); }} className="w-full flex items-end gap-2.5">
                 <Textarea
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   placeholder={`What do you say or do, ${userProfile?.name || 'jaan'}?`}
-                  className="flex-grow resize-none max-h-28 p-3 rounded-xl shadow-inner focus:ring-2 focus:ring-primary focus:border-primary bg-background/80 border-border/70 text-sm md:text-base"
+                  className="flex-grow resize-none max-h-28 p-3.5 rounded-xl shadow-inner focus:ring-2 focus:ring-primary focus:border-primary bg-background/80 border-border/70 text-sm md:text-base"
                   rows={1}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -352,7 +348,7 @@ function StoryPlayerContent() {
           </CardFooter>
         </Card>
         <div className="text-center mt-8">
-            <Button variant="outline" onClick={() => router.push('/stories')} className="!rounded-xl border-primary/50 text-primary hover:bg-primary/10 hover:border-primary shadow-sm">
+            <Button variant="outline" onClick={() => router.push('/stories')} className="!rounded-xl border-primary/50 text-primary hover:bg-primary/10 hover:border-primary shadow-sm py-2.5 px-5">
                 <BookHeart className="mr-2 h-4 w-4"/> Back to All Stories
             </Button>
         </div>

@@ -21,6 +21,7 @@ import {
 } from '@/lib/firebase/rtdb';
 import { Loader2, Sparkles } from 'lucide-react';
 import { ChatPageHeader } from '@/components/chat/chat-page-header';
+import { cn } from '@/lib/utils';
 
 export default function ChatPage() {
   const { user, userProfile, loading: authLoading } = useAuth();
@@ -55,10 +56,10 @@ export default function ChatPage() {
       const rootStyle = getComputedStyle(htmlEl);
       const bgHslString = rootStyle.getPropertyValue('--background').trim();
       const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?(?:\s*\))?/);
-      let overlayColor = 'hsla(var(--background), 0.7)'; 
+      let overlayColor = 'hsla(var(--background), 0.75)'; // Slightly less transparent
 
       if (hslMatch && hslMatch.length >= 4) {
-        const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.7 : 0.7; 
+        const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.75 : 0.75; 
         overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, ${alpha})`;
       }
       
@@ -72,7 +73,8 @@ export default function ChatPage() {
         htmlEl.style.setProperty('--chat-page-initial-bg-image', `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`);
       }
     } else {
-      bodyEl.style.backgroundImage = '';
+      // Ensure fallback to theme background if no image
+      bodyEl.style.backgroundImage = 'var(--background)'; 
       htmlEl.style.removeProperty('--chat-page-initial-bg-image');
     }
 
@@ -369,7 +371,9 @@ export default function ChatPage() {
 
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-transparent"> 
+    <div className={cn(
+      "flex flex-col h-screen overflow-hidden bg-transparent transition-colors duration-500 ease-in-out"
+    )}> 
       <Header />
       <ChatPageHeader
         characterMeta={currentCharacterMeta}
@@ -391,8 +395,8 @@ export default function ChatPage() {
           characterIsPremium={currentCharacterMeta.isPremium}
           userSubscriptionTier={userProfile?.subscriptionTier}
           userDisplayName={userDisplayName}
-          userProfileAvatarUrl={userProfile?.avatarUrl} // Pass userProfile avatar
-          userFirebaseAuthAvatarUrl={user?.photoURL} // Pass Firebase Auth avatar
+          userProfileAvatarUrl={userProfile?.avatarUrl}
+          userFirebaseAuthAvatarUrl={user?.photoURL} 
         />
       </main>
       <div ref={messagesEndRef} /> 

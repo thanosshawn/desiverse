@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Save, Palette, Languages, Bell, ShieldCheck, Sun, Moon, Sparkles, User, LogOut, Camera, Gem } from 'lucide-react';
+import { Loader2, Save, Palette, Languages, ShieldCheck, Sun, Moon, Sparkles, User, LogOut, Camera, Gem, Settings as SettingsIcon } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
@@ -122,7 +122,7 @@ export default function SettingsPage() {
             <h2 className="text-2xl font-headline text-primary mb-4">Login Required</h2>
             <p className="text-muted-foreground font-body">Please login to access settings.</p>
             <Link href="/login?redirect=/settings" className="mt-6">
-                <Button variant="default" className="mt-4 !rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30">Login Now</Button>
+                <Button variant="default" className="mt-4 !rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30 py-3 px-6">Login Now</Button>
             </Link>
         </div>
       </div>
@@ -135,7 +135,7 @@ export default function SettingsPage() {
       <main className="flex-grow container mx-auto px-4 pt-20 md:pt-24 pb-12">
         <Card className="max-w-2xl mx-auto bg-card/90 backdrop-blur-xl shadow-2xl rounded-3xl border-2 border-primary/10 animate-fade-in">
           <CardHeader className="text-center p-6 md:p-8 border-b border-border/20">
-            <Settings className="mx-auto h-12 w-12 text-primary mb-3 animate-pulse-spinner" />
+            <SettingsIcon className="mx-auto h-12 w-12 text-primary mb-3 animate-pulse-spinner" />
             <CardTitle className="text-3xl md:text-4xl font-headline text-primary">Settings</CardTitle>
             <CardDescription className="font-body text-muted-foreground text-base">Apni profile aur app preferences yahaan manage karo.</CardDescription>
           </CardHeader>
@@ -143,7 +143,6 @@ export default function SettingsPage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               <CardContent className="space-y-8 p-6 md:p-8">
                 
-                {/* Profile Section */}
                 <div className="space-y-6">
                   <h3 className="text-xl font-headline text-primary/90 flex items-center"><User className="mr-2.5 h-6 w-6 text-accent"/> Profile Details</h3>
                   <div className="flex flex-col items-center space-y-4">
@@ -151,7 +150,7 @@ export default function SettingsPage() {
                           <AvatarImage src={form.watch('avatarUrl') || userProfile?.avatarUrl || user.photoURL || undefined} alt={form.watch('name') || userProfile?.name || user.displayName || 'User'} />
                           <AvatarFallback className="text-4xl bg-pink-100 text-pink-600 rounded-xl">{getInitials(form.watch('name') || userProfile?.name || user.displayName)}</AvatarFallback>
                       </Avatar>
-                      <Button type="button" variant="outline" size="sm" className="!rounded-lg text-xs border-primary/40 text-primary hover:bg-primary/10">
+                      <Button type="button" variant="outline" size="sm" className="!rounded-lg text-xs border-primary/40 text-primary hover:bg-primary/10 py-2 px-3">
                         <Camera className="mr-2 h-4 w-4"/> Change Avatar (URL below)
                       </Button>
                   </div>
@@ -186,7 +185,6 @@ export default function SettingsPage() {
                 </div>
                 <Separator className="my-6 bg-border/30"/>
 
-                {/* Appearance Section */}
                 <div className="space-y-6">
                     <h3 className="text-xl font-headline text-primary/90 flex items-center"><Palette className="mr-2.5 h-6 w-6 text-accent"/> Appearance</h3>
                     <FormField
@@ -208,9 +206,9 @@ export default function SettingsPage() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent className="rounded-xl border-border/50 bg-popover shadow-lg">
-                                    <SelectItem value="light" className="focus:bg-primary/10 focus:text-primary rounded-md"><Sun className="inline-block mr-2 h-4 w-4"/> Light & Airy</SelectItem>
-                                    <SelectItem value="dark" className="focus:bg-primary/10 focus:text-primary rounded-md"><Moon className="inline-block mr-2 h-4 w-4"/> Dark Soul</SelectItem>
-                                    <SelectItem value="pink" className="focus:bg-primary/10 focus:text-primary rounded-md"><Sparkles className="inline-block mr-2 h-4 w-4 text-pink-500"/> Gulabi Mode</SelectItem>
+                                    <SelectItem value="light" className="cursor-pointer focus:bg-primary/10 focus:text-primary rounded-md py-2 px-2.5"><Sun className="inline-block mr-2 h-4 w-4"/> Light & Bright</SelectItem>
+                                    <SelectItem value="dark" className="cursor-pointer focus:bg-primary/10 focus:text-primary rounded-md py-2 px-2.5"><Moon className="inline-block mr-2 h-4 w-4"/> Neon Dark</SelectItem>
+                                    <SelectItem value="pink" className="cursor-pointer focus:bg-primary/10 focus:text-primary rounded-md py-2 px-2.5"><Sparkles className="inline-block mr-2 h-4 w-4 text-pink-500"/> Vibrant Pink</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormDescription className="text-xs">Choose how your app looks and feels.</FormDescription>
@@ -221,7 +219,6 @@ export default function SettingsPage() {
                 </div>
                 <Separator className="my-6 bg-border/30"/>
                 
-                {/* Language Section */}
                 <div className="space-y-6">
                     <h3 className="text-xl font-headline text-primary/90 flex items-center"><Languages className="mr-2.5 h-6 w-6 text-accent"/> Language</h3>
                      <FormItem>
@@ -231,8 +228,8 @@ export default function SettingsPage() {
                                 <SelectValue placeholder="Select language" />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl border-border/50 bg-popover shadow-lg">
-                                <SelectItem value="hinglish">Hinglish (Recommended)</SelectItem>
-                                <SelectItem value="english">English</SelectItem>
+                                <SelectItem value="hinglish" className="py-2 px-2.5">Hinglish (Recommended)</SelectItem>
+                                <SelectItem value="english" className="py-2 px-2.5">English</SelectItem>
                             </SelectContent>
                         </Select>
                         <FormDescription className="text-xs">Baat karne ka style. More options soon!</FormDescription>
@@ -240,14 +237,13 @@ export default function SettingsPage() {
                 </div>
                 <Separator className="my-6 bg-border/30"/>
                 
-                 {/* Subscription Section */}
-                <div className="space-y-6">
+                 <div className="space-y-6">
                     <h3 className="text-xl font-headline text-primary/90 flex items-center"><Gem className="mr-2.5 h-6 w-6 text-yellow-400"/> Subscription</h3>
                     <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl shadow-sm">
-                        <p className="text-base font-medium text-card-foreground">Current Plan: <span className="capitalize font-semibold text-primary">{userProfile?.subscriptionTier || 'Free'}</span></Textarea>
+                        <p className="text-base font-medium text-card-foreground">Current Plan: <span className="capitalize font-semibold text-primary">{userProfile?.subscriptionTier || 'Free'}</span></p>
                         {userProfile?.subscriptionTier === 'free' && (
                              <Link href="/subscribe?feature=SettingsUpgrade" className="mt-3 block">
-                                <Button size="sm" className="w-full !rounded-lg bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-black shadow-md hover:shadow-lg">
+                                <Button size="sm" className="w-full !rounded-lg bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500 text-black shadow-md hover:shadow-lg py-2.5">
                                     Upgrade to Premium
                                 </Button>
                             </Link>
@@ -260,13 +256,12 @@ export default function SettingsPage() {
                 <Separator className="my-6 bg-border/30"/>
 
 
-                {/* Account Actions Section */}
                 <div className="space-y-4">
                     <h3 className="text-xl font-headline text-destructive/90 flex items-center"><ShieldCheck className="mr-2.5 h-6 w-6 text-destructive/70"/> Account Actions</h3>
-                    <Button type="button" variant="outline" onClick={signOut} className="w-full !rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/70 border-destructive/50 text-destructive text-base py-3">
+                    <Button type="button" variant="outline" onClick={signOut} className="w-full !rounded-xl hover:bg-destructive/10 hover:text-destructive hover:border-destructive/70 border-destructive/50 text-destructive text-base py-3.5">
                         <LogOut className="mr-2 h-5 w-5"/> Sign Out
                     </Button>
-                     <Button type="button" variant="destructive" className="w-full !rounded-xl opacity-60 cursor-not-allowed text-base py-3" disabled>
+                     <Button type="button" variant="destructive" className="w-full !rounded-xl opacity-60 cursor-not-allowed text-base py-3.5" disabled>
                         Delete Account (Coming Soon)
                     </Button>
                 </div>

@@ -61,7 +61,7 @@ export default function ChatHistoryPage() {
   const filteredSessions = chatSessions.filter(session =>
     session.characterName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (session.lastMessageText || '').toLowerCase().includes(searchTerm.toLowerCase())
-  ).sort((a, b) => { // Ensure sorting is always applied after filtering
+  ).sort((a, b) => { 
     if (a.isFavorite && !b.isFavorite) return -1;
     if (!a.isFavorite && b.isFavorite) return 1;
     return (b.updatedAt || 0) - (a.updatedAt || 0);
@@ -75,7 +75,7 @@ export default function ChatHistoryPage() {
       await updateChatSessionMetadata(user.uid, characterId, { isFavorite: newIsFavorite });
       setChatSessions(prev => 
         prev.map(s => s.characterId === characterId ? {...s, isFavorite: newIsFavorite} : s)
-            .sort((a, b) => { // Re-sort after favorite change
+            .sort((a, b) => { 
                 if (a.isFavorite && !b.isFavorite) return -1;
                 if (!a.isFavorite && b.isFavorite) return 1;
                 return (b.updatedAt || 0) - (a.updatedAt || 0);
@@ -125,7 +125,7 @@ export default function ChatHistoryPage() {
           <h2 className="text-2xl font-headline text-primary mb-4">Login Required</h2>
           <p className="text-muted-foreground font-body mb-6">Please login to see your chat history with your Baes.</p>
           <Link href="/login?redirect=/history">
-            <Button className="!rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30">Login Now</Button>
+            <Button className="!rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-lg hover:shadow-primary/30 py-3 px-6">Login Now</Button>
           </Link>
         </div>
       </div>
@@ -142,7 +142,7 @@ export default function ChatHistoryPage() {
             <p className="text-base md:text-lg font-body text-muted-foreground animate-slide-in-from-bottom">Relive your favorite moments and spicy conversations! 🔥</p>
         </div>
         
-        <div className="mb-6 md:mb-8 sticky top-18 md:top-20 z-30 bg-card/80 backdrop-blur-md p-3.5 rounded-2xl shadow-lg border border-border/30">
+        <div className="mb-6 md:mb-8 sticky top-18 md:top-20 z-30 bg-card/85 backdrop-blur-lg p-4 rounded-2xl shadow-xl border border-border/40">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
@@ -150,7 +150,7 @@ export default function ChatHistoryPage() {
               placeholder="Search chats by name or message..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 !rounded-xl text-sm md:text-base py-2.5 border-border/50 focus:border-primary focus:ring-primary shadow-sm"
+              className="w-full pl-10 !rounded-xl text-sm md:text-base py-3 border-border/60 focus:border-primary focus:ring-primary shadow-sm"
             />
           </div>
         </div>
@@ -197,7 +197,7 @@ export default function ChatHistoryPage() {
                                     variant="ghost" 
                                     size="icon" 
                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(session.characterId, session.isFavorite || false); }}
-                                    className="h-8 w-8 p-1.5 rounded-full hover:bg-yellow-400/20"
+                                    className="h-8 w-8 p-1.5 rounded-full hover:bg-yellow-400/20 transform hover:scale-110 transition-transform"
                                     title={session.isFavorite ? "Unstar Chat" : "Star Chat"}
                                 >
                                     <Star className={`h-4 w-4 transition-colors ${session.isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground/60 hover:text-yellow-500'}`} />
@@ -208,7 +208,7 @@ export default function ChatHistoryPage() {
                                             variant="ghost" 
                                             size="icon" 
                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                                            className="h-8 w-8 p-1.5 rounded-full text-muted-foreground/60 hover:text-destructive hover:border-destructive/50 hover:bg-destructive/10"
+                                            className="h-8 w-8 p-1.5 rounded-full text-muted-foreground/60 hover:text-destructive hover:border-destructive/50 hover:bg-destructive/10 transform hover:scale-110 transition-transform"
                                             title="Delete Chat"
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -222,10 +222,10 @@ export default function ChatHistoryPage() {
                                         </AlertDialogDescription>
                                         </AlertDialogHeader>
                                         <AlertDialogFooter className="mt-2">
-                                        <AlertDialogCancel className="!rounded-lg hover:bg-muted/80">Cancel</AlertDialogCancel>
+                                        <AlertDialogCancel className="!rounded-lg hover:bg-muted/80 py-2.5">Cancel</AlertDialogCancel>
                                         <AlertDialogAction 
                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteChat(session.characterId); }}
-                                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground !rounded-lg"
+                                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground !rounded-lg py-2.5"
                                         >
                                             Delete Chat
                                         </AlertDialogAction>

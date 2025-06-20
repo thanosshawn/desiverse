@@ -4,7 +4,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { SendHorizonal, Mic, Paperclip, SmilePlus, Lock, Gift as GiftIcon, LucideIcon, Sparkles } from 'lucide-react'; 
+import { SendHorizonal, Mic, Paperclip, SmilePlus, Lock, Gift as GiftIcon, LucideIcon, Sparkles, Gem } from 'lucide-react'; 
 import React, { useState, useRef } from 'react';
 import type { CharacterName, UserProfile, VirtualGift } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -132,7 +132,7 @@ export function ChatInput({
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-3 md:p-4 border-t border-border/30 bg-card/80 backdrop-blur-md flex items-end space-x-1.5 sm:space-x-2 sticky bottom-0 shadow-[-2px_0px_15px_rgba(0,0,0,0.1)]"
+      className="p-3 md:p-4 border-t border-border/30 bg-card/90 backdrop-blur-md flex items-end space-x-1.5 sm:space-x-2 sticky bottom-0 shadow-[-2px_0px_15px_rgba(0,0,0,0.08)]"
       aria-label="Chat input form"
     >
       <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
@@ -143,7 +143,7 @@ export function ChatInput({
             size="icon"
             disabled={isLoading}
             aria-label="Emoji"
-            className="text-muted-foreground hover:text-primary rounded-full p-2.5 hidden sm:inline-flex transition-colors duration-200 hover:bg-primary/10"
+            className="text-muted-foreground hover:text-primary rounded-full p-2.5 hidden sm:inline-flex transition-colors duration-200 hover:bg-primary/10 transform hover:scale-110"
             title="Select an emoji"
             onClick={() => { setShowEmojiPicker(!showEmojiPicker); setShowGiftPicker(false); }}
           >
@@ -151,7 +151,7 @@ export function ChatInput({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-            className="w-auto p-0 border-none shadow-xl bg-transparent mb-2 rounded-2xl" 
+            className="w-auto p-0 border-border/50 shadow-2xl bg-popover mb-2 rounded-2xl backdrop-blur-lg"
             side="top" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()} 
@@ -168,7 +168,7 @@ export function ChatInput({
             height={350}
             previewConfig={{ showPreview: false }}
             skinTonesDisabled
-            className="!rounded-2xl"
+            className="!rounded-2xl !border-none"
           />
         </PopoverContent>
       </Popover>
@@ -181,7 +181,7 @@ export function ChatInput({
             size="icon" 
             disabled={isLoading}
             aria-label="Send a gift"
-            className="text-muted-foreground hover:text-primary rounded-full p-2.5 transition-colors duration-200 hover:bg-primary/10"
+            className="text-muted-foreground hover:text-primary rounded-full p-2.5 transition-colors duration-200 hover:bg-primary/10 transform hover:scale-110"
             title="Send a gift"
             onClick={() => { setShowGiftPicker(!showGiftPicker); setShowEmojiPicker(false); }}
           >
@@ -189,21 +189,21 @@ export function ChatInput({
           </Button>
         </PopoverTrigger>
         <PopoverContent 
-            className="w-80 p-2 border-border/50 shadow-2xl bg-card mb-2 rounded-2xl backdrop-blur-md"
+            className="w-80 p-3 border-border/50 shadow-2xl bg-popover backdrop-blur-lg mb-2 rounded-2xl"
             side="top" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onCloseAutoFocus={(e) => e.preventDefault()}
         >
-          <div className="space-y-1.5">
-            <p className="text-sm font-headline text-primary px-2 pt-1">Gifts for {characterName} <Sparkles className="inline h-4 w-4 text-yellow-400"/></p>
+          <div className="space-y-2">
+            <p className="text-base font-headline text-primary px-1 pt-1">Gifts for {characterName} <Sparkles className="inline h-4 w-4 text-yellow-400"/></p>
             {virtualGifts.map((gift) => {
                 const isThisSpecificGiftLocked = isFeatureLocked('premium_gift', userSubscriptionTier);
                 return (
                     <Button
                         key={gift.id}
                         variant="ghost"
-                        className="w-full justify-start h-auto p-2.5 text-left !rounded-lg text-card-foreground hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-150"
+                        className="w-full justify-start h-auto p-3 text-left !rounded-xl text-card-foreground hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary transition-colors duration-150"
                         onClick={() => handleSendGift(gift)}
                         title={isThisSpecificGiftLocked ? getFeatureLockDetails('premium_gift', { itemName: gift.name, characterName }).title : `Send ${gift.name}`}
                     >
@@ -226,7 +226,7 @@ export function ChatInput({
             {userSubscriptionTier === 'free' && (
                  <Button 
                     variant="default" 
-                    className="w-full mt-2 !rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-md hover:shadow-lg"
+                    className="w-full mt-2.5 !rounded-xl bg-gradient-to-r from-primary via-rose-500 to-pink-600 text-primary-foreground shadow-md hover:shadow-lg py-2.5"
                     onClick={() => {
                         const details = getFeatureLockDetails('premium_gift', { characterName });
                         router.push(`/subscribe?${details.subscribeQuery}`);
@@ -245,7 +245,7 @@ export function ChatInput({
         size="icon" 
         disabled={isLoading}
         aria-label="Attach file"
-        className="text-muted-foreground hover:text-primary rounded-full p-2.5 hidden sm:inline-flex transition-colors duration-200 hover:bg-primary/10"
+        className="text-muted-foreground hover:text-primary rounded-full p-2.5 hidden sm:inline-flex transition-colors duration-200 hover:bg-primary/10 transform hover:scale-110"
         title="Attach file (coming soon!)"
       >
         <Paperclip className="h-5 w-5" />

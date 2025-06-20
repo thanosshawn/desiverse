@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -76,18 +77,18 @@ export default {
           ring: 'hsl(var(--sidebar-ring))',
         },
       },
-      borderRadius: { // Enhanced borderRadius for softer UI
+      borderRadius: { 
         lg: 'var(--radius)', 
-        md: 'calc(var(--radius) - 2px)', // Softer than before
-        sm: 'calc(var(--radius) - 4px)', // Softer than before
-        xl: 'calc(var(--radius) + 6px)', // More pronounced large radius
-        '2xl': 'calc(var(--radius) + 12px)', // Even more
-        '3xl': 'calc(var(--radius) + 20px)', // For very rounded elements like profile cards
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+        xl: 'calc(var(--radius) + 4px)', 
+        '2xl': 'calc(var(--radius) + 8px)', 
+        '3xl': 'calc(var(--radius) + 16px)', 
       },
-      boxShadow: { // Adding some playful shadows
-        'glow-primary': '0 0 15px 2px hsl(var(--primary) / 0.5)',
-        'glow-accent': '0 0 15px 2px hsl(var(--accent) / 0.4)',
-        'soft-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -4px rgba(0, 0, 0, 0.07)', // Softer large shadow
+      boxShadow: { 
+        'glow-primary': '0 0 18px 3px hsl(var(--primary) / 0.45)',
+        'glow-accent': '0 0 18px 3px hsl(var(--accent) / 0.35)',
+        'soft-lg': '0 10px 20px -5px rgba(0, 0, 0, 0.08), 0 4px 8px -4px rgba(0, 0, 0, 0.08)',
       },
       keyframes: {
         'accordion-down': {
@@ -108,17 +109,17 @@ export default {
         },
         pulseSpinner: {
           '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-          '50%': { opacity: '0.6', transform: 'scale(0.95)' },
+          '50%': { opacity: '0.5', transform: 'scale(0.9)' },
         },
         heartbeat: {
           '0%': { transform: 'scale(1)' },
-          '14%': { transform: 'scale(1.15)' },
+          '14%': { transform: 'scale(1.2)' },
           '28%': { transform: 'scale(1)' },
-          '42%': { transform: 'scale(1.15)' },
+          '42%': { transform: 'scale(1.2)' },
           '70%': { transform: 'scale(1)' }
         },
         "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
         "fade-out": {
@@ -126,28 +127,29 @@ export default {
           "100%": { opacity: "0" },
         },
         "slide-in-from-bottom": {
-          "0%": { transform: "translateY(30px)", opacity: "0" },
+          "0%": { transform: "translateY(25px)", opacity: "0" },
           "100%": { transform: "translateY(0)", opacity: "1" },
         },
         "hue-rotate-glow": {
-          "0%": { filter: "hue-rotate(0deg) drop-shadow(0 0 5px hsl(var(--primary)))" },
-          "50%": { filter: "hue-rotate(15deg) drop-shadow(0 0 10px hsl(var(--primary)))" },
-          "100%": { filter: "hue-rotate(0deg) drop-shadow(0 0 5px hsl(var(--primary)))" },
+          "0%": { filter: "hue-rotate(0deg) drop-shadow(0 0 6px hsl(var(--primary)))" },
+          "50%": { filter: "hue-rotate(12deg) drop-shadow(0 0 12px hsl(var(--primary)))" },
+          "100%": { filter: "hue-rotate(0deg) drop-shadow(0 0 6px hsl(var(--primary)))" },
         }
       },
       animation: {
-        'accordion-down': 'accordion-down 0.3s ease-out',
-        'accordion-up': 'accordion-up 0.3s ease-out',
-        'pulse-spinner': 'pulseSpinner 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'heartbeat': 'heartbeat 1.2s ease-in-out infinite',
-        "fade-in": "fade-in 0.5s ease-out forwards",
-        "fade-out": "fade-out 0.5s ease-in forwards",
-        "slide-in-from-bottom": "slide-in-from-bottom 0.6s ease-out forwards",
-        "hue-rotate-glow": "hue-rotate-glow 3s ease-in-out infinite",
+        'accordion-down': 'accordion-down 0.25s ease-out',
+        'accordion-up': 'accordion-up 0.25s ease-out',
+        'pulse-spinner': 'pulseSpinner 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'heartbeat': 'heartbeat 1.1s ease-in-out infinite',
+        "fade-in": "fade-in 0.4s ease-out forwards",
+        "fade-out": "fade-out 0.4s ease-in forwards",
+        "slide-in-from-bottom": "slide-in-from-bottom 0.5s ease-out forwards",
+        "hue-rotate-glow": "hue-rotate-glow 2.5s ease-in-out infinite",
       },
-      backgroundImage: { // Adding gradients for playful touches
+      backgroundImage: { 
         'gradient-primary-accent': 'linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)))',
         'gradient-secondary-muted': 'linear-gradient(to right, hsl(var(--secondary)), hsl(var(--muted)))',
+        'gradient-header': 'linear-gradient(110deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--accent)) 100%)',
       }
     },
   },

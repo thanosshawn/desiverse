@@ -1,3 +1,4 @@
+
 // src/components/chat/chat-message.tsx
 'use client';
 
@@ -15,18 +16,18 @@ interface ChatMessageProps {
   characterBubbleStyle?: string; 
   aiAvatarUrl: string; 
   userDisplayName?: string; 
-  userProfileAvatarUrl?: string | null; // Added
-  userFirebaseAuthAvatarUrl?: string | null; // Added
+  userProfileAvatarUrl?: string | null;
+  userFirebaseAuthAvatarUrl?: string | null;
 }
 
-export function ChatMessage({ 
+const ChatMessageComponent = ({ 
   message, 
   characterBubbleStyle, 
   aiAvatarUrl, 
   userDisplayName,
-  userProfileAvatarUrl, // Added
-  userFirebaseAuthAvatarUrl // Added
-}: ChatMessageProps) {
+  userProfileAvatarUrl,
+  userFirebaseAuthAvatarUrl
+}: ChatMessageProps) => {
   const isUser = message.sender === 'user';
   
   const [clientFormattedTimestamp, setClientFormattedTimestamp] = useState<string | null>(null);
@@ -48,15 +49,15 @@ export function ChatMessage({
     
     if (isUser) {
       if (message.type === 'gift_sent') {
-        return `${baseClasses} bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 text-black rounded-br-lg shadow-lg border border-amber-500/30`; 
+        return `${baseClasses} bg-gradient-to-br from-yellow-400 via-amber-400 to-orange-400 text-black rounded-tr-lg shadow-lg border border-amber-500/30`; 
       }
-      return `${baseClasses} bg-gradient-to-br from-primary via-rose-500 to-pink-600 text-primary-foreground rounded-br-lg group-hover:shadow-lg`;
+      return `${baseClasses} bg-gradient-to-br from-primary via-rose-500 to-pink-600 text-primary-foreground rounded-tr-lg group-hover:shadow-lg`;
     }
     
     if (characterBubbleStyle === 'bubble-priya') { 
-        return `${baseClasses} bg-gradient-to-tr from-teal-400 via-cyan-500 to-sky-500 text-white rounded-bl-lg shadow-glow-accent`;
+        return `${baseClasses} bg-gradient-to-tr from-teal-400 via-cyan-500 to-sky-500 text-white rounded-tl-lg shadow-glow-accent`;
     }
-    return `${baseClasses} bg-card text-card-foreground rounded-bl-lg shadow-soft-lg border border-border/60 group-hover:border-accent/60`;
+    return `${baseClasses} bg-card text-card-foreground rounded-tl-lg shadow-soft-lg border border-border/60 group-hover:border-accent/60`;
   };
 
   const renderGiftIcon = (gift: VirtualGift) => {
@@ -140,12 +141,12 @@ export function ChatMessage({
   return (
     <div
       className={cn(
-        'flex items-end space-x-2 group animate-fade-in w-fit', 
+        'flex items-end space-x-2.5 group animate-fade-in w-full', 
         isUser ? 'justify-end self-end ml-auto pl-[10%] sm:pl-[15%]' : 'justify-start self-start mr-auto pr-[10%] sm:pr-[15%]'
       )}
     >
       {!isUser && (
-        <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-accent/30 group-hover:border-accent transition-all">
+        <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-accent/40 group-hover:border-accent transition-all">
             <AvatarImage src={aiAvatarUrl} alt={message.characterName || 'AI'} />
             <AvatarFallback className="bg-accent/20 text-accent text-sm font-semibold">
               {message.characterName ? getInitials(message.characterName) : <Bot size={18}/>}
@@ -154,13 +155,14 @@ export function ChatMessage({
       )}
       <div
         className={cn(
-          getBubbleStyle()
+          getBubbleStyle(),
+          "min-w-[60px]" // Ensure minimum width for very short messages
         )}
       >
         {renderContent()}
         {clientFormattedTimestamp && message.type !== 'loading' && message.type !== 'error' && (
           <p className={cn(
-              "text-xs mt-1.5 text-right opacity-70", 
+              "text-xs mt-2 text-right opacity-75", 
               isUser ? "text-primary-foreground/80" : "text-muted-foreground/90"
           )}>
             {clientFormattedTimestamp}
@@ -168,7 +170,7 @@ export function ChatMessage({
         )}
       </div>
        {isUser && ( 
-         <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-secondary/30 group-hover:border-secondary transition-all">
+         <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-secondary/40 group-hover:border-secondary transition-all">
             <AvatarImage src={userProfileAvatarUrl || userFirebaseAuthAvatarUrl || undefined} />
             <AvatarFallback className="bg-secondary/20 text-secondary-foreground text-sm font-semibold">
               {userDisplayName ? getInitials(userDisplayName) : <User size={18}/>}
@@ -178,3 +180,4 @@ export function ChatMessage({
     </div>
   );
 }
+export const ChatMessage = React.memo(ChatMessageComponent);

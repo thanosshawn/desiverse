@@ -4,16 +4,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Filter, Heart, Loader2, MessageCircle, Sparkles, Edit, Search, BookHeart, ChevronRight } from 'lucide-react'; // Added BookHeart, ChevronRight
+import { Filter, Heart, Loader2, MessageCircle, Sparkles, Edit, Search, BookHeart, ChevronRight } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState, useMemo } from 'react';
-import type { CharacterMetadata, InteractiveStory } from '@/lib/types'; // Added InteractiveStory
-import { getAllCharacters, getAllInteractiveStories } from '@/lib/firebase/rtdb'; // Added getAllInteractiveStories
+import type { CharacterMetadata, InteractiveStory } from '@/lib/types'; 
+import { getAllCharacters, getAllInteractiveStories } from '@/lib/firebase/rtdb'; 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { CharacterCard } from '@/components/character/character-card'; 
-import { StoryCard } from '@/components/story/story-card'; // Added StoryCard
+import { StoryCard } from '@/components/story/story-card'; 
 import { cn } from '@/lib/utils';
 
 const characterTagColors: Record<string, string> = {
@@ -36,7 +36,6 @@ const characterTagColors: Record<string, string> = {
   "Spiritual": "bg-amber-500 hover:bg-amber-600 text-black",
 };
 
-// Tag colors for Story Cards (can be the same or different)
 const storyTagColors: Record<string, string> = {
   "Adventure": "bg-sky-500 hover:bg-sky-600",
   "Romance": "bg-pink-500 hover:bg-pink-600",
@@ -55,9 +54,9 @@ const storyTagColors: Record<string, string> = {
 export default function HomePage() {
   const { user, loading: authLoading } = useAuth();
   const [characters, setCharacters] = useState<CharacterMetadata[]>([]);
-  const [stories, setStories] = useState<InteractiveStory[]>([]); // State for stories
+  const [stories, setStories] = useState<InteractiveStory[]>([]); 
   const [loadingCharacters, setLoadingCharacters] = useState(true);
-  const [loadingStories, setLoadingStories] = useState(true); // State for stories loading
+  const [loadingStories, setLoadingStories] = useState(true); 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -71,7 +70,7 @@ export default function HomePage() {
             getAllInteractiveStories()
         ]);
         setCharacters(fetchedCharacters);
-        setStories(fetchedStories.slice(0, 3)); // Get top 3 latest stories
+        setStories(fetchedStories.slice(0, 3)); 
       } catch (error) {
         console.error("Failed to fetch data:", error);
         setCharacters([]);
@@ -126,7 +125,6 @@ export default function HomePage() {
       <Header />
 
       <section className="container mx-auto px-4 pt-20 md:pt-24 pb-12 flex-grow">
-        {/* Character Selection Section */}
         <div className="text-center mb-10 md:mb-12">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline mb-3 text-primary animate-fade-in drop-shadow-sm">
             Kaun Banegi Aapki <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">Crush</span>? 
@@ -137,7 +135,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mb-8 md:mb-10 p-4 bg-card/80 backdrop-blur-md rounded-2xl shadow-lg space-y-4 sticky top-18 md:top-20 z-30 border border-border/30">
+        <div className="mb-8 md:mb-10 p-4 bg-card/85 backdrop-blur-lg rounded-2xl shadow-xl space-y-4 sticky top-18 md:top-20 z-30 border border-border/40">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
             <Input
@@ -145,7 +143,7 @@ export default function HomePage() {
               placeholder="Search Baes by name or personality..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full !rounded-xl text-sm md:text-base pl-10 pr-4 py-2.5 border-border/50 focus:ring-primary focus:border-primary shadow-sm"
+              className="w-full !rounded-xl text-sm md:text-base pl-10 pr-4 py-3 border-border/60 focus:ring-primary focus:border-primary shadow-sm"
             />
           </div>
           {allCharacterTags.length > 0 && (
@@ -161,8 +159,8 @@ export default function HomePage() {
                   className={cn(
                     "rounded-full text-xs px-3.5 py-1.5 transition-all duration-200 ease-in-out transform hover:scale-105 shadow-sm",
                     selectedTags.includes(tag) ? 
-                      `${characterTagColors[tag] || 'bg-primary hover:bg-primary/90'} text-primary-foreground` : 
-                      'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/70 bg-card/70'
+                      `${characterTagColors[tag] || 'bg-primary hover:bg-primary/90'} text-primary-foreground border-transparent` : 
+                      'border-primary/40 text-primary hover:bg-primary/10 hover:border-primary/80 bg-card/80'
                   )}
                 >
                   {tag}
@@ -175,14 +173,14 @@ export default function HomePage() {
         {loadingCharacters ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
             {[...Array(4)].map((_, i) => ( 
-              <Skeleton key={i} className="bg-card/50 shadow-xl rounded-3xl overflow-hidden aspect-[3/4.5] flex flex-col">
-                <Skeleton className="w-full h-3/5 bg-muted/30" /> 
+              <Skeleton key={i} className="bg-card/60 shadow-xl rounded-3xl overflow-hidden aspect-[3/4.5] flex flex-col">
+                <Skeleton className="w-full h-3/5 bg-muted/40" /> 
                 <div className="p-5 text-center space-y-3 flex-grow flex flex-col justify-between">
                   <div>
-                    <Skeleton className="h-7 w-3/4 mx-auto mb-2 bg-muted/40" />
-                    <Skeleton className="h-10 w-full mx-auto mb-4 bg-muted/30" />
+                    <Skeleton className="h-7 w-3/4 mx-auto mb-2 bg-muted/50" />
+                    <Skeleton className="h-10 w-full mx-auto mb-4 bg-muted/40" />
                   </div>
-                  <Skeleton className="h-11 w-full rounded-xl bg-muted/40" />
+                  <Skeleton className="h-11 w-full rounded-xl bg-muted/50" />
                 </div>
               </Skeleton>
             ))}
@@ -206,7 +204,6 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Stories Section */}
         <div className="mt-16 md:mt-20 pt-10 border-t-2 border-dashed border-primary/20">
             <div className="flex justify-between items-center mb-8 md:mb-10">
                 <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold font-headline text-primary animate-fade-in drop-shadow-sm">
@@ -214,7 +211,7 @@ export default function HomePage() {
                     <BookHeart className="inline-block text-accent h-8 w-8 md:h-10 md:w-10 ml-2 animate-pulse" />
                 </h2>
                 <Link href="/stories" passHref>
-                    <Button variant="outline" className="!rounded-xl text-primary border-primary/50 hover:bg-primary/10 hover:text-primary shadow-sm group">
+                    <Button variant="outline" className="!rounded-xl text-primary border-primary/50 hover:bg-primary/10 hover:text-primary shadow-sm group py-2.5 px-5 transform hover:scale-105 transition-transform">
                         View All Stories <ChevronRight className="h-5 w-5 ml-1 group-hover:translate-x-1 transition-transform" />
                     </Button>
                 </Link>
@@ -223,14 +220,14 @@ export default function HomePage() {
             {loadingStories ? (
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {[...Array(3)].map((_, i) => (
-                         <Skeleton key={`story-skel-${i}`} className="bg-card/50 shadow-xl rounded-3xl overflow-hidden aspect-[16/11.5] flex flex-col">
-                            <Skeleton className="w-full h-3/5 bg-muted/30" />
+                         <Skeleton key={`story-skel-${i}`} className="bg-card/60 shadow-xl rounded-3xl overflow-hidden aspect-[16/11.5] flex flex-col">
+                            <Skeleton className="w-full h-3/5 bg-muted/40" />
                             <div className="p-5 space-y-3 flex-grow flex flex-col justify-between">
                                 <div>
-                                    <Skeleton className="h-7 w-3/4 mb-2 bg-muted/40" />
-                                    <Skeleton className="h-12 w-full mb-4 bg-muted/30" />
+                                    <Skeleton className="h-7 w-3/4 mb-2 bg-muted/50" />
+                                    <Skeleton className="h-12 w-full mb-4 bg-muted/40" />
                                 </div>
-                                <Skeleton className="h-11 w-full rounded-xl bg-muted/40" />
+                                <Skeleton className="h-11 w-full rounded-xl bg-muted/50" />
                             </div>
                         </Skeleton>
                     ))}
@@ -238,7 +235,6 @@ export default function HomePage() {
             ) : stories.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                     {stories.map((story) => (
-                        // Character prop is optional here as snapshots should be reliable
                         <StoryCard key={story.id} story={story} tagColors={storyTagColors} />
                     ))}
                 </div>
@@ -253,14 +249,14 @@ export default function HomePage() {
 
         <div className="mt-16 text-center">
             <Link href="/admin/login" passHref>
-              <Button size="sm" variant="ghost" className="text-muted-foreground/70 hover:text-primary rounded-lg text-xs group transition-colors">
+              <Button size="sm" variant="ghost" className="text-muted-foreground/70 hover:text-primary rounded-lg text-xs group transition-colors py-2 px-3">
                 <Edit className="mr-1.5 h-3.5 w-3.5 group-hover:animate-pulse" /> Admin Panel
               </Button>
             </Link>
         </div>
       </section>
 
-      <footer className="py-8 text-center border-t border-border/20 bg-card/30 backdrop-blur-sm">
+      <footer className="py-8 text-center border-t border-border/20 bg-card/50 backdrop-blur-sm">
         <p className="text-sm text-muted-foreground font-body">&copy; {new Date().getFullYear()} DesiVerse Bae. Made with <Heart className="inline h-4 w-4 text-primary animate-heartbeat" /> in India.</p>
       </footer>
     </div>

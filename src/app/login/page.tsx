@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Loader2, LogIn, UserCircle, Sparkles, Heart, Film } from 'lucide-react'; // Added Film
+import { Loader2, LogIn, UserCircle, Sparkles, Heart } from 'lucide-react'; 
 import Link from 'next/link';
 
 function LoginFormComponent() {
@@ -42,9 +42,9 @@ function LoginFormComponent() {
   if (authLoading || (!authLoading && user)) {
     return (
       <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary via-pink-400 to-rose-500 items-center justify-center p-4 text-center">
-        <Film className="h-20 w-20 text-white mb-6 animate-pulse-spinner" /> {/* Changed icon */}
-        <h1 className="text-3xl font-headline text-white mb-2">Lights, Camera, Action!</h1>
-        <p className="text-lg text-white/80 font-body">Aapki desi duniya load ho rahi hai! Bas ek second...</p>
+        <Sparkles className="h-20 w-20 text-yellow-300 mb-6 animate-pulse-spinner" /> 
+        <h1 className="text-3xl font-headline text-white mb-2">Just a moment, love!</h1>
+        <p className="text-lg text-white/80 font-body">Loading your DesiVerse experience...</p>
       </div>
     );
   }
@@ -92,9 +92,9 @@ function LoginFormComponent() {
 export default function LoginPage() {
   const SuspenseFallback = (
      <div className="flex flex-col min-h-screen bg-gradient-to-br from-primary via-pink-400 to-rose-500 items-center justify-center p-4 text-center">
-        <Film className="h-20 w-20 text-white mb-6 animate-pulse-spinner" />
-        <h1 className="text-3xl font-headline text-white mb-2">Lights, Camera, Action!</h1>
-        <p className="text-lg text-white/80 font-body">Aapki desi duniya load ho rahi hai! Bas ek second...</p>
+        <Sparkles className="h-20 w-20 text-yellow-300 mb-6 animate-pulse-spinner" />
+        <h1 className="text-3xl font-headline text-white mb-2">Just a moment, love!</h1>
+        <p className="text-lg text-white/80 font-body">Loading your DesiVerse experience...</p>
       </div>
   );
 
