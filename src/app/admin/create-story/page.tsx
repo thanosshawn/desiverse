@@ -167,8 +167,8 @@ export default function CreateStoryPage() {
                   <ListChecks className="mr-2 h-4 w-4" /> Manage Chars
                 </Button>
               </Link>
-              <Link href="/admin/create-story" passHref>
-                  <Button variant="outline" size="sm" title="Manage existing stories (placeholder)">
+              <Link href="/admin/manage-stories" passHref>
+                  <Button variant="outline" size="sm" title="Manage existing stories">
                       <FileText className="mr-2 h-4 w-4"/> Manage Stories
                   </Button>
               </Link>

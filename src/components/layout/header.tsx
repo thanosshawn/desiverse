@@ -104,11 +104,11 @@ export function Header() {
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="hover:bg-white/20 rounded-full text-white/80 hover:text-white transform hover:scale-110 transition-transform" title="Change theme">
+              <Button variant="ghost" size="icon" className="hover:bg-red-200 rounded-full text-white/80 hover:text-white transform hover:scale-110 transition-transform" title="Change theme">
                 {getThemeIcon()}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-2xl border-border/30 bg-card text-card-foreground">
+            <DropdownMenuContent align="end" className="w-52 rounded-xl shadow-2xl border-border/30 bg-red-100 border border-red-400  px-4 py-3 text-card-foreground">
               <DropdownMenuLabel className="text-muted-foreground px-2.5 py-1.5">Select Theme</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
@@ -131,7 +131,7 @@ export function Header() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64 rounded-xl shadow-2xl border-border/30 bg-card text-card-foreground" align="end" forceMount>
+              <DropdownMenuContent className="w-64 rounded-xl shadow-2xl border-border/30 bg-red-300 text-card-foreground" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal p-2.5">
                   <div className="flex flex-col space-y-1">
                     <div className="flex items-center gap-2">
@@ -175,7 +175,7 @@ export function Header() {
                   <UserCircle className="mr-1.5 h-5 w-5" /> Login / Sign Up
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64 rounded-xl shadow-2xl border-border/30 bg-card text-card-foreground" align="end" forceMount>
+              <DropdownMenuContent className="w-64 rounded-xl shadow-2xl border-border/30 bg-red-200 text-card-foreground" align="end" forceMount>
                  <DropdownMenuLabel className="text-center text-muted-foreground text-sm py-2.5 px-2.5">Dil se connect karo! 😍</DropdownMenuLabel>
                  <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signInWithGoogle} className="cursor-pointer group py-2.5 px-3 rounded-md focus:bg-primary/10 focus:text-primary">

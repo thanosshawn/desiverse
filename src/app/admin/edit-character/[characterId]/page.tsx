@@ -201,12 +201,17 @@ export default function EditCharacterPage() {
            <div className="flex flex-wrap items-center gap-2 mb-6 justify-center md:justify-start">
               <Link href="/admin/manage-characters" passHref>
                 <Button variant="outline" size="sm" title="Back to manage characters">
-                  <ListChecks className="mr-2 h-4 w-4" /> Manage All
+                  <ListChecks className="mr-2 h-4 w-4" /> Manage All Chars
                 </Button>
               </Link>
                <Link href="/admin/create-story" passHref>
                 <Button variant="outline" size="sm" title="Create new story">
                     <BookOpenCheck className="mr-2 h-4 w-4" /> Create Story
+                </Button>
+              </Link>
+              <Link href="/admin/manage-stories" passHref>
+                <Button variant="outline" size="sm" title="Manage existing stories">
+                    <FileText className="mr-2 h-4 w-4"/> Manage Stories
                 </Button>
               </Link>
               <Button variant="outline" size="sm" onClick={handleLogout} title="Logout from admin">
@@ -328,5 +333,3 @@ export default function EditCharacterPage() {
     </div>
   );
 }
-
-    

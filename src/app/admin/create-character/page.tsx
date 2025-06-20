@@ -164,6 +164,11 @@ export default function CreateCharacterPage() {
                       <BookOpenCheck className="mr-2 h-4 w-4" /> Create Story
                   </Button>
               </Link>
+              <Link href="/admin/manage-stories" passHref>
+                  <Button variant="outline" size="sm" title="Manage existing stories">
+                      <FileText className="mr-2 h-4 w-4"/> Manage Stories
+                  </Button>
+              </Link>
                <Link href="/admin/analytics" passHref>
                   <Button variant="outline" size="sm" title="View Analytics">
                       <BarChart3 className="mr-2 h-4 w-4" /> Analytics
