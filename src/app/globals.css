@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Baloo+Bhai+2:wght@400;500;700&family=Hind:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -17,41 +16,41 @@
     --popover: hsl(240 18% 13%); /* Dark for popovers */
     --popover-foreground: hsl(35 100% 95%);
     
-    --primary: hsl(325 100% 68%); /* Vibrant Pink */
+    --primary: hsl(330, 80%, 60%); /* Romantic Pink/Magenta */
     --primary-foreground: hsl(0 0% 100%); /* White */
     
-    --secondary: hsl(175 85% 50%); /* Bright Teal */
+    --secondary: hsl(175 85% 45%); /* Bright Teal - slightly adjusted for better harmony */
     --secondary-foreground: hsl(175 100% 10%); /* Dark Teal for contrast on bright secondary */
     
     --muted: hsl(240 12% 20%); /* Darker Muted */
     --muted-foreground: hsl(35 30% 75%); /* Light Muted Text */
     
-    --accent: hsl(50 100% 60%); /* Bright Yellow/Gold */
-    --accent-foreground: hsl(50 90% 15%); /* Dark Yellow for contrast */
+    --accent: hsl(45, 90%, 55%); /* Warm Golden Yellow */
+    --accent-foreground: hsl(45 90% 15%); /* Dark Yellow for contrast */
     
     --destructive: hsl(0 80% 60%); /* Bright Red */
     --destructive-foreground: hsl(0 0% 100%); /* White */
     
     --border: hsl(240 12% 25%); /* Subtle Dark Border */
     --input: hsl(240 12% 16%); /* Dark Input Background */
-    --ring: hsl(325 100% 68%); /* Ring matches primary */
+    --ring: hsl(330 80% 60%); /* Ring matches new primary */
     
-    --chart-1: 325 100% 68%; 
-    --chart-2: 175 85% 50%;  
-    --chart-3: 50 100% 60%;   
+    --chart-1: 330 80% 60%; 
+    --chart-2: 175 85% 45%;  
+    --chart-3: 45 90% 55%;   
     --chart-4: 250 65% 75%;  
     --chart-5: 25 100% 65%;  
     
-    --radius: 0.85rem;
+    --radius: 0.75rem; /* Slightly softened radius */
 
     --sidebar-background: hsl(240 18% 9%);
     --sidebar-foreground: hsl(35 100% 92%);
-    --sidebar-primary: hsl(325 95% 63%);
+    --sidebar-primary: hsl(330 75% 58%); /* Adjusted to new primary */
     --sidebar-primary-foreground: hsl(0 0% 100%);
     --sidebar-accent: hsl(240 18% 12%);
-    --sidebar-accent-foreground: hsl(325 95% 70%);
+    --sidebar-accent-foreground: hsl(330 75% 65%); /* Adjusted */
     --sidebar-border: hsl(240 12% 18%);
-    --sidebar-ring: hsl(325 95% 63%);
+    --sidebar-ring: hsl(330 75% 58%); /* Adjusted */
   }
 
   .dark {
@@ -65,39 +64,39 @@
     --popover: hsl(240 18% 13%); 
     --popover-foreground: hsl(35 100% 95%);
     
-    --primary: hsl(325 100% 68%); 
+    --primary: hsl(330, 80%, 60%); 
     --primary-foreground: hsl(0 0% 100%); 
     
-    --secondary: hsl(175 85% 50%); 
+    --secondary: hsl(175 85% 45%); 
     --secondary-foreground: hsl(175 100% 10%); 
     
     --muted: hsl(240 12% 20%);
     --muted-foreground: hsl(35 30% 75%); 
     
-    --accent: hsl(50 100% 60%); 
-    --accent-foreground: hsl(50 90% 15%); 
+    --accent: hsl(45, 90%, 55%); 
+    --accent-foreground: hsl(45 90% 15%); 
     
     --destructive: hsl(0 80% 60%); 
     --destructive-foreground: hsl(0 0% 100%);
     
     --border: hsl(240 12% 25%); 
     --input: hsl(240 12% 16%); 
-    --ring: hsl(325 100% 68%); 
+    --ring: hsl(330 80% 60%); 
 
-    --chart-1: 325 100% 68%; 
-    --chart-2: 175 85% 50%;  
-    --chart-3: 50 100% 60%;   
+    --chart-1: 330 80% 60%; 
+    --chart-2: 175 85% 45%;  
+    --chart-3: 45 90% 55%;   
     --chart-4: 250 65% 75%;  
     --chart-5: 25 100% 65%;
 
     --sidebar-background: hsl(240 18% 9%);
     --sidebar-foreground: hsl(35 100% 92%);
-    --sidebar-primary: hsl(325 95% 63%);
+    --sidebar-primary: hsl(330 75% 58%);
     --sidebar-primary-foreground: hsl(0 0% 100%);
     --sidebar-accent: hsl(240 18% 12%);
-    --sidebar-accent-foreground: hsl(325 95% 70%);
+    --sidebar-accent-foreground: hsl(330 75% 65%);
     --sidebar-border: hsl(240 12% 18%);
-    --sidebar-ring: hsl(325 95% 63%);
+    --sidebar-ring: hsl(330 75% 58%);
   }
 
   .pink { /* Refreshed Pink Theme - Now also points to Dark Values */
@@ -110,39 +109,39 @@
     --popover: hsl(240 18% 13%); 
     --popover-foreground: hsl(35 100% 95%);
     
-    --primary: hsl(325 100% 68%); 
+    --primary: hsl(330, 80%, 60%); 
     --primary-foreground: hsl(0 0% 100%); 
     
-    --secondary: hsl(175 85% 50%); 
+    --secondary: hsl(175 85% 45%); 
     --secondary-foreground: hsl(175 100% 10%); 
     
     --muted: hsl(240 12% 20%);
     --muted-foreground: hsl(35 30% 75%); 
     
-    --accent: hsl(50 100% 60%); 
-    --accent-foreground: hsl(50 90% 15%); 
+    --accent: hsl(45, 90%, 55%); 
+    --accent-foreground: hsl(45 90% 15%); 
     
     --destructive: hsl(0 80% 60%); 
     --destructive-foreground: hsl(0 0% 100%);
     
     --border: hsl(240 12% 25%); 
     --input: hsl(240 12% 16%); 
-    --ring: hsl(325 100% 68%);  
+    --ring: hsl(330 80% 60%);  
 
-    --chart-1: 325 100% 68%; 
-    --chart-2: 175 85% 50%;  
-    --chart-3: 50 100% 60%;   
+    --chart-1: 330 80% 60%; 
+    --chart-2: 175 85% 45%;  
+    --chart-3: 45 90% 55%;   
     --chart-4: 250 65% 75%;  
     --chart-5: 25 100% 65%;
 
     --sidebar-background: hsl(240 18% 9%);
     --sidebar-foreground: hsl(35 100% 92%);
-    --sidebar-primary: hsl(325 95% 63%);
+    --sidebar-primary: hsl(330 75% 58%);
     --sidebar-primary-foreground: hsl(0 0% 100%);
     --sidebar-accent: hsl(240 18% 12%);
-    --sidebar-accent-foreground: hsl(325 95% 70%);
+    --sidebar-accent-foreground: hsl(330 75% 65%);
     --sidebar-border: hsl(240 12% 18%);
-    --sidebar-ring: hsl(325 95% 63%);
+    --sidebar-ring: hsl(330 75% 58%);
   }
 }
 
@@ -160,7 +159,7 @@
   
   /* Adjusted text shadow for dark theme */
   .font-headline { 
-    text-shadow: 1px 1px 4px hsla(var(--primary), 0.3);
+    text-shadow: 1px 1px 5px hsla(var(--primary), 0.35); /* Slightly more pronounced for romantic feel */
   }
 
   /* Refined global gradient background overlay for dark theme */
@@ -172,8 +171,8 @@
     right: 0;
     bottom: 0;
     z-index: -1; 
-    background-image: linear-gradient(135deg, hsla(var(--primary), 0.12), hsla(var(--secondary), 0.12) 45%, hsla(var(--accent), 0.12) 85%, hsla(var(--background), 0.07));
-    opacity: 0.6; /* Slightly increased opacity for dark theme richness */
+    background-image: linear-gradient(135deg, hsla(var(--primary), 0.15), hsla(var(--secondary), 0.12) 45%, hsla(var(--accent), 0.15) 85%, hsla(var(--background), 0.07));
+    opacity: 0.65; /* Slightly increased opacity for dark theme richness */
     transition: opacity 0.5s ease-in-out;
     pointer-events: none;
   }
@@ -185,11 +184,11 @@
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: hsl(var(--muted) / 0.6); 
+    background: hsl(var(--muted) / 0.5); /* More transparent track */
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--primary) / 0.7); /* Slightly less opaque for dark theme */
+    background: hsl(var(--primary) / 0.6); /* Slightly less opaque for dark theme */
     border-radius: 10px;
     border: 2px solid transparent;
     background-clip: content-box;
