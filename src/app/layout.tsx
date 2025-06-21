@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#FF69B4',
+  themeColor: '#D81B60', // A color from the romantic red/pink palette
 };
 
 export default function RootLayout({
@@ -52,9 +52,9 @@ export default function RootLayout({
       <body className={`font-body antialiased ${hind.className} selection:bg-primary selection:text-primary-foreground`}> 
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark" /* Changed default to dark */
+          defaultTheme="dark"
           enableSystem={false} 
-          themes={['light', 'dark', 'pink']} /* Keeping all themes listed, but CSS forces dark */
+          themes={['light', 'dark']}
         >
           <AuthProvider> 
             {children}

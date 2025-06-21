@@ -34,7 +34,7 @@ import Link from 'next/link';
 const settingsFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.').max(50, 'Name must be 50 characters or less.').optional(),
   avatarUrl: z.string().url('Please enter a valid URL for your avatar.').optional().or(z.literal('')),
-  selectedTheme: z.enum(['light', 'dark', 'pink']).optional(),
+  selectedTheme: z.enum(['light', 'dark']).optional(),
 });
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
@@ -53,7 +53,7 @@ export default function SettingsPage() {
     defaultValues: {
       name: '',
       avatarUrl: '',
-      selectedTheme: 'light',
+      selectedTheme: 'dark',
     },
   });
 
@@ -62,10 +62,10 @@ export default function SettingsPage() {
       form.reset({
         name: userProfile.name || '',
         avatarUrl: userProfile.avatarUrl || '',
-        selectedTheme: userProfile.selectedTheme || theme || 'light',
+        selectedTheme: userProfile.selectedTheme || theme || 'dark',
       });
     } else if (theme && mounted) { 
-        form.setValue('selectedTheme', theme as 'light' | 'dark' | 'pink');
+        form.setValue('selectedTheme', theme as 'light' | 'dark');
     }
   }, [userProfile, form, theme, mounted]); 
   
@@ -208,7 +208,6 @@ export default function SettingsPage() {
                                 <SelectContent className="rounded-xl border-border/50 bg-popover shadow-lg">
                                     <SelectItem value="light" className="cursor-pointer focus:bg-primary/10 focus:text-primary rounded-md py-2 px-2.5"><Sun className="inline-block mr-2 h-4 w-4"/> Light & Bright</SelectItem>
                                     <SelectItem value="dark" className="cursor-pointer focus:bg-primary/10 focus:text-primary rounded-md py-2 px-2.5"><Moon className="inline-block mr-2 h-4 w-4"/> Neon Dark</SelectItem>
-                                    <SelectItem value="pink" className="cursor-pointer focus:bg-primary/10 focus:text-primary rounded-md py-2 px-2.5"><Sparkles className="inline-block mr-2 h-4 w-4 text-pink-500"/> Vibrant Pink</SelectItem>
                                 </SelectContent>
                             </Select>
                             <FormDescription className="text-xs">Choose how your app looks and feels.</FormDescription>

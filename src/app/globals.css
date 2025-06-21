@@ -90,43 +90,6 @@
     --sidebar-border: hsl(240 12% 18%);
     --sidebar-ring: hsl(0 70% 58%);
   }
-
-  .pink { /* Refreshed Pink Theme - Now also points to Dark Values with Red-Violet Palette */
-    --background: hsl(240 18% 10%); 
-    --foreground: hsl(35 100% 96%); 
-    --card: hsl(240 18% 14%); 
-    --card-foreground: hsl(35 100% 95%);
-    --popover: hsl(240 18% 13%); 
-    --popover-foreground: hsl(35 100% 95%);
-    --primary: hsl(0 75% 60%); 
-    --primary-foreground: hsl(0 0% 100%); 
-    --secondary: hsl(270 70% 65%); 
-    --secondary-foreground: hsl(270 100% 10%); 
-    --muted: hsl(240 12% 20%);
-    --muted-foreground: hsl(35 30% 75%); 
-    --accent: hsl(330 70% 70%); 
-    --accent-foreground: hsl(330 70% 15%); 
-    --destructive: hsl(0 90% 65%); 
-    --destructive-foreground: hsl(0 0% 100%);
-    --border: hsl(240 12% 25%); 
-    --input: hsl(240 12% 16%); 
-    --ring: hsl(0 75% 60%);  
-
-    --chart-1: 0 75% 60%; 
-    --chart-2: 270 70% 65%;  
-    --chart-3: 330 70% 70%;   
-    --chart-4: 210 65% 70%;  
-    --chart-5: 45 90% 55%;
-
-    --sidebar-background: hsl(240 18% 9%);
-    --sidebar-foreground: hsl(35 100% 92%);
-    --sidebar-primary: hsl(0 70% 58%);
-    --sidebar-primary-foreground: hsl(0 0% 100%);
-    --sidebar-accent: hsl(240 18% 12%);
-    --sidebar-accent-foreground: hsl(0 70% 65%);
-    --sidebar-border: hsl(240 12% 18%);
-    --sidebar-ring: hsl(0 70% 58%);
-  }
 }
 
 @layer base {

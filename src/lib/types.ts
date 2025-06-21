@@ -37,7 +37,7 @@ export interface UserProfile {
   joinedAt: number; // RTDB timestamp (ms since epoch)
   lastActive: number; // RTDB timestamp (ms since epoch)
   subscriptionTier: 'free' | 'premium' | 'spicy';
-  selectedTheme?: 'light' | 'dark' | 'pink' | 'purple' | 'bollywood';
+  selectedTheme?: 'light' | 'dark';
   languagePreference?: 'hinglish' | 'english';
 }
 
