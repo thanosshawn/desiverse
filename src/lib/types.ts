@@ -222,3 +222,17 @@ export interface GroupChatMetadata {
 export type GroupChatAdminFormValues = Omit<GroupChatMetadata, 'id' | 'createdAt' | 'updatedAt' | 'hostCharacterIds' | 'hostCharacterSnapshots' | 'participantCount' | 'lastMessageText' | 'lastMessageTimestamp'> & {
   characterIds: string[];
 };
+
+export interface GroupChatMessage {
+  senderId: string; // UID for users, CharacterID for AI
+  senderType: 'user' | 'ai';
+  senderName: string; // Snapshot of name at time of sending
+  senderAvatarUrl?: string | null; // Snapshot of avatar at time of sending
+  text: string;
+  timestamp: number | object;
+}
+
+export interface GroupChatMessageUI extends Omit<GroupChatMessage, 'timestamp'> {
+    id: string; // rtdb key
+    timestamp: Date;
+}

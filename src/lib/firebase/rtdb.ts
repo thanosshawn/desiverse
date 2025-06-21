@@ -19,7 +19,7 @@ import {
   equalTo, // Added for querying
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
-import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult, InteractiveStory, UserStoryProgress, StoryTurnRecord, GroupChatMetadata } from '@/lib/types';
+import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult, InteractiveStory, UserStoryProgress, StoryTurnRecord, GroupChatMetadata, GroupChatMessage, GroupChatMessageUI } from '@/lib/types';
 import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
 
 // --- User Profile ---
@@ -666,4 +666,66 @@ export async function deleteGroupChat(groupId: string): Promise<void> {
   const groupRef = ref(db, `groupChats/${groupId}`);
   await remove(groupRef);
   // In the future, we would also delete all messages within the group chat here.
+}
+
+export async function getGroupChatMetadata(groupId: string): Promise<GroupChatMetadata | null> {
+  const groupRef = ref(db, `groupChats/${groupId}`);
+  const snapshot = await get(groupRef);
+  if (snapshot.exists()) {
+      return snapshot.val() as GroupChatMetadata;
+  }
+  return null;
+}
+
+export async function addGroupChatMessage(groupId: string, messageData: Omit<GroupChatMessage, 'timestamp'>): Promise<string> {
+  const messagesRef = ref(db, `groupChats/${groupId}/messages`);
+  const newMessageRef = push(messagesRef);
+
+  const finalMessageData: GroupChatMessage = {
+    ...messageData,
+    timestamp: rtdbServerTimestamp(),
+  };
+
+  await set(newMessageRef, finalMessageData);
+
+  // Update last message on group metadata
+  const groupRef = ref(db, `groupChats/${groupId}`);
+  await update(groupRef, {
+      lastMessageText: messageData.text.substring(0, 100),
+      lastMessageTimestamp: rtdbServerTimestamp(),
+  });
+
+  return newMessageRef.key!;
+}
+
+export function getGroupMessagesStream(
+  groupId: string,
+  callback: (messages: GroupChatMessageUI[]) => void,
+  limit: number = 50
+): Unsubscribe {
+  const messagesQuery = query(
+    ref(db, `groupChats/${groupId}/messages`),
+    orderByChild('timestamp'),
+    limitToLast(limit)
+  );
+
+  const listener = onValue(messagesQuery, (snapshot) => {
+    const messagesData: GroupChatMessageUI[] = [];
+    if (snapshot.exists()) {
+      snapshot.forEach((childSnapshot) => {
+        const val = childSnapshot.val() as Omit<GroupChatMessage, 'timestamp'> & {timestamp: number};
+        messagesData.push({ 
+            id: childSnapshot.key!, 
+            ...val,
+            timestamp: new Date(val.timestamp) 
+        });
+      });
+    }
+    callback(messagesData);
+  }, (error) => {
+    console.error("Error fetching group messages in real-time:", error);
+    callback([]);
+  });
+
+  return () => off(messagesQuery, 'value', listener);
 }
