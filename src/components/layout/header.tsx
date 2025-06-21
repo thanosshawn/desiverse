@@ -52,7 +52,6 @@ export function Header() {
     switch (theme) {
       case 'light': return <Sun className="h-5 w-5" />;
       case 'dark': return <Moon className="h-5 w-5" />;
-      case 'pink': return <Sparkles className="h-5 w-5 text-pink-500" />; 
       default: return <Palette className="h-5 w-5" />;
     }
   };
@@ -124,7 +123,6 @@ export function Header() {
               <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
                 <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary py-2 px-2.5"><Sun className="mr-2 h-4 w-4" /> Light & Bright</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary py-2 px-2.5"><Moon className="mr-2 h-4 w-4" /> Neon Dark</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary py-2 px-2.5"><Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Vibrant Pink</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -262,7 +260,6 @@ export function Header() {
                       <DropdownMenuRadioGroup value={theme} onValueChange={(v) => { setTheme(v); }}>
                         <DropdownMenuRadioItem value="light" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary py-2 px-2.5"><Sun className="mr-2 h-4 w-4" /> Light & Bright</DropdownMenuRadioItem>
                         <DropdownMenuRadioItem value="dark" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary py-2 px-2.5"><Moon className="mr-2 h-4 w-4" /> Neon Dark</DropdownMenuRadioItem>
-                        <DropdownMenuRadioItem value="pink" className="cursor-pointer rounded-md focus:bg-primary/10 focus:text-primary py-2 px-2.5"><Sparkles className="mr-2 h-4 w-4 text-pink-500" /> Vibrant Pink</DropdownMenuRadioItem>
                       </DropdownMenuRadioGroup>
                     </DropdownMenuContent>
                   </DropdownMenu>
