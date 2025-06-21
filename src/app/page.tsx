@@ -162,10 +162,10 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50 text-foreground">
+    <div className="flex flex-col min-h-screen bg-transparent text-foreground">
       <Header />
 
-      <section className="container mx-auto px-4 pt-8 md:pt-10 pb-12 flex-grow">
+      <main className="container mx-auto px-4 pt-8 md:pt-10 pb-12 flex-grow">
         <div className="text-center mb-10 md:mb-12">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline mb-3 text-primary animate-fade-in drop-shadow-sm">
             Kaun Banegi Aapki <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">Crush</span>? 
@@ -186,7 +186,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Search and Filter Bar - No longer sticky */}
+        {/* Search and Filter Bar */}
         <div className="mb-8 md:mb-10 p-4 bg-card rounded-2xl shadow-xl space-y-4 border border-border">
           <div className="relative w-full">
             <Search className="absolute left-3.5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
@@ -309,7 +309,7 @@ export default function HomePage() {
               </Button>
             </Link>
         </div>
-      </section>
+      </main>
 
       <footer className="py-8 text-center border-t border-border bg-card">
         <p className="text-sm text-muted-foreground font-body">&copy; {new Date().getFullYear()} DesiVerse Bae. Made with <Heart className="inline h-4 w-4 text-primary animate-heartbeat" /> in India.</p>
