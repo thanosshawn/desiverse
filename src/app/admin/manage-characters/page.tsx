@@ -26,12 +26,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { deleteCharacterAction } from '../actions';
 
 export default function ManageCharactersPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [characters, setCharacters] = useState<CharacterMetadata[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [authStatusChecked, setAuthStatusChecked] = useState(false);
@@ -74,14 +76,25 @@ export default function ManageCharactersPage() {
   };
 
   const handleDeleteCharacter = async (characterId: string, characterName: string) => {
-    toast({
-      title: `Deletion Action (Simulated for ${characterName})`,
-      description: `If fully implemented, this would delete '${characterName}' (ID: ${characterId}) from the database. This is a placeholder action.`,
-      variant: 'default',
-      duration: 5000,
-    });
-    console.log(`TODO: Implement RTDB delete for character ID: ${characterId}, Name: ${characterName}`);
+    setIsDeleting(characterId);
+    const result = await deleteCharacterAction(characterId);
+    if (result.success) {
+      toast({
+        title: 'Character Deleted',
+        description: `Character "${characterName}" has been successfully deleted.`,
+        variant: 'default',
+      });
+      setCharacters(prev => prev.filter(char => char.id !== characterId));
+    } else {
+      toast({
+        title: 'Deletion Failed',
+        description: result.message,
+        variant: 'destructive',
+      });
+    }
+    setIsDeleting(null);
   };
+
 
   if (!authStatusChecked) {
     return (
@@ -195,8 +208,14 @@ export default function ManageCharactersPage() {
                         </Link>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="icon" title="Delete Character" className="hover:text-destructive hover:border-destructive rounded-md">
-                              <Trash2 className="h-4 w-4" />
+                            <Button 
+                              variant="outline" 
+                              size="icon" 
+                              title="Delete Character" 
+                              className="hover:text-destructive hover:border-destructive rounded-md"
+                              disabled={isDeleting === char.id}
+                            >
+                              {isDeleting === char.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent className="rounded-xl">
@@ -204,7 +223,7 @@ export default function ManageCharactersPage() {
                               <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 This action cannot be undone. This will permanently delete the
-                                character &quot;{char.name}&quot; and all associated data. (Deletion is simulated in this prototype)
+                                character &quot;{char.name}&quot; and all associated data (chats, stories).
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -212,7 +231,9 @@ export default function ManageCharactersPage() {
                               <AlertDialogAction
                                 onClick={() => handleDeleteCharacter(char.id, char.name)}
                                 className="bg-destructive hover:bg-destructive/90 !rounded-lg"
+                                disabled={isDeleting === char.id}
                               >
+                                {isDeleting === char.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                 Delete
                               </AlertDialogAction>
                             </AlertDialogFooter>

@@ -11,7 +11,8 @@ import {
   updateCharacter,
   addInteractiveStory, 
   getCharacterMetadata,
-  deleteInteractiveStory
+  deleteInteractiveStory,
+  deleteCharacter as deleteCharacterFromDb, // Alias to avoid naming conflicts
 } from '@/lib/firebase/rtdb';
 import type { CharacterMetadata, CharacterCreationAdminFormValues, InteractiveStoryAdminFormValues, InteractiveStory, GenerateStoryIdeaOutput } from '@/lib/types';
 import { ref, get } from 'firebase/database';
@@ -386,6 +387,38 @@ export async function deleteStoryAction(
       success: false,
       message: `Failed to delete story: ${errorMessage}`,
       storyId,
+    };
+  }
+}
+
+// --- Character Deletion Action ---
+export interface DeleteCharacterActionState {
+  success: boolean;
+  message: string;
+  characterId?: string;
+}
+
+export async function deleteCharacterAction(
+  characterId: string,
+  prevState?: DeleteCharacterActionState // Optional prevState for hook usage
+): Promise<DeleteCharacterActionState> {
+  if (!characterId) {
+    return { success: false, message: 'Character ID is required for deletion.' };
+  }
+  try {
+    await deleteCharacterFromDb(characterId);
+    return {
+      success: true,
+      message: `Character (ID: ${characterId}) and all associated data (chats, stories) deleted successfully.`,
+      characterId,
+    };
+  } catch (error) {
+    console.error(`Error deleting character (ID: ${characterId}):`, error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during deletion.';
+    return {
+      success: false,
+      message: `Failed to delete character: ${errorMessage}`,
+      characterId,
     };
   }
 }

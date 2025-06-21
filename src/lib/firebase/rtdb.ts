@@ -16,6 +16,7 @@ import {
   onDisconnect,
   runTransaction,
   remove, // Added for delete operation
+  equalTo, // Added for querying
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
 import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult, InteractiveStory, UserStoryProgress, StoryTurnRecord } from '@/lib/types';
@@ -36,7 +37,7 @@ export async function createUserProfile(uid: string, data: NewUserProfileWritePa
     email: data.email ?? null,
     avatarUrl: data.avatarUrl ?? null,
     subscriptionTier: data.subscriptionTier ?? 'free',
-    selectedTheme: data.selectedTheme ?? 'light',
+    selectedTheme: data.selectedTheme ?? 'dark',
     languagePreference: data.languagePreference ?? 'hinglish',
     joinedAt: data.joinedAt,
     lastActive: data.lastActive,
@@ -135,6 +136,33 @@ export async function updateCharacter(characterId: string, data: Partial<Omit<Ch
   const characterRef = ref(db, `characters/${characterId}`);
   const { id, createdAt, ...updateData } = data as any;
   await update(characterRef, updateData);
+}
+
+export async function deleteCharacter(characterId: string): Promise<void> {
+  // 1. Delete the main character object
+  const characterRef = ref(db, `characters/${characterId}`);
+  await remove(characterRef);
+
+  // 2. Delete all interactive stories associated with this character
+  const storiesRef = ref(db, 'interactiveStories');
+  const storiesQuery = query(storiesRef, orderByChild('characterId'), equalTo(characterId));
+  const storiesSnapshot = await get(storiesQuery);
+  if (storiesSnapshot.exists()) {
+    storiesSnapshot.forEach(storySnap => {
+      // This will also delete user progress for the story
+      deleteInteractiveStory(storySnap.key!).catch(err => console.warn(`Could not delete story ${storySnap.key} for character ${characterId}:`, err));
+    });
+  }
+
+  // 3. Delete all user chat sessions associated with this character
+  const usersRef = ref(db, 'users');
+  const usersSnapshot = await get(usersRef);
+  if (usersSnapshot.exists()) {
+    usersSnapshot.forEach(userSnap => {
+      const userChatRef = ref(db, `users/${userSnap.key}/userChats/${characterId}`);
+      remove(userChatRef).catch(err => console.warn(`Could not remove chat for user ${userSnap.key} and character ${characterId}:`, err));
+    });
+  }
 }
 
 
