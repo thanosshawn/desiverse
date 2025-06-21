@@ -4,7 +4,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Filter, Heart, Loader2, MessageCircle, Sparkles, Edit, Search, BookHeart, ChevronRight, Mail } from 'lucide-react';
+import { Filter, Heart, Loader2, MessageCircle, Sparkles, Edit, Search, BookHeart, ChevronRight, Mail, Users } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState, useMemo } from 'react';
 import type { CharacterMetadata, InteractiveStory, UserChatSessionMetadata } from '@/lib/types'; 
@@ -258,6 +258,19 @@ export default function HomePage() {
           )}
         </div>
 
+        <div className="mt-16 md:mt-20 pt-10 border-t-2 border-dashed border-primary/20">
+          <div className="flex justify-between items-center mb-8 md:mb-10">
+            <h2 className="text-3xl sm:text-4xl font-semibold font-headline text-primary animate-fade-in drop-shadow-sm">
+                Public <span className="bg-gradient-to-r from-green-400 via-teal-400 to-sky-400 bg-clip-text text-transparent">Groups</span>
+                <Users className="inline-block text-accent h-8 w-8 md:h-9 md:w-9 ml-2 animate-pulse" />
+            </h2>
+            <Link href="/groups" passHref>
+                <Button variant="outline" className="!rounded-xl text-primary border-primary/50 hover:bg-primary/10 hover:text-primary shadow-sm group py-2.5 px-5 transform hover:scale-105 transition-transform">
+                    View All Groups <ChevronRight className="h-5 w-5 ml-1 group-hover:translate-x-1 transition-transform" />
+                </Button>
+            </Link>
+          </div>
+        </div>
 
         <div className="mt-16 md:mt-20 pt-10 border-t-2 border-dashed border-primary/20">
           <div className="flex justify-between items-center mb-8 md:mb-10">

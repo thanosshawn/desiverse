@@ -10,7 +10,7 @@ import { createStoryAction, generateStoryIdeaAction, type CreateStoryActionState
 import type { InteractiveStoryAdminFormValues, CharacterMetadata } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
-import { Loader2, LogOut, ListChecks, BookOpenCheck, BarChart3, PlusCircle, FileText, Sparkles, Trash2 } from 'lucide-react';
+import { Loader2, LogOut, ListChecks, BookOpenCheck, BarChart3, PlusCircle, FileText, Sparkles, Trash2, Users, MessageSquarePlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { getAllCharacters } from '@/lib/firebase/rtdb';
@@ -225,6 +225,16 @@ export default function CreateStoryPage() {
               <Link href="/admin/manage-stories" passHref>
                   <Button variant="outline" size="sm" title="Manage existing stories">
                       <FileText className="mr-2 h-4 w-4"/> Manage Stories
+                  </Button>
+              </Link>
+              <Link href="/admin/create-group" passHref>
+                  <Button variant="outline" size="sm" title="Create new group chat">
+                      <MessageSquarePlus className="mr-2 h-4 w-4"/> Create Group
+                  </Button>
+              </Link>
+              <Link href="/admin/manage-groups" passHref>
+                  <Button variant="outline" size="sm" title="Manage group chats">
+                      <Users className="mr-2 h-4 w-4"/> Manage Groups
                   </Button>
               </Link>
               <Link href="/admin/analytics" passHref>

@@ -1,3 +1,4 @@
+
 // src/lib/types.ts
 import type { LucideIcon } from 'lucide-react';
 import { z } from 'zod';
@@ -201,3 +202,22 @@ export const GenerateStoryIdeaOutputSchema = z.object({
   initialSceneSummary: z.string().describe("A detailed, immersive opening scene prompt to kick off the story. It should set the mood and present an initial situation or dilemma for the user to react to. This should be 2-4 sentences long."),
 });
 export type GenerateStoryIdeaOutput = z.infer<typeof GenerateStoryIdeaOutputSchema>;
+
+
+// Group Chat Types
+export interface GroupChatMetadata {
+  id: string;
+  title: string;
+  description: string;
+  characterId: string; // The primary AI host of the group
+  characterNameSnapshot: string;
+  characterAvatarSnapshot: string;
+  coverImageUrl?: string | null;
+  createdAt: number | object;
+  updatedAt?: number | object;
+  participantCount?: number;
+  lastMessageText?: string;
+  lastMessageTimestamp?: number | object;
+}
+
+export type GroupChatAdminFormValues = Omit<GroupChatMetadata, 'id' | 'createdAt' | 'updatedAt' | 'characterNameSnapshot' | 'characterAvatarSnapshot' | 'participantCount' | 'lastMessageText' | 'lastMessageTimestamp'>;

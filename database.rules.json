@@ -137,6 +137,41 @@
         "$other": { ".validate": false }
       }
     },
+    "groupChats": {
+      ".read": "auth != null",
+      ".write": false,
+      "$groupId": {
+        ".validate": "newData.hasChildren(['id', 'title', 'description', 'characterId', 'characterNameSnapshot', 'characterAvatarSnapshot', 'createdAt', 'updatedAt'])",
+        "id": { ".validate": "newData.isString() && newData.val() == $groupId" },
+        "title": { ".validate": "newData.isString()" },
+        "description": { ".validate": "newData.isString()" },
+        "characterId": { ".validate": "newData.isString()" },
+        "characterNameSnapshot": { ".validate": "newData.isString()" },
+        "characterAvatarSnapshot": { ".validate": "newData.isString().isURL()" },
+        "coverImageUrl": { ".validate": "newData.isString().isURL() || newData.val() == null" },
+        "createdAt": { ".validate": "newData.isNumber()" },
+        "updatedAt": { ".validate": "newData.isNumber()" },
+        "participantCount": { ".validate": "newData.isNumber()" },
+        "lastMessageText": { ".validate": "newData.isString() || newData.val() == null" },
+        "lastMessageTimestamp": { ".validate": "newData.isNumber() || newData.val() == null" },
+        "$other": { ".validate": false },
+
+        "messages": {
+          ".read": "auth != null",
+          "$messageId": {
+            ".write": "auth != null", // Any authenticated user can write to the group chat
+            ".validate": "newData.hasChildren(['senderId', 'senderName', 'senderAvatar', 'text', 'timestamp'])"
+          },
+          ".indexOn": ["timestamp"]
+        },
+         "participants": {
+          ".read": "auth != null",
+          "$uid": {
+            ".write": "auth != null && auth.uid == $uid"
+          }
+        }
+      }
+    },
     "admin_settings": {
       "credentials": {
         // For this prototype, allow read for admin login.

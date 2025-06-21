@@ -13,8 +13,10 @@ import {
   getCharacterMetadata,
   deleteInteractiveStory,
   deleteCharacter as deleteCharacterFromDb, // Alias to avoid naming conflicts
+  addGroupChat,
+  deleteGroupChat as deleteGroupChatFromDb,
 } from '@/lib/firebase/rtdb';
-import type { CharacterMetadata, CharacterCreationAdminFormValues, InteractiveStoryAdminFormValues, InteractiveStory, GenerateStoryIdeaOutput } from '@/lib/types';
+import type { CharacterMetadata, CharacterCreationAdminFormValues, InteractiveStoryAdminFormValues, InteractiveStory, GenerateStoryIdeaOutput, GroupChatAdminFormValues, GroupChatMetadata } from '@/lib/types';
 import { ref, get } from 'firebase/database';
 import { db } from '@/lib/firebase/config';
 import { generateStoryIdea } from '@/ai/flows/generate-story-idea-flow';
@@ -466,6 +468,93 @@ export async function generateStoryIdeaAction(
         return {
             success: false,
             message: `Failed to generate story idea: ${errorMessage}`,
+        };
+    }
+}
+
+// --- Group Chat Admin Actions ---
+export interface CreateGroupChatActionState {
+  message: string;
+  groupId?: string;
+  success: boolean;
+  errors?: Partial<Record<keyof GroupChatAdminFormValues, string[]>> | null;
+}
+
+export async function createGroupChatAction(
+  prevState: CreateGroupChatActionState,
+  formData: FormData
+): Promise<CreateGroupChatActionState> {
+  const data: GroupChatAdminFormValues = {
+    title: formData.get('title') as string || 'Untitled Group',
+    description: formData.get('description') as string || 'A place to chat and have fun!',
+    characterId: formData.get('characterId') as string,
+    coverImageUrl: formData.get('coverImageUrl') as string || null,
+  };
+
+  if (!data.characterId) {
+    return { message: 'A host character must be selected.', success: false, errors: { characterId: ['Please select a host character.'] } };
+  }
+  if (!data.title.trim()) {
+    return { message: 'Group title is required.', success: false, errors: { title: ['Title cannot be empty.'] } };
+  }
+
+  const characterSnap = await getCharacterMetadata(data.characterId);
+  if (!characterSnap) {
+    return { message: `Selected character (ID: ${data.characterId}) not found.`, success: false, errors: { characterId: ['Selected character not found.'] } };
+  }
+
+  const groupId = `${data.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${uuidv4().substring(0, 6)}`;
+
+  const groupMetadata: Omit<GroupChatMetadata, 'id' | 'createdAt' | 'updatedAt'> = {
+    title: data.title,
+    description: data.description,
+    characterId: data.characterId,
+    characterNameSnapshot: characterSnap.name,
+    characterAvatarSnapshot: characterSnap.avatarUrl,
+    coverImageUrl: data.coverImageUrl,
+    participantCount: 0,
+  };
+
+  try {
+    await addGroupChat(groupId, groupMetadata);
+    return {
+      message: `Group Chat "${data.title}" created successfully.`,
+      groupId,
+      success: true,
+    };
+  } catch (error) {
+    console.error('Error creating group chat:', error);
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+    return {
+      message: `Failed to create group chat: ${errorMessage}`,
+      success: false,
+    };
+  }
+}
+
+export interface DeleteGroupChatActionState {
+    success: boolean;
+    message: string;
+    groupId?: string;
+}
+
+export async function deleteGroupChatAction(groupId: string): Promise<DeleteGroupChatActionState> {
+    if (!groupId) {
+        return { success: false, message: 'Group ID is required for deletion.' };
+    }
+    try {
+        await deleteGroupChatFromDb(groupId);
+        return {
+            success: true,
+            message: `Group Chat (ID: ${groupId}) deleted successfully.`,
+            groupId,
+        };
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+        return {
+            success: false,
+            message: `Failed to delete group chat: ${errorMessage}`,
+            groupId,
         };
     }
 }

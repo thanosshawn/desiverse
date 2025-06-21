@@ -60,6 +60,7 @@ export function Header() {
 
   const navLinks = [
     { href: "/stories", label: "Stories", icon: BookHeart, activePath: "/stories"},
+    { href: "/groups", label: "Groups", icon: Users, activePath: "/groups"},
     { href: "https://t.me/desibaecommunity", label: "Join Group", icon: Send, target: "_blank"},
     ...(user ? [{ href: "/history", label: "History", icon: History, activePath: "/history"}] : []),
   ];
@@ -67,6 +68,7 @@ export function Header() {
   const userMenuItems = [
     { href: "/", label: "Characters", icon: MessageSquareText },
     { href: "/stories", label: "Stories", icon: BookHeart },
+    { href: "/groups", label: "Groups", icon: Users },
     { href: "/history", label: "Chat History", icon: History },
     { href: "/settings", label: "Settings", icon: Settings },
   ];

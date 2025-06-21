@@ -10,7 +10,7 @@ import { createCharacterAction, type CreateCharacterActionState } from '../actio
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
-import { Loader2, LogOut, ListChecks, RefreshCw, BarChart3, BookOpenCheck, FileText } from 'lucide-react';
+import { Loader2, LogOut, ListChecks, RefreshCw, BarChart3, BookOpenCheck, FileText, Users, MessageSquarePlus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { generateRandomCharacterDefaults } from '@/lib/admin/utils';
@@ -167,6 +167,16 @@ export default function CreateCharacterPage() {
               <Link href="/admin/manage-stories" passHref>
                   <Button variant="outline" size="sm" title="Manage existing stories">
                       <FileText className="mr-2 h-4 w-4"/> Manage Stories
+                  </Button>
+              </Link>
+              <Link href="/admin/create-group" passHref>
+                  <Button variant="outline" size="sm" title="Create new group chat">
+                      <MessageSquarePlus className="mr-2 h-4 w-4"/> Create Group
+                  </Button>
+              </Link>
+              <Link href="/admin/manage-groups" passHref>
+                  <Button variant="outline" size="sm" title="Manage group chats">
+                      <Users className="mr-2 h-4 w-4"/> Manage Groups
                   </Button>
               </Link>
                <Link href="/admin/analytics" passHref>

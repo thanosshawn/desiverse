@@ -8,7 +8,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Responsive
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, LogOut, BarChart3, AlertTriangle, Palette, Users, BookOpenCheck, FileText, ListChecks, PlusCircle } from 'lucide-react';
+import { Loader2, LogOut, BarChart3, AlertTriangle, Palette, Users, BookOpenCheck, FileText, ListChecks, PlusCircle, UserPlus, MessageSquarePlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { getCharacterUsageStats, type CharacterUsageStat } from '../actions';
@@ -116,30 +116,14 @@ export default function AnalyticsPage() {
               </CardTitle>
               <CardDescription>Overview of application usage and engagement.</CardDescription>
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <Link href="/admin/create-character" passHref className="w-full sm:w-auto">
-                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new character">
-                      <PlusCircle className="mr-2 h-4 w-4"/> Create Char
-                  </Button>
-              </Link>
-              <Link href="/admin/manage-characters" passHref className="w-full sm:w-auto">
-                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing characters">
-                      <ListChecks className="mr-2 h-4 w-4"/> Manage Chars
-                  </Button>
-              </Link>
-              <Link href="/admin/create-story" passHref className="w-full sm:w-auto">
-                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Create new story">
-                      <BookOpenCheck className="mr-2 h-4 w-4"/> Create Story
-                  </Button>
-              </Link>
-              <Link href="/admin/manage-stories" passHref className="w-full sm:w-auto">
-                  <Button variant="outline" size="sm" className="!rounded-lg w-full" title="Manage existing stories">
-                      <FileText className="mr-2 h-4 w-4"/> Manage Stories
-                  </Button>
-              </Link>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg w-full sm:w-auto" title="Logout from admin">
-                <LogOut className="mr-2 h-4 w-4" /> Logout
-              </Button>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Link href="/admin/create-character" passHref><Button variant="outline" size="sm" className="!rounded-lg"><PlusCircle className="mr-2 h-4 w-4"/>Create Char</Button></Link>
+              <Link href="/admin/manage-characters" passHref><Button variant="outline" size="sm" className="!rounded-lg"><ListChecks className="mr-2 h-4 w-4"/>Manage Chars</Button></Link>
+              <Link href="/admin/create-story" passHref><Button variant="outline" size="sm" className="!rounded-lg"><BookOpenCheck className="mr-2 h-4 w-4"/>Create Story</Button></Link>
+              <Link href="/admin/manage-stories" passHref><Button variant="outline" size="sm" className="!rounded-lg"><FileText className="mr-2 h-4 w-4"/>Manage Stories</Button></Link>
+              <Link href="/admin/create-group" passHref><Button variant="outline" size="sm" className="!rounded-lg"><MessageSquarePlus className="mr-2 h-4 w-4"/>Create Group</Button></Link>
+              <Link href="/admin/manage-groups" passHref><Button variant="outline" size="sm" className="!rounded-lg"><Users className="mr-2 h-4 w-4"/>Manage Groups</Button></Link>
+              <Button variant="outline" size="sm" onClick={handleLogout} className="!rounded-lg"><LogOut className="mr-2 h-4 w-4" />Logout</Button>
             </div>
           </CardHeader>
           <CardContent className="p-6 space-y-8">
