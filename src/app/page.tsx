@@ -1,4 +1,3 @@
-
 // src/app/page.tsx - Character Selection Page & Stories Section
 'use client';
 import Image from 'next/image';
@@ -7,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Filter, Heart, Loader2, MessageCircle, Sparkles, Edit, Search, BookHeart, ChevronRight, Mail, Users } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState, useMemo } from 'react';
-import type { CharacterMetadata, InteractiveStory, UserChatSessionMetadata } from '@/lib/types'; 
-import { getAllCharacters, getAllInteractiveStories, getUserChatSessions } from '@/lib/firebase/rtdb'; 
+import type { CharacterMetadata, InteractiveStory, UserChatSessionMetadata, GroupChatMetadata } from '@/lib/types'; 
+import { getAllCharacters, getAllInteractiveStories, getUserChatSessions, getAllGroupChats } from '@/lib/firebase/rtdb'; 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { CharacterCard } from '@/components/character/character-card'; 
 import { StoryCard } from '@/components/story/story-card'; 
+import { GroupCard } from '@/components/group/group-card';
 import { cn } from '@/lib/utils';
 import { getDailyMessageAction } from './actions';
 import { DailyMessageCard } from '@/components/home/daily-message-card';
@@ -58,8 +58,10 @@ export default function HomePage() {
   const { user, userProfile, loading: authLoading } = useAuth();
   const [characters, setCharacters] = useState<CharacterMetadata[]>([]);
   const [stories, setStories] = useState<InteractiveStory[]>([]); 
+  const [groups, setGroups] = useState<GroupChatMetadata[]>([]);
   const [loadingCharacters, setLoadingCharacters] = useState(true);
   const [loadingStories, setLoadingStories] = useState(true); 
+  const [loadingGroups, setLoadingGroups] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   
@@ -73,20 +75,25 @@ export default function HomePage() {
     async function fetchData() {
       setLoadingCharacters(true);
       setLoadingStories(true);
+      setLoadingGroups(true);
       try {
-        const [fetchedCharacters, fetchedStories] = await Promise.all([
+        const [fetchedCharacters, fetchedStories, fetchedGroups] = await Promise.all([
             getAllCharacters(),
-            getAllInteractiveStories()
+            getAllInteractiveStories(),
+            getAllGroupChats()
         ]);
         setCharacters(fetchedCharacters);
         setStories(fetchedStories.slice(0, 3)); 
+        setGroups(fetchedGroups.slice(0, 3));
       } catch (error) {
         console.error("Failed to fetch data:", error);
         setCharacters([]);
         setStories([]);
+        setGroups([]);
       } finally {
         setLoadingCharacters(false);
         setLoadingStories(false);
+        setLoadingGroups(false);
       }
     }
     if (!authLoading) {
@@ -270,7 +277,35 @@ export default function HomePage() {
                 </Button>
             </Link>
           </div>
+          {loadingGroups ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={`group-skel-${i}`} className="bg-card shadow-xl rounded-3xl overflow-hidden aspect-[16/12] flex flex-col border border-border">
+                  <Skeleton className="w-full h-3/5 bg-muted/30" />
+                  <div className="p-5 space-y-3 flex-grow flex flex-col justify-between">
+                    <div>
+                      <Skeleton className="h-7 w-3/4 mb-2 bg-muted/40" />
+                      <Skeleton className="h-12 w-full mb-4 bg-muted/30" />
+                    </div>
+                    <Skeleton className="h-11 w-full rounded-xl bg-muted/40" />
+                  </div>
+                </Skeleton>
+              ))}
+            </div>
+          ) : groups.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+              {groups.map((group) => (
+                <GroupCard key={group.id} group={group} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10">
+              <Users className="mx-auto h-16 w-16 text-primary/20 mb-4" />
+              <p className="text-muted-foreground font-body">No public group chats available yet. Be the first to start the party!</p>
+            </div>
+          )}
         </div>
+
 
         <div className="mt-16 md:mt-20 pt-10 border-t-2 border-dashed border-primary/20">
           <div className="flex justify-between items-center mb-8 md:mb-10">
