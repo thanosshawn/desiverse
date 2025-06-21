@@ -2,7 +2,7 @@
 // src/app/login/page.tsx - Dedicated Login Page
 'use client';
 
-import React, { useEffect, useState, Suspense, use } from 'react'; 
+import React, { useEffect, useState, Suspense } from 'react'; 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -14,12 +14,11 @@ import Link from 'next/link';
 function LoginFormComponent() {
   const { toast } = useToast();
   const router = useRouter();
-  const searchParamsFromHook = useSearchParams();
-  const actualSearchParams = use(searchParamsFromHook); 
+  const searchParams = useSearchParams();
   const { user, loading: authLoading, signInWithGoogle, signInAnonymously } = useAuth();
   const [isProviderLoading, setIsProviderLoading] = useState(false);
 
-  const redirectPath = actualSearchParams.get('redirect') || '/';
+  const redirectPath = searchParams.get('redirect') || '/';
 
   useEffect(() => {
     if (!authLoading && user) {
