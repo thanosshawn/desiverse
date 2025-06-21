@@ -209,9 +209,8 @@ export interface GroupChatMetadata {
   id: string;
   title: string;
   description: string;
-  characterId: string; // The primary AI host of the group
-  characterNameSnapshot: string;
-  characterAvatarSnapshot: string;
+  hostCharacterIds: string[]; // The primary AI host(s) of the group
+  hostCharacterSnapshots: { id: string; name: string; avatarUrl: string; }[];
   coverImageUrl?: string | null;
   createdAt: number | object;
   updatedAt?: number | object;
@@ -220,4 +219,6 @@ export interface GroupChatMetadata {
   lastMessageTimestamp?: number | object;
 }
 
-export type GroupChatAdminFormValues = Omit<GroupChatMetadata, 'id' | 'createdAt' | 'updatedAt' | 'characterNameSnapshot' | 'characterAvatarSnapshot' | 'participantCount' | 'lastMessageText' | 'lastMessageTimestamp'>;
+export type GroupChatAdminFormValues = Omit<GroupChatMetadata, 'id' | 'createdAt' | 'updatedAt' | 'hostCharacterIds' | 'hostCharacterSnapshots' | 'participantCount' | 'lastMessageText' | 'lastMessageTimestamp'> & {
+  characterIds: string[];
+};

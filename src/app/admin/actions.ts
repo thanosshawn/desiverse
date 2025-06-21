@@ -477,30 +477,39 @@ export interface CreateGroupChatActionState {
   message: string;
   groupId?: string;
   success: boolean;
-  errors?: Partial<Record<keyof GroupChatAdminFormValues, string[]>> | null;
+  errors?: Partial<Record<keyof Omit<GroupChatAdminFormValues, 'characterIds'>, string[]>> & { characterIds?: string[] } | null;
 }
 
 export async function createGroupChatAction(
   prevState: CreateGroupChatActionState,
   formData: FormData
 ): Promise<CreateGroupChatActionState> {
-  const data: GroupChatAdminFormValues = {
+  const data = {
     title: formData.get('title') as string || 'Untitled Group',
     description: formData.get('description') as string || 'A place to chat and have fun!',
-    characterId: formData.get('characterId') as string,
+    characterIds: formData.getAll('characterIds') as string[],
     coverImageUrl: formData.get('coverImageUrl') as string || null,
   };
 
-  if (!data.characterId) {
-    return { message: 'A host character must be selected.', success: false, errors: { characterId: ['Please select a host character.'] } };
+  if (data.characterIds.length === 0) {
+    return { message: 'At least one host character must be selected.', success: false, errors: { characterIds: ['Please select at least one host.'] } };
   }
   if (!data.title.trim()) {
     return { message: 'Group title is required.', success: false, errors: { title: ['Title cannot be empty.'] } };
   }
 
-  const characterSnap = await getCharacterMetadata(data.characterId);
-  if (!characterSnap) {
-    return { message: `Selected character (ID: ${data.characterId}) not found.`, success: false, errors: { characterId: ['Selected character not found.'] } };
+  const hostCharacterSnapshots: { id: string; name: string; avatarUrl: string; }[] = [];
+  for (const charId of data.characterIds) {
+    const charSnap = await getCharacterMetadata(charId);
+    if (charSnap) {
+      hostCharacterSnapshots.push({
+        id: charSnap.id,
+        name: charSnap.name,
+        avatarUrl: charSnap.avatarUrl,
+      });
+    } else {
+      return { message: `Selected host character (ID: ${charId}) not found.`, success: false, errors: { characterIds: ['An invalid character was selected.'] } };
+    }
   }
 
   const groupId = `${data.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${uuidv4().substring(0, 6)}`;
@@ -508,9 +517,8 @@ export async function createGroupChatAction(
   const groupMetadata: Omit<GroupChatMetadata, 'id' | 'createdAt' | 'updatedAt'> = {
     title: data.title,
     description: data.description,
-    characterId: data.characterId,
-    characterNameSnapshot: characterSnap.name,
-    characterAvatarSnapshot: characterSnap.avatarUrl,
+    hostCharacterIds: data.characterIds,
+    hostCharacterSnapshots: hostCharacterSnapshots,
     coverImageUrl: data.coverImageUrl,
     participantCount: 0,
   };

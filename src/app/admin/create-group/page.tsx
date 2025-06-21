@@ -1,3 +1,4 @@
+
 // src/app/admin/create-group/page.tsx
 'use client';
 
@@ -13,6 +14,8 @@ import { Loader2, LogOut, ListChecks, BookOpenCheck, BarChart3, PlusCircle, File
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { getAllCharacters } from '@/lib/firebase/rtdb';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 const initialState: CreateGroupChatActionState = {
   message: '',
@@ -20,10 +23,9 @@ const initialState: CreateGroupChatActionState = {
   errors: null,
 };
 
-const defaultFormValues: GroupChatAdminFormValues = {
+const defaultFormValues: Omit<GroupChatAdminFormValues, 'characterIds'> = {
   title: '',
   description: '',
-  characterId: '',
   coverImageUrl: 'https://placehold.co/800x450.png',
 };
 
@@ -31,7 +33,7 @@ export default function CreateGroupChatPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const form = useForm<GroupChatAdminFormValues>({
+  const form = useForm({
     defaultValues: defaultFormValues,
   });
 
@@ -60,9 +62,6 @@ export default function CreateGroupChatPage() {
         try {
           const chars = await getAllCharacters();
           setCharacters(chars);
-          if (chars.length > 0 && !form.getValues('characterId')) {
-            form.setValue('characterId', chars[0].id);
-          }
         } catch (error) {
           toast({ title: 'Error', description: 'Could not load characters.', variant: 'destructive' });
         } finally {
@@ -71,7 +70,7 @@ export default function CreateGroupChatPage() {
       };
       fetchChars();
     }
-  }, [isAdminLoggedIn, form, toast]);
+  }, [isAdminLoggedIn, toast]);
 
   useEffect(() => {
     if (state.message) {
@@ -81,13 +80,13 @@ export default function CreateGroupChatPage() {
         variant: state.success ? 'default' : 'destructive',
       });
       if (state.success) {
-        form.reset({
-            ...defaultFormValues,
-            characterId: characters.length > 0 ? characters[0].id : '',
-        });
+        form.reset(defaultFormValues);
+        // Uncheck all checkboxes
+        const checkboxes = document.querySelectorAll<HTMLInputElement>('input[name="characterIds"]');
+        checkboxes.forEach(cb => cb.checked = false);
       }
     }
-  }, [state, toast, form, characters]);
+  }, [state, toast, form]);
 
   const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -178,20 +177,21 @@ export default function CreateGroupChatPage() {
               </div>
 
               <div>
-                <label htmlFor="characterId" style={{ display: 'block', marginBottom: '5px' }}>Host AI Character</label>
-                <select
-                  id="characterId"
-                  {...form.register("characterId")}
-                  disabled={loadingCharacters}
-                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: loadingCharacters ? '#eee' : 'white' }}
-                >
-                  <option value="">Select a host...</option>
-                  {characters.map(char => (
-                    <option key={char.id} value={char.id}>{char.name}</option>
-                  ))}
-                </select>
-                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>This AI character will be the main host of the group chat.</p>
-                {state.errors?.characterId && <p style={{color: 'red', fontSize: '0.8rem'}}>{state.errors.characterId.join(', ')}</p>}
+                <label htmlFor="characterIds" style={{ display: 'block', marginBottom: '10px' }}>Host AI Characters</label>
+                <div className="space-y-2 p-3 border border-gray-300 rounded-md max-h-48 overflow-y-auto">
+                    {characters.length > 0 ? characters.map(char => (
+                        <div key={char.id} className="flex items-center space-x-3">
+                           <Checkbox
+                                id={`char-cb-${char.id}`}
+                                name="characterIds"
+                                value={char.id}
+                            />
+                            <Label htmlFor={`char-cb-${char.id}`} className="font-normal cursor-pointer flex-grow">{char.name}</Label>
+                        </div>
+                    )) : <p className="text-sm text-gray-500">No characters found.</p>}
+                </div>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Select one or more AI characters to host the group chat.</p>
+                {state.errors?.characterIds && <p style={{color: 'red', fontSize: '0.8rem'}}>{state.errors.characterIds.join(', ')}</p>}
               </div>
 
               <div>

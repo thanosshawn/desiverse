@@ -637,12 +637,25 @@ export async function getAllGroupChats(): Promise<GroupChatMetadata[]> {
   if (snapshot.exists()) {
     snapshot.forEach((childSnapshot) => {
       const val = childSnapshot.val();
-      const key = childSnapshot.key;
-      if (key && val && typeof val === 'object' && val.title && val.characterId) {
+      const key = childSnapshot.key!;
+      
+      // Backward compatibility for old single-host structure
+      if (val.characterId && !val.hostCharacterIds) {
+        val.hostCharacterIds = [val.characterId];
+        val.hostCharacterSnapshots = [{
+          id: val.characterId,
+          name: val.characterNameSnapshot,
+          avatarUrl: val.characterAvatarSnapshot,
+        }];
+      }
+
+      if (val.title && val.hostCharacterIds && val.hostCharacterSnapshots) {
         groups.push({
           id: key,
           ...val,
         } as GroupChatMetadata);
+      } else {
+         console.warn(`Skipping malformed group chat data for key: ${key}. Received:`, val);
       }
     });
   }

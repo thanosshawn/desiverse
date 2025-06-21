@@ -1,3 +1,4 @@
+
 // src/app/admin/manage-groups/page.tsx
 'use client';
 
@@ -26,6 +27,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { formatDistanceToNowStrict } from 'date-fns';
 import { deleteGroupChatAction } from '../actions';
+import { getInitials } from '@/lib/utils';
+import { Tooltip, TooltipProvider, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 export default function ManageGroupsPage() {
   const router = useRouter();
@@ -161,7 +164,7 @@ export default function ManageGroupsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Title</TableHead>
-                    <TableHead>Host</TableHead>
+                    <TableHead>Hosts</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -170,12 +173,36 @@ export default function ManageGroupsPage() {
                   {groups.map((group) => (
                     <TableRow key={group.id}>
                       <TableCell className="font-medium">{group.title}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground flex items-center gap-2">
-                        <Avatar className="h-6 w-6 rounded-sm">
-                           <AvatarImage src={group.characterAvatarSnapshot} alt={group.characterNameSnapshot} />
-                           <AvatarFallback className="rounded-sm bg-primary/20 text-primary text-xs">{group.characterNameSnapshot.substring(0,1)}</AvatarFallback>
-                        </Avatar>
-                        {group.characterNameSnapshot}
+                      <TableCell>
+                        <TooltipProvider>
+                            <div className="flex -space-x-2">
+                            {group.hostCharacterSnapshots.slice(0, 4).map(host => (
+                                <Tooltip key={host.id}>
+                                    <TooltipTrigger asChild>
+                                        <Avatar className="h-7 w-7 rounded-full border-2 border-card">
+                                            <AvatarImage src={host.avatarUrl} alt={host.name} />
+                                            <AvatarFallback>{getInitials(host.name)}</AvatarFallback>
+                                        </Avatar>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="bg-popover text-popover-foreground rounded-md shadow-lg p-2 text-xs">
+                                        <p>{host.name}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            ))}
+                             {group.hostCharacterSnapshots.length > 4 && (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Avatar className="h-7 w-7 rounded-full border-2 border-card bg-muted">
+                                            <AvatarFallback>+{group.hostCharacterSnapshots.length - 4}</AvatarFallback>
+                                        </Avatar>
+                                    </TooltipTrigger>
+                                     <TooltipContent className="bg-popover text-popover-foreground rounded-md shadow-lg p-2 text-xs">
+                                        <p>...and {group.hostCharacterSnapshots.length - 4} more</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            )}
+                            </div>
+                        </TooltipProvider>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">{formatDate(group.createdAt)}</TableCell>
                       <TableCell className="text-right space-x-1">

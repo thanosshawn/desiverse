@@ -1,3 +1,4 @@
+
 // src/components/group/group-card.tsx
 'use client';
 
@@ -9,6 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Users, MessageSquarePlus } from 'lucide-react';
 import React from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { getInitials } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 
 interface GroupCardProps {
   group: GroupChatMetadata;
@@ -18,6 +22,7 @@ const GroupCardComponent = ({ group }: GroupCardProps) => {
   const { user } = useAuth();
 
   const coverImageSrc = group.coverImageUrl || `https://placehold.co/600x338.png?text=${encodeURIComponent(group.title)}&font=baloo`;
+  const mainHost = group.hostCharacterSnapshots && group.hostCharacterSnapshots[0];
 
   return (
     <Card
@@ -39,12 +44,47 @@ const GroupCardComponent = ({ group }: GroupCardProps) => {
       </CardHeader>
       <CardContent className="p-5 flex flex-col flex-grow">
         <CardDescription className="text-sm text-muted-foreground mb-2.5 line-clamp-3 flex-grow min-h-[3.5em]">{group.description}</CardDescription>
-        <p className="text-xs text-muted-foreground/80 mb-3.5">
-          Hosted by: <span className="font-semibold text-accent">{group.characterNameSnapshot}</span>
-        </p>
-        <div className="flex items-center text-xs text-muted-foreground mb-4">
-            <Users className="w-4 h-4 mr-1.5" /> {group.participantCount || 0} participants
+        
+        <div className="flex items-center justify-between text-xs text-muted-foreground mb-4">
+            <div className="flex items-center gap-2">
+                <p className="text-muted-foreground/80">Hosted by:</p>
+                {group.hostCharacterSnapshots && group.hostCharacterSnapshots.length > 0 && (
+                    <TooltipProvider>
+                        <div className="flex -space-x-2 overflow-hidden">
+                        {group.hostCharacterSnapshots.slice(0, 3).map((host) => (
+                            <Tooltip key={host.id}>
+                                <TooltipTrigger asChild>
+                                    <Avatar className="inline-block h-6 w-6 rounded-full ring-2 ring-card">
+                                        <AvatarImage src={host.avatarUrl} alt={host.name} />
+                                        <AvatarFallback>{getInitials(host.name)}</AvatarFallback>
+                                    </Avatar>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-popover text-popover-foreground rounded-md shadow-lg p-2 text-xs">
+                                    <p>{host.name}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        ))}
+                        {group.hostCharacterSnapshots.length > 3 && (
+                             <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Avatar className="inline-block h-6 w-6 rounded-full ring-2 ring-card bg-muted text-muted-foreground">
+                                        <AvatarFallback>+{group.hostCharacterSnapshots.length - 3}</AvatarFallback>
+                                    </Avatar>
+                                </TooltipTrigger>
+                                <TooltipContent className="bg-popover text-popover-foreground rounded-md shadow-lg p-2 text-xs">
+                                    <p>...and {group.hostCharacterSnapshots.length - 3} more</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        )}
+                        </div>
+                    </TooltipProvider>
+                )}
+            </div>
+            <div className="flex items-center text-muted-foreground/90">
+                <Users className="w-4 h-4 mr-1.5" /> {group.participantCount || 0}
+            </div>
         </div>
+
         <Link href={user ? `/groups/${group.id}` : `/login?redirect=/groups/${group.id}`} passHref className="mt-auto">
           <Button
             variant="default"
