@@ -32,8 +32,8 @@ This led to the current situation: {{currentTurn.summaryOfCurrentSituation}} (Th
 
 Your Task:
 You MUST generate 'narrationForThisTurn'.
-You CAN OPTIONALLY generate 'choiceA' and 'choiceB' if you think offering specific choices is narratively appropriate at this point (e.g., at a clear decision point or cliffhanger).
-If you do NOT provide 'choiceA' and 'choiceB', the user will be able to type their next action/dialogue freely.
+You CAN OPTIONALLY generate 'choiceA' and 'choiceB' to suggest possible actions to the user.
+The user can always type their own custom response, even when choices are provided. Therefore, your narration should feel natural whether the user clicks a choice or writes their own action.
 The JSON object MUST strictly adhere to the StoryTurnOutputSchema. If choices are not provided, their fields should be omitted or be null/empty.
 
 -   **For 'narrationForThisTurn'**:
@@ -48,7 +48,7 @@ The JSON object MUST strictly adhere to the StoryTurnOutputSchema. If choices ar
     *   If you decide to offer choices, they MUST be in Hinglish.
     *   They should be concise (1-5 words), distinct, and lead to interesting story developments.
     *   Example: "Usse sach bata do" or "Wahaan se bhaag jao".
-    *   If you provide choices, do NOT include a personal question in the 'narrationForThisTurn'. The choices themselves are the user's next action point.
+    *   If you provide choices, do NOT include a personal question in the 'narrationForThisTurn', as the choices already serve as suggested actions.
 
 Make the story engaging and romantic! Respond ONLY with the JSON object.
 Example output (with choices): {"narrationForThisTurn": "Arre {{user.name}}, tumne toh dil jeet liya! ❤️ Your words...uff! ... Ab main kya karun?", "choiceA": "Dil ki baat keh do", "choiceB": "Intezaar karo"}

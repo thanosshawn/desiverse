@@ -292,58 +292,62 @@ function StoryPlayerContent() {
           </CardContent>
 
           <CardFooter className="p-3 md:p-4 border-t border-border/70 bg-muted/30">
-            {isProcessing && !displayChoices ? (
+            {isProcessing ? (
               <div className="w-full flex justify-center items-center py-3.5">
                 <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 <p className="ml-3 text-muted-foreground font-medium">Processing your choice...</p>
               </div>
-            ) : displayChoices ? (
-              <div className="w-full space-y-3">
-                <Button
-                  onClick={() => processUserInput(currentAiTurn!.choiceA!)}
-                  variant="outline"
-                  className="w-full !rounded-xl text-base py-3.5 border-primary/60 text-primary hover:bg-primary/10 hover:border-primary shadow-md transition-all duration-200 hover:shadow-lg"
-                  disabled={isProcessing}
-                >
-                  {currentAiTurn!.choiceA}
-                </Button>
-                <Button
-                  onClick={() => processUserInput(currentAiTurn!.choiceB!)}
-                  variant="outline"
-                  className="w-full !rounded-xl text-base py-3.5 border-primary/60 text-primary hover:bg-primary/10 hover:border-primary shadow-md transition-all duration-200 hover:shadow-lg"
-                  disabled={isProcessing}
-                >
-                  {currentAiTurn!.choiceB}
-                </Button>
-              </div>
             ) : (
-              <form onSubmit={(e) => { e.preventDefault(); processUserInput(userInput); }} className="w-full flex items-end gap-2.5">
-                <Textarea
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  placeholder={`What do you say or do, ${userProfile?.name || 'jaan'}?`}
-                  className="flex-grow resize-none max-h-28 p-3.5 rounded-xl shadow-inner focus:ring-2 focus:ring-primary focus:border-primary bg-background border-border text-sm md:text-base"
-                  rows={1}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      processUserInput(userInput);
-                    }
-                  }}
-                  disabled={isProcessing}
-                  aria-label="Your response in the story"
-                />
-                <Button
-                  type="submit"
-                  variant="default"
-                  size="icon"
-                  disabled={isProcessing || !userInput.trim()}
-                  className="bg-gradient-to-br from-primary via-rose-500 to-pink-600 hover:shadow-glow-primary text-primary-foreground rounded-xl p-3 aspect-square shadow-lg transform transition-transform hover:scale-105 focus:ring-2 ring-primary ring-offset-2 ring-offset-background h-12 w-12 md:h-[52px] md:w-[52px]"
-                  title="Send your message"
-                >
-                  <SendHorizonal className="h-5 w-5 md:h-6 md:w-6" />
-                </Button>
-              </form>
+              <div className="w-full space-y-3">
+                {displayChoices && (
+                  <div className="w-full space-y-3">
+                    <Button
+                      onClick={() => processUserInput(currentAiTurn!.choiceA!)}
+                      variant="outline"
+                      className="w-full !rounded-xl text-base py-3.5 border-primary/60 text-primary hover:bg-primary/10 hover:border-primary shadow-md transition-all duration-200 hover:shadow-lg"
+                      disabled={isProcessing}
+                    >
+                      {currentAiTurn!.choiceA}
+                    </Button>
+                    <Button
+                      onClick={() => processUserInput(currentAiTurn!.choiceB!)}
+                      variant="outline"
+                      className="w-full !rounded-xl text-base py-3.5 border-primary/60 text-primary hover:bg-primary/10 hover:border-primary shadow-md transition-all duration-200 hover:shadow-lg"
+                      disabled={isProcessing}
+                    >
+                      {currentAiTurn!.choiceB}
+                    </Button>
+                  </div>
+                )}
+                
+                <form onSubmit={(e) => { e.preventDefault(); processUserInput(userInput); }} className="w-full flex items-end gap-2.5">
+                  <Textarea
+                    value={userInput}
+                    onChange={(e) => setUserInput(e.target.value)}
+                    placeholder={displayChoices ? `Or type your own response, ${userProfile?.name || 'jaan'}...` : `What do you say or do, ${userProfile?.name || 'jaan'}?`}
+                    className="flex-grow resize-none max-h-28 p-3.5 rounded-xl shadow-inner focus:ring-2 focus:ring-primary focus:border-primary bg-background border-border text-sm md:text-base"
+                    rows={1}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        processUserInput(userInput);
+                      }
+                    }}
+                    disabled={isProcessing}
+                    aria-label="Your response in the story"
+                  />
+                  <Button
+                    type="submit"
+                    variant="default"
+                    size="icon"
+                    disabled={isProcessing || !userInput.trim()}
+                    className="bg-gradient-to-br from-primary via-rose-500 to-pink-600 hover:shadow-glow-primary text-primary-foreground rounded-xl p-3 aspect-square shadow-lg transform transition-transform hover:scale-105 focus:ring-2 ring-primary ring-offset-2 ring-offset-background h-12 w-12 md:h-[52px] md:w-[52px]"
+                    title="Send your message"
+                  >
+                    <SendHorizonal className="h-5 w-5 md:h-6 md:w-6" />
+                  </Button>
+                </form>
+              </div>
             )}
           </CardFooter>
         </Card>
