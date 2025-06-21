@@ -50,4 +50,3 @@ export function BondMeter({ characterName, bondPercentage, streakData }: BondMet
     </div>
   );
 }
-

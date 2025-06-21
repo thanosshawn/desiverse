@@ -4,9 +4,9 @@
 
 import React, { useEffect, useState, useActionState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button'; // Kept for action buttons outside the form
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { createCharacterAction, type CreateCharacterActionState } from '../actions'; // CORRECTED PATH
+import { createCharacterAction, type CreateCharacterActionState } from '../actions';
 import type { CharacterCreationAdminFormValues } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';

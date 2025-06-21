@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessageProps {
   message: ChatMessageUI;
-  characterBubbleStyle?: string; 
+  characterBubbleStyle?: string | null; 
   aiAvatarUrl: string; 
   userDisplayName?: string; 
   userProfileAvatarUrl?: string | null;
@@ -54,16 +54,13 @@ const ChatMessageComponent = ({
       url: window.location.origin,
     };
     try {
-      // Try Web Share API first if it exists
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        // This will be caught by the catch block and fall back to clipboard
         throw new Error("navigator.share is not supported.");
       }
     } catch (error) {
       console.warn("Web Share API failed, falling back to clipboard:", error);
-      // Fallback to clipboard for any error (permission denied, cancellation, not supported)
       try {
         await navigator.clipboard.writeText(shareData.text);
         toast({ title: "Copied to Clipboard!", description: "Sharing isn't available, so we copied the message for you." });

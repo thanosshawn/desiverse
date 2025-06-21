@@ -15,7 +15,7 @@ interface ChatLayoutProps {
   currentCharacterName: CharacterName;
   currentCharacterAvatar: string; 
   currentVideoMessageSrc?: string;
-  characterMessageBubbleStyle?: string;
+  characterMessageBubbleStyle?: string | null;
   characterIsPremium?: boolean;
   userSubscriptionTier?: UserProfile['subscriptionTier'];
   userDisplayName?: string; 

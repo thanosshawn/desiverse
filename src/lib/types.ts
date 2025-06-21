@@ -47,15 +47,15 @@ export interface CharacterMetadata {
   description: string;
   personalitySnippet: string;
   avatarUrl: string;
-  backgroundImageUrl?: string;
+  backgroundImageUrl?: string | null;
   basePrompt: string;
   styleTags: string[];
   defaultVoiceTone: string;
   createdAt: number;
   dataAiHint?: string;
-  messageBubbleStyle?: string;
-  animatedEmojiResponse?: string;
-  audioGreetingUrl?: string;
+  messageBubbleStyle?: string | null;
+  animatedEmojiResponse?: string | null;
+  audioGreetingUrl?: string | null;
   isPremium?: boolean;
 }
 
@@ -135,7 +135,7 @@ export interface InteractiveStory {
   updatedAt?: number | object;
 }
 
-export type InteractiveStoryAdminFormValues = Omit<InteractiveStory, 'id' | 'createdAt' | 'updatedAt' | 'characterNameSnapshot' | 'characterAvatarSnapshot'> & {
+export type InteractiveStoryAdminFormValues = Omit<InteractiveStory, 'id' | 'createdAt' | 'updatedAt' | 'characterNameSnapshot' | 'characterAvatarSnapshot' | 'tags'> & {
   tagsString: string;
 };
 

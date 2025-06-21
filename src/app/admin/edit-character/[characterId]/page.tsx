@@ -6,13 +6,13 @@ import React, { useEffect, useState, useActionState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { Button } from '@/components/ui/button'; // Kept for action buttons outside the form
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/header';
 import { Loader2, LogOut, ListChecks, Edit2, BookOpenCheck, FileText } from 'lucide-react';
 import { getCharacterMetadata } from '@/lib/firebase/rtdb';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
-import type { CharacterMetadata, CharacterCreationAdminFormValues } from '@/lib/types';
+import type { CharacterCreationAdminFormValues } from '@/lib/types';
 import { updateCharacterAction, type UpdateCharacterActionState } from '../../actions';
 
 
