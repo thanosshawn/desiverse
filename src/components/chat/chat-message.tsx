@@ -54,15 +54,23 @@ const ChatMessageComponent = ({
       url: window.location.origin,
     };
     try {
+      // Try Web Share API first if it exists
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(shareData.text);
-        toast({ title: "Copied to Clipboard!", description: "Message copied. You can now paste it to share." });
+        // This will be caught by the catch block and fall back to clipboard
+        throw new Error("navigator.share is not supported.");
       }
     } catch (error) {
-      console.error("Error sharing message:", error);
-      toast({ title: "Sharing Failed", description: "Could not share the message.", variant: 'destructive' });
+      console.warn("Web Share API failed, falling back to clipboard:", error);
+      // Fallback to clipboard for any error (permission denied, cancellation, not supported)
+      try {
+        await navigator.clipboard.writeText(shareData.text);
+        toast({ title: "Copied to Clipboard!", description: "Sharing isn't available, so we copied the message for you." });
+      } catch (copyError) {
+        console.error("Clipboard fallback failed:", copyError);
+        toast({ title: "Sharing Failed", description: "Could not share or copy the message.", variant: 'destructive' });
+      }
     }
   };
 
@@ -77,10 +85,8 @@ const ChatMessageComponent = ({
       return `${baseClasses} bg-gradient-to-br from-primary via-rose-500 to-pink-600 text-primary-foreground rounded-tr-lg group-hover:shadow-lg`;
     }
     
-    if (characterBubbleStyle === 'bubble-priya') { 
-        return `${baseClasses} bg-gradient-to-tr from-teal-400 via-cyan-500 to-sky-500 text-white rounded-tl-lg shadow-glow-accent`;
-    }
-    return `${baseClasses} bg-card text-card-foreground rounded-tl-lg shadow-soft-lg border border-border/60 group-hover:border-accent/60`;
+    // AI message style
+    return `${baseClasses} bg-gradient-to-tr from-card via-muted/70 to-card text-card-foreground rounded-tl-lg shadow-soft-lg border border-border/60 group-hover:border-accent/60`;
   };
 
   const renderGiftIcon = (gift: VirtualGift) => {
