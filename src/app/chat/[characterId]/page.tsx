@@ -50,45 +50,6 @@ export default function ChatPage() {
   useEffect(scrollToBottom, [messages, scrollToBottom]);
 
   useEffect(() => {
-    const bodyEl = document.body;
-    const htmlEl = document.documentElement;
-    if (currentCharacterMeta?.backgroundImageUrl) {
-      const rootStyle = getComputedStyle(htmlEl);
-      const bgHslString = rootStyle.getPropertyValue('--background').trim();
-      const hslMatch = bgHslString.match(/(?:hsl\(\s*)?([\d.]+)\s*[\s,]\s*([\d.]+%?)\s*[\s,]\s*([\d.]+%?)(?:\s*\/\s*([\d.]+%?))?(?:\s*\))?/);
-      let overlayColor = 'hsla(var(--background), 0.92)'; // Increased opacity for better readability
-
-      if (hslMatch && hslMatch.length >= 4) {
-        const alpha = hslMatch[4] ? parseFloat(hslMatch[4]) * 0.92 : 0.92; 
-        overlayColor = `hsla(${hslMatch[1]}, ${hslMatch[2]}, ${hslMatch[3]}, ${alpha})`;
-      }
-      
-      bodyEl.style.backgroundImage = `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`;
-      bodyEl.style.backgroundSize = 'cover';
-      bodyEl.style.backgroundPosition = 'center';
-      bodyEl.style.backgroundRepeat = 'no-repeat';
-      bodyEl.style.backgroundAttachment = 'fixed';
-      
-      if (pageLoading) {
-        htmlEl.style.setProperty('--chat-page-initial-bg-image', `linear-gradient(${overlayColor}, ${overlayColor}), url(${currentCharacterMeta.backgroundImageUrl})`);
-      }
-    } else {
-      bodyEl.style.backgroundImage = 'var(--background)'; 
-      htmlEl.style.removeProperty('--chat-page-initial-bg-image');
-    }
-
-    return () => { 
-      bodyEl.style.backgroundImage = '';
-      bodyEl.style.backgroundSize = '';
-      bodyEl.style.backgroundPosition = '';
-      bodyEl.style.backgroundRepeat = '';
-      bodyEl.style.backgroundAttachment = '';
-      htmlEl.style.removeProperty('--chat-page-initial-bg-image');
-    };
-  }, [currentCharacterMeta?.backgroundImageUrl, pageLoading]);
-
-
-  useEffect(() => {
     if (authLoading) return;
 
     if (!user) {
@@ -344,19 +305,8 @@ export default function ChatPage() {
 
 
   if (authLoading || pageLoading || !currentCharacterMeta || !currentChatSessionMeta) {
-    const initialBackgroundStyle = currentCharacterMeta?.backgroundImageUrl
-    ? {
-        backgroundImage: `var(--chat-page-initial-bg-image, var(--background))`, 
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundAttachment: 'fixed',
-      }
-    : {
-        background: 'var(--background)', 
-    };
     return (
-      <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center" style={initialBackgroundStyle}>
+      <div className="flex flex-col h-screen bg-background text-foreground items-center justify-center">
         <Header />
         <div className="flex-grow flex flex-col items-center justify-center text-center p-4">
           <Loader2 className="h-16 w-16 animate-spin text-primary mb-4" />
@@ -371,7 +321,7 @@ export default function ChatPage() {
 
   return (
     <div className={cn(
-      "flex flex-col h-screen overflow-hidden bg-transparent transition-colors duration-500 ease-in-out"
+      "flex flex-col h-screen overflow-hidden bg-background"
     )}> 
       <Header />
       <ChatPageHeader
