@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Send, Gem, BookHeart, Menu } from 'lucide-react';
+import { LogIn, LogOut, UserCircle, Loader2, MessageSquareText, Settings, History, Sparkles, Users, Globe, Palette, Sun, Moon, Send, Gem, BookHeart, Menu, Heart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge'; 
 import {
   DropdownMenu,
@@ -94,7 +94,7 @@ export function Header() {
       <div className="container mx-auto flex justify-between items-center">
         <Link href="/" passHref>
           <div className="flex items-center gap-2.5 cursor-pointer group">
-            <Sparkles className="h-9 w-9 text-yellow-300 group-hover:animate-hue-rotate-glow transition-all duration-300 filter drop-shadow-[0_2.5px_3.5px_rgba(0,0,0,0.25)]" />
+            <Heart className="h-9 w-9 text-pink-400 fill-pink-500 group-hover:animate-hue-rotate-glow transition-all duration-300 filter drop-shadow-[0_2.5px_3.5px_rgba(0,0,0,0.25)]" />
             <h1 className="text-3xl font-headline tracking-tight filter drop-shadow-[0_2.5px_2.5px_rgba(0,0,0,0.25)]">DesiBae</h1>
           </div>
         </Link>
