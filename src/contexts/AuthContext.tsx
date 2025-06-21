@@ -14,7 +14,8 @@ import {
   updateUserProfile,
   setOnlineStatus,
   goOfflineOnDisconnect,
-  setOfflineStatus
+  setOfflineStatus,
+  incrementTotalRegisteredUsers
 } from '@/lib/firebase/rtdb'; 
 import { useTheme } from 'next-themes'; 
 
@@ -176,4 +177,3 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
-

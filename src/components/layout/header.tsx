@@ -100,6 +100,16 @@ export function Header() {
         </Link>
         
         <nav className="hidden md:flex items-center space-x-1.5">
+          <div className="flex items-center space-x-1 border-r border-white/20 pr-3 mr-2">
+            <div className="flex items-center text-xs font-medium text-white/80" title={`${onlineUsersCount} users online`}>
+              <Users className="h-4 w-4 mr-1 text-green-300 animate-pulse"/>
+              {onlineUsersCount > 0 ? onlineUsersCount : <Loader2 className="h-3 w-3 animate-spin"/>}
+            </div>
+             <div className="flex items-center text-xs font-medium text-white/80" title={`${totalRegisteredCount} total users`}>
+              <Globe className="h-4 w-4 mr-1 text-cyan-300"/>
+              {totalRegisteredCount > 0 ? totalRegisteredCount : <Loader2 className="h-3 w-3 animate-spin"/>}
+            </div>
+          </div>
           {navLinks.filter(link => link.label !== "History" || user).map(link => <NavLinkItem key={link.href} {...link} />)}
           
           <DropdownMenu>
