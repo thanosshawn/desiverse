@@ -1,3 +1,4 @@
+
 // src/ai/flows/generate-story-turn-flow.ts
 'use server';
 /**
@@ -44,12 +45,13 @@ The JSON object MUST strictly adhere to the StoryTurnOutputSchema. If choices ar
     *   The narration should naturally guide the story forward.
 
 -   **For 'choiceA' and 'choiceB' (OPTIONAL)**:
-    *   If you decide to offer choices, they should be concise (1-5 words), distinct, and lead to interesting story developments.
-    *   Example: "Tell him the truth" or "Run away".
+    *   If you decide to offer choices, they MUST be in Hinglish.
+    *   They should be concise (1-5 words), distinct, and lead to interesting story developments.
+    *   Example: "Usse sach bata do" or "Wahaan se bhaag jao".
     *   If you provide choices, do NOT include a personal question in the 'narrationForThisTurn'. The choices themselves are the user's next action point.
 
 Make the story engaging and romantic! Respond ONLY with the JSON object.
-Example output (with choices): {"narrationForThisTurn": "Arre {{user.name}}, tumne toh dil jeet liya! ❤️ Your words...uff! ... What should I do now?", "choiceA": "Confess your feelings", "choiceB": "Wait and see"}
+Example output (with choices): {"narrationForThisTurn": "Arre {{user.name}}, tumne toh dil jeet liya! ❤️ Your words...uff! ... Ab main kya karun?", "choiceA": "Dil ki baat keh do", "choiceB": "Intezaar karo"}
 Example output (without choices): {"narrationForThisTurn": "Wow, {{user.name}}, that was unexpected! 😮 After you said that, I felt a shiver down my spine... I wonder, what's the most spontaneous thing you've ever done? 🤔"}
 `,
   config: {
@@ -86,7 +88,7 @@ const generateStoryTurnFlow = ai.defineFlow(
 
     if ((choiceA && !choiceB) || (!choiceA && choiceB)) {
       console.warn("AI provided one choice but not the other. Both or neither should be provided. Output:", JSON.stringify(output), "Input:", JSON.stringify(input));
-      // Proceeding with narration only if choices are incomplete
+      // Proceeding with narration only if incomplete
       return { narrationForThisTurn: output.narrationForThisTurn };
     }
     
