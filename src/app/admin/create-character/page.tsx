@@ -104,7 +104,7 @@ export default function CreateCharacterPage() {
 
   const handleRegenerateDefaults = () => {
     form.reset(generateRandomCharacterDefaults());
-    toast({ title: 'New Character Data Loaded', description: 'The form has been autofilled with new random values.' });
+    toast({ title: 'New Character Data Loaded', description: 'The form has been autofilled with a new dark romantic character.' });
   };
 
   if (!authStatusChecked) {
@@ -141,7 +141,7 @@ export default function CreateCharacterPage() {
           <div className="mb-6 text-center md:text-left">
             <h1 className="text-2xl font-headline text-primary mb-1">Create New AI Character</h1>
             <p className="text-sm">
-                Autofilled with random data. Click
+                Autofilled with a dark, romantic character. Click
                 <RefreshCw
                     className="inline h-4 w-4 text-accent align-middle cursor-pointer mx-1"
                     onClick={handleRegenerateDefaults}
@@ -190,15 +190,15 @@ export default function CreateCharacterPage() {
               </div>
 
               <div>
-                <label htmlFor="personalitySnippet" style={{ display: 'block', marginBottom: '5px' }}>Personality Snippet (for character card)</label>
+                <label htmlFor="personalitySnippet" style={{ display: 'block', marginBottom: '5px' }}>Bio / Snippet</label>
                 <input type="text" id="personalitySnippet" {...form.register("personalitySnippet")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
-                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>A short, catchy tagline displayed on the character selection card.</p>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>A mysterious, sexy, and romantic bio for the character selection card.</p>
               </div>
 
               <div>
-                <label htmlFor="description" style={{ display: 'block', marginBottom: '5px' }}>Full Description (for AI context, can be longer)</label>
-                <textarea id="description" {...form.register("description")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} rows={3}></textarea>
-                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Detailed background for the AI's personality and for display (if needed).</p>
+                <label htmlFor="description" style={{ display: 'block', marginBottom: '5px' }}>Short Description (Age, City, etc.)</label>
+                <textarea id="description" {...form.register("description")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} rows={2}></textarea>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Brief details like age, city, and a favorite romantic line. For display purposes if needed.</p>
               </div>
 
               <div>
@@ -233,20 +233,20 @@ export default function CreateCharacterPage() {
 
               <div>
                 <label htmlFor="basePrompt" style={{ display: 'block', marginBottom: '5px' }}>Base Prompt (AI Personality Core)</label>
-                <textarea id="basePrompt" {...form.register("basePrompt")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} rows={6}></textarea>
-                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>The core personality instructions for the AI. Be descriptive!</p>
+                <textarea id="basePrompt" {...form.register("basePrompt")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} rows={12}></textarea>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>The core instructions for the AI. Includes backstory, chat style, typing quirks, and sample messages.</p>
               </div>
 
               <div>
-                <label htmlFor="styleTags" style={{ display: 'block', marginBottom: '5px' }}>Style Tags (for filtering & AI context)</label>
+                <label htmlFor="styleTags" style={{ display: 'block', marginBottom: '5px' }}>Personality Tags</label>
                 <input type="text" id="styleTags" {...form.register("styleTags")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
-                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Comma-separated list of tags for discoverability and AI prompt refinement.</p>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Comma-separated keywords for personality (e.g., bold, mysterious, filmy, dominant).</p>
               </div>
 
               <div>
                 <label htmlFor="defaultVoiceTone" style={{ display: 'block', marginBottom: '5px' }}>Default Voice Tone (for future TTS)</label>
                 <input type="text" id="defaultVoiceTone" {...form.register("defaultVoiceTone")} style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }} />
-                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Describes the character's voice style for text-to-speech generation.</p>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>Describes the character's voice style (e.g., Flirty, mysterious, and slightly husky Hinglish).</p>
               </div>
 
               <div>
