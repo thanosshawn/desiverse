@@ -4,31 +4,13 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import {
+  GroupChatReplyInputSchema,
+  GroupChatReplyOutputSchema,
+  type GroupChatReplyInput,
+  type GroupChatReplyOutput
+} from '@/lib/types';
 
-// Define schemas
-export const GroupChatReplyInputSchema = z.object({
-  lastMessages: z.array(z.object({
-    senderName: z.string(),
-    text: z.string(),
-  })).describe('The last few messages in the chat for context.'),
-  currentUserMessage: z.string().describe('The latest message from a user that needs a reply.'),
-  hosts: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    basePrompt: z.string(),
-  })).describe('The AI hosts present in the chat room.'),
-  // Optional: To prevent an AI from replying to itself immediately
-  lastRepliedHostId: z.string().optional().describe('The ID of the host who sent the last AI message.'),
-});
-export type GroupChatReplyInput = z.infer<typeof GroupChatReplyInputSchema>;
-
-export const GroupChatReplyOutputSchema = z.object({
-  shouldReply: z.boolean().describe("Whether any AI host should reply at all. Set to false if the user message doesn't require a direct AI response."),
-  respondingHostId: z.string().optional().describe("The ID of the host who should reply. Required if shouldReply is true."),
-  responseText: z.string().optional().describe("The generated reply text from the chosen host. Required if shouldReply is true."),
-});
-export type GroupChatReplyOutput = z.infer<typeof GroupChatReplyOutputSchema>;
 
 // Exported function to call the flow
 export async function generateGroupChatReply(input: GroupChatReplyInput): Promise<GroupChatReplyOutput> {
