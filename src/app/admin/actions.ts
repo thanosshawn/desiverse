@@ -11,11 +11,12 @@ import {
   updateCharacter,
   addInteractiveStory, 
   getCharacterMetadata,
-  deleteInteractiveStory // Added for story deletion
+  deleteInteractiveStory
 } from '@/lib/firebase/rtdb';
 import type { CharacterMetadata, CharacterCreationAdminFormValues, InteractiveStoryAdminFormValues, InteractiveStory } from '@/lib/types';
 import { ref, get } from 'firebase/database';
 import { db } from '@/lib/firebase/config';
+import { generateStoryIdea, type GenerateStoryIdeaOutput } from '@/ai/flows/generate-story-idea-flow';
 
 
 export interface CreateCharacterActionState {
@@ -387,4 +388,51 @@ export async function deleteStoryAction(
       storyId,
     };
   }
+}
+
+// --- Story Idea Generation Action ---
+export interface GenerateStoryIdeaActionState {
+    success: boolean;
+    message: string;
+    storyIdea?: GenerateStoryIdeaOutput;
+    errors?: null;
+}
+
+export async function generateStoryIdeaAction(
+    characterId: string
+): Promise<GenerateStoryIdeaActionState> {
+    if (!characterId) {
+        return {
+            success: false,
+            message: "Please select a character first before generating a story idea.",
+        };
+    }
+
+    try {
+        const character = await getCharacterMetadata(characterId);
+        if (!character) {
+            return {
+                success: false,
+                message: `Character with ID ${characterId} not found.`,
+            };
+        }
+
+        const storyIdea = await generateStoryIdea({
+            characterName: character.name,
+            characterPersonality: `Personality Snippet: ${character.personalitySnippet}. Base Prompt: ${character.basePrompt}. Style Tags: ${character.styleTags.join(', ')}.`,
+        });
+
+        return {
+            success: true,
+            message: "Story idea generated successfully!",
+            storyIdea,
+        };
+    } catch (error) {
+        console.error("Error generating story idea:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unknown AI error occurred.";
+        return {
+            success: false,
+            message: `Failed to generate story idea: ${errorMessage}`,
+        };
+    }
 }

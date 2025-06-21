@@ -4,13 +4,13 @@
 
 import React, { useEffect, useState, useActionState } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button'; // Kept for action buttons outside the form
+import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { createStoryAction, type CreateStoryActionState } from '../actions'; // CORRECTED PATH
+import { createStoryAction, generateStoryIdeaAction, type CreateStoryActionState } from '../actions';
 import type { InteractiveStoryAdminFormValues, CharacterMetadata } from '@/lib/types';
 import { Header } from '@/components/layout/header';
 import { uploadCharacterAsset } from '@/lib/supabase/client';
-import { Loader2, LogOut, ListChecks, BookOpenCheck, BarChart3, PlusCircle, FileText } from 'lucide-react';
+import { Loader2, LogOut, ListChecks, BookOpenCheck, BarChart3, PlusCircle, FileText, Sparkles, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { getAllCharacters } from '@/lib/firebase/rtdb';
@@ -21,25 +21,28 @@ const initialState: CreateStoryActionState = {
   errors: null,
 };
 
+const defaultFormValues: InteractiveStoryAdminFormValues = {
+  title: '',
+  description: '',
+  characterId: '',
+  coverImageUrl: 'https://placehold.co/800x450.png',
+  tagsString: '',
+  initialSceneSummary: '',
+};
+
 export default function CreateStoryPage() {
   const { toast } = useToast();
   const router = useRouter();
 
   const form = useForm<InteractiveStoryAdminFormValues>({
-    defaultValues: {
-      title: 'The Secret of the Lost Temple',
-      description: 'An adventurous journey to uncover ancient secrets with your Bae.',
-      characterId: '',
-      coverImageUrl: 'https://placehold.co/800x450.png',
-      tagsString: 'Adventure, Romance, Mystery',
-      initialSceneSummary: 'You find a mysterious map hinting at a lost temple. Your Bae looks at you with excitement, ready for an adventure. "Should we follow it?" she asks.',
-    },
+    defaultValues: defaultFormValues,
   });
 
   const [state, formAction, isPending] = useActionState(createStoryAction, initialState);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [characters, setCharacters] = useState<CharacterMetadata[]>([]);
   const [loadingCharacters, setLoadingCharacters] = useState(true);
+  const [isGeneratingIdea, setIsGeneratingIdea] = useState(false);
 
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [authStatusChecked, setAuthStatusChecked] = useState(false);
@@ -82,17 +85,10 @@ export default function CreateStoryPage() {
         variant: state.success ? 'default' : 'destructive',
       });
       if (state.success) {
-        form.reset({
-            title: '',
-            description: '',
-            characterId: characters.length > 0 ? characters[0].id : '',
-            coverImageUrl: 'https://placehold.co/800x450.png',
-            tagsString: '',
-            initialSceneSummary: '',
-        });
+        handleClearForm();
       }
     }
-  }, [state, toast, form, characters]);
+  }, [state, toast]);
 
   const handleCoverImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -100,7 +96,7 @@ export default function CreateStoryPage() {
 
     setIsUploadingCover(true);
     try {
-      const publicUrl = await uploadCharacterAsset(file, 'backgrounds'); // Assuming covers go to 'backgrounds' or similar
+      const publicUrl = await uploadCharacterAsset(file, 'backgrounds');
       form.setValue('coverImageUrl', publicUrl, { shouldValidate: true });
       toast({ title: 'Cover Image Uploaded', description: 'Cover image URL populated.' });
     } catch (error: any) {
@@ -115,6 +111,58 @@ export default function CreateStoryPage() {
     localStorage.removeItem('isAdminLoggedIn');
     toast({ title: 'Logged Out', description: 'You have been logged out as admin.' });
     router.replace('/admin/login');
+  };
+
+  const handleGenerateStoryIdea = async () => {
+    const characterId = form.getValues('characterId');
+    if (!characterId) {
+      toast({
+        title: 'Select a Character',
+        description: 'Please select a character first to generate a personalized story idea.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    setIsGeneratingIdea(true);
+    try {
+      const result = await generateStoryIdeaAction(characterId);
+      if (result.success && result.storyIdea) {
+        const { title, description, tagsString, initialSceneSummary } = result.storyIdea;
+        form.reset({
+          ...form.getValues(),
+          title,
+          description,
+          tagsString,
+          initialSceneSummary,
+        });
+        toast({
+          title: '✨ Story Idea Generated!',
+          description: `A new story premise for "${result.storyIdea.title}" has been filled in.`,
+        });
+      } else {
+        toast({
+          title: 'AI Generation Failed',
+          description: result.message,
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'An unexpected error occurred while generating the story idea.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingIdea(false);
+    }
+  };
+
+  const handleClearForm = () => {
+    form.reset({
+        ...defaultFormValues,
+        characterId: characters.length > 0 ? characters[0].id : '',
+    });
+    toast({ title: "Form Cleared", description: "You can start over now." });
   };
 
   if (!authStatusChecked || (isAdminLoggedIn && loadingCharacters)) {
@@ -157,6 +205,13 @@ export default function CreateStoryPage() {
                 <p className="text-sm">Define the story's plot, character, and starting point.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 mb-6 justify-center md:justify-start">
+              <Button variant="outline" size="sm" onClick={handleGenerateStoryIdea} disabled={isGeneratingIdea || loadingCharacters} title="Generate story idea with AI">
+                  {isGeneratingIdea ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4 text-yellow-400" />}
+                  Generate Idea
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleClearForm} title="Clear the form">
+                <Trash2 className="mr-2 h-4 w-4" /> Clear Form
+              </Button>
               <Link href="/admin/create-character" passHref>
                   <Button variant="outline" size="sm" title="Create new character">
                       <PlusCircle className="mr-2 h-4 w-4"/> Create Char
@@ -183,11 +238,10 @@ export default function CreateStoryPage() {
             </div>
 
             <form action={formAction} className="space-y-4" style={{ padding: '20px', border: '1px solid #ccc', borderRadius: '8px', background: '#f9f9f9' }}>
-              {state.message && (
-                <p style={{ color: state.success ? 'green' : 'red' }}>{state.message}</p>
+              {state.message && !state.success && (
+                <p style={{ color: 'red' }}>{state.message}</p>
               )}
               {state.errors?.characterId && <p style={{color: 'red', fontSize: '0.8rem'}}>{state.errors.characterId.join(', ')}</p>}
-
 
               <div>
                 <label htmlFor="title" style={{ display: 'block', marginBottom: '5px' }}>Story Title</label>
