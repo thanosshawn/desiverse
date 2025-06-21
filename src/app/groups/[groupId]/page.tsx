@@ -1,3 +1,4 @@
+
 // src/app/groups/[groupId]/page.tsx
 'use client';
 
@@ -6,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/header';
-import { Loader2, Users, ArrowLeft } from 'lucide-react';
+import { Loader2, Users, ArrowLeft, SendHorizonal } from 'lucide-react';
 import type { GroupChatMetadata, GroupChatMessageUI } from '@/lib/types';
 import { getGroupChatMetadata, getGroupMessagesStream } from '@/lib/firebase/rtdb';
 import { handleGroupUserMessage } from '../actions';
@@ -16,9 +17,9 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { cn, getInitials } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import Link from 'next/link';
+import { Textarea } from '@/components/ui/textarea';
 
-// A new component for displaying group messages
-const GroupChatMessage = React.memo(({ message, currentUserId }: { message: GroupChatMessageUI; currentUserId: string }) => {
+const GroupChatMessage = React.memo(({ message, currentUserId, currentUserAvatar, currentUserDisplayName }: { message: GroupChatMessageUI; currentUserId: string; currentUserAvatar?: string | null; currentUserDisplayName?: string | null; }) => {
   const isCurrentUser = message.senderId === currentUserId;
   
   const bubbleAlignment = isCurrentUser ? 'justify-end self-end ml-auto pl-[10%]' : 'justify-start self-start mr-auto pr-[10%]';
@@ -51,6 +52,14 @@ const GroupChatMessage = React.memo(({ message, currentUserId }: { message: Grou
             </ReactMarkdown>
         </div>
       </div>
+       {isCurrentUser && (
+         <Avatar className="flex-shrink-0 self-end mb-1 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md border-2 border-secondary/40">
+            <AvatarImage src={currentUserAvatar || undefined} alt={currentUserDisplayName || 'Me'} />
+            <AvatarFallback className="bg-secondary/20 text-secondary-foreground text-sm font-semibold">
+              {getInitials(currentUserDisplayName || 'Me')}
+            </AvatarFallback>
+        </Avatar>
+      )}
     </div>
   );
 });
@@ -68,6 +77,7 @@ function GroupChatPageComponent() {
   const [messages, setMessages] = useState<GroupChatMessageUI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -108,6 +118,7 @@ function GroupChatPageComponent() {
   const handleSendMessage = async (messageText: string) => {
     if (!user || !userProfile || isSending || !messageText.trim()) return;
     setIsSending(true);
+    setInput('');
 
     const result = await handleGroupUserMessage(
       groupId,
@@ -119,6 +130,7 @@ function GroupChatPageComponent() {
 
     if (!result.success) {
       toast({ title: 'Error sending message', description: result.error, variant: 'destructive' });
+      setInput(messageText); // Restore input on failure
     }
     setIsSending(false);
   };
@@ -177,32 +189,52 @@ function GroupChatPageComponent() {
       <ScrollArea className="flex-grow">
           <div className="space-y-3 p-4 md:p-6">
               {messages.map(msg => (
-                <GroupChatMessage key={msg.id} message={msg} currentUserId={user!.uid} />
+                <GroupChatMessage 
+                    key={msg.id} 
+                    message={msg} 
+                    currentUserId={user!.uid} 
+                    currentUserAvatar={userProfile?.avatarUrl || user?.photoURL}
+                    currentUserDisplayName={userProfile?.name || user?.displayName}
+                />
               ))}
           </div>
           <div ref={messagesEndRef} />
       </ScrollArea>
       
       {/* Input Area */}
-      <div className="p-2 border-t border-border bg-card">
-        {/* A simplified version of ChatInput for group chat */}
+      <div className="p-3 md:p-4 border-t border-border bg-card">
         <form
             onSubmit={(e) => {
                 e.preventDefault();
-                const input = e.currentTarget.elements.namedItem('message') as HTMLInputElement;
-                handleSendMessage(input.value);
-                input.value = '';
+                handleSendMessage(input);
             }}
             className="flex items-end space-x-2"
         >
-            <input
+            <Textarea
                 name="message"
-                placeholder={`Message in #${group.title}`}
-                className="flex-grow resize-none p-3 rounded-2xl shadow-inner bg-background border border-border text-sm md:text-base focus:ring-2 focus:ring-primary focus:border-primary"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage(input);
+                    }
+                }}
+                placeholder={`Message in #${group.title}...`}
+                className="flex-grow resize-none max-h-28 p-3 rounded-xl shadow-inner bg-background border-border text-sm md:text-base focus:ring-2 focus:ring-primary focus:border-primary"
                 disabled={isSending}
                 autoComplete="off"
+                rows={1}
             />
-            <Button type="submit" disabled={isSending} className="!rounded-xl">Send</Button>
+            <Button 
+                type="submit" 
+                disabled={isSending || !input.trim()} 
+                size="icon"
+                className="bg-gradient-to-br from-primary via-rose-500 to-pink-600 hover:shadow-glow-primary text-primary-foreground rounded-xl p-3 aspect-square shadow-lg transform transition-transform hover:scale-105 focus:ring-2 ring-primary ring-offset-2 ring-offset-background h-12 w-12 md:h-[52px] md:w-[52px]"
+                title="Send message"
+            >
+              {isSending ? <Loader2 className="h-5 w-5 animate-spin"/> : <SendHorizonal className="h-5 w-5" />}
+            </Button>
         </form>
       </div>
 
