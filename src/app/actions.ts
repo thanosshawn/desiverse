@@ -74,6 +74,32 @@ export async function handleUserMessageAction(
   }
 }
 
+export async function getDailyMessageAction(
+  characterMeta: CharacterMetadata,
+  userDisplayName: string
+): Promise<{ message?: string, error?: string }> {
+  try {
+    const userPreferencesForAI = `Generate a special, one-line daily message for ${userDisplayName}. It can be a flirty good morning wish, a short romantic shayari, a thoughtful question, or a playful greeting. The message should be unique and feel personal, making them feel special and encouraging them to start a conversation.`;
+    
+    const result = await personalizeDailyMessage({
+      userName: userDisplayName,
+      userPreferences: userPreferencesForAI,
+      previousMessages: [], // No chat history for a daily message
+      basePrompt: characterMeta.basePrompt,
+      styleTags: characterMeta.styleTags,
+    });
+
+    if (result.message) {
+      return { message: result.message };
+    }
+    return { error: 'AI could not generate a message.' };
+  } catch (error) {
+     console.error('Error in getDailyMessageAction:', error);
+     const errorMessage = error instanceof Error ? error.message : 'An unexpected AI error occurred.';
+     return { error: errorMessage };
+  }
+}
+
 
 export async function processAndAddAiResponse(
   userId: string,

@@ -4,17 +4,20 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Filter, Heart, Loader2, MessageCircle, Sparkles, Edit, Search, BookHeart, ChevronRight } from 'lucide-react';
+import { Filter, Heart, Loader2, MessageCircle, Sparkles, Edit, Search, BookHeart, ChevronRight, Mail } from 'lucide-react';
 import { Header } from '@/components/layout/header';
 import React, { useEffect, useState, useMemo } from 'react';
-import type { CharacterMetadata, InteractiveStory } from '@/lib/types'; 
-import { getAllCharacters, getAllInteractiveStories } from '@/lib/firebase/rtdb'; 
+import type { CharacterMetadata, InteractiveStory, UserChatSessionMetadata } from '@/lib/types'; 
+import { getAllCharacters, getAllInteractiveStories, getUserChatSessions } from '@/lib/firebase/rtdb'; 
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Input } from '@/components/ui/input';
 import { CharacterCard } from '@/components/character/character-card'; 
 import { StoryCard } from '@/components/story/story-card'; 
 import { cn } from '@/lib/utils';
+import { getDailyMessageAction } from './actions';
+import { DailyMessageCard } from '@/components/home/daily-message-card';
+
 
 const characterTagColors: Record<string, string> = {
   "Romantic": "bg-pink-500 hover:bg-pink-600",
@@ -52,19 +55,25 @@ const storyTagColors: Record<string, string> = {
 
 
 export default function HomePage() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, userProfile, loading: authLoading } = useAuth();
   const [characters, setCharacters] = useState<CharacterMetadata[]>([]);
   const [stories, setStories] = useState<InteractiveStory[]>([]); 
   const [loadingCharacters, setLoadingCharacters] = useState(true);
   const [loadingStories, setLoadingStories] = useState(true); 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  
+  // State for the daily message feature
+  const [dailyMessage, setDailyMessage] = useState<string | null>(null);
+  const [dailyMessageCharacter, setDailyMessageCharacter] = useState<UserChatSessionMetadata | null>(null);
+  const [loadingDailyMessage, setLoadingDailyMessage] = useState(false);
+
 
   useEffect(() => {
     async function fetchData() {
+      setLoadingCharacters(true);
+      setLoadingStories(true);
       try {
-        setLoadingCharacters(true);
-        setLoadingStories(true);
         const [fetchedCharacters, fetchedStories] = await Promise.all([
             getAllCharacters(),
             getAllInteractiveStories()
@@ -84,6 +93,38 @@ export default function HomePage() {
         fetchData();
     }
   }, [authLoading]);
+
+  // Fetch daily message
+  useEffect(() => {
+    async function fetchDailyMessage() {
+      if (user && userProfile && characters.length > 0) {
+        setLoadingDailyMessage(true);
+        try {
+          const sessions = await getUserChatSessions(user.uid);
+          const primarySession = sessions[0]; // Gets the most recent/favorite
+          if (primarySession) {
+            const characterMeta = characters.find(c => c.id === primarySession.characterId);
+            if (characterMeta) {
+              setDailyMessageCharacter(primarySession);
+              const result = await getDailyMessageAction(characterMeta, userProfile.name || user.displayName || 'Dost');
+              if (result.message) {
+                setDailyMessage(result.message);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch daily message:", error);
+        } finally {
+          setLoadingDailyMessage(false);
+        }
+      }
+    }
+    
+    // Only run if user is loaded and characters are loaded
+    if (!authLoading && characters.length > 0) {
+      fetchDailyMessage();
+    }
+  }, [authLoading, user, userProfile, characters]);
 
   const allCharacterTags = useMemo(() => {
     const tags = new Set<string>();
@@ -124,16 +165,26 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-background via-pink-50 to-yellow-50 text-foreground">
       <Header />
 
-      <section className="container mx-auto px-4 pt-8 md:pt-10 pb-12 flex-grow"> {/* Reduced top padding for header */}
+      <section className="container mx-auto px-4 pt-8 md:pt-10 pb-12 flex-grow">
         <div className="text-center mb-10 md:mb-12">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold font-headline mb-3 text-primary animate-fade-in drop-shadow-sm">
             Kaun Banegi Aapki <span className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-600 bg-clip-text text-transparent">Crush</span>? 
-            <Sparkles className="inline-block text-yellow-400 h-10 w-10 ml-2 animate-pulse" />
+            <Heart className="inline-block text-pink-400 fill-pink-500 h-10 w-10 ml-2 animate-hue-rotate-glow" />
           </h2>
           <p className="text-lg md:text-xl font-body text-muted-foreground animate-slide-in-from-bottom max-w-2xl mx-auto">
             Pick your vibe! Har AI ka apna alag andaaz hai. Chalo, dhoondte hain aapki perfect match! Dil se connect karo!
           </p>
         </div>
+        
+        { (user && (loadingDailyMessage || dailyMessage)) && (
+          <div className="mb-10 md:mb-12">
+            <DailyMessageCard 
+              isLoading={loadingDailyMessage}
+              message={dailyMessage}
+              character={dailyMessageCharacter}
+            />
+          </div>
+        )}
 
         {/* Search and Filter Bar - No longer sticky */}
         <div className="mb-8 md:mb-10 p-4 bg-card rounded-2xl shadow-xl space-y-4 border border-border">

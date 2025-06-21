@@ -4,12 +4,14 @@
 
 import type { ChatMessageUI, VirtualGift } from '@/lib/types'; 
 import { cn, getInitials } from '@/lib/utils'; 
-import { Bot, User, AlertTriangle, Sparkles } from 'lucide-react'; 
+import { Bot, User, AlertTriangle, Sparkles, Share2 } from 'lucide-react'; 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; 
 import * as Icons from 'lucide-react'; 
 import ReactMarkdown from 'react-markdown';
+import { Button } from '../ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessageProps {
   message: ChatMessageUI;
@@ -29,6 +31,7 @@ const ChatMessageComponent = ({
   userFirebaseAuthAvatarUrl
 }: ChatMessageProps) => {
   const isUser = message.sender === 'user';
+  const { toast } = useToast();
   
   const [clientFormattedTimestamp, setClientFormattedTimestamp] = useState<string | null>(null);
   
@@ -43,6 +46,26 @@ const ChatMessageComponent = ({
       );
     }
   }, [message.timestamp]);
+  
+  const handleShare = async () => {
+    const shareData = {
+      title: `A message from ${message.characterName || 'my DesiBae'}!`,
+      text: `My DesiBae said: "${message.content}"\n\nChat with your own AI Bae!`,
+      url: window.location.origin,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.text);
+        toast({ title: "Copied to Clipboard!", description: "Message copied. You can now paste it to share." });
+      }
+    } catch (error) {
+      console.error("Error sharing message:", error);
+      toast({ title: "Sharing Failed", description: "Could not share the message.", variant: 'destructive' });
+    }
+  };
+
 
   const getBubbleStyle = () => {
     let baseClasses = 'p-3 md:p-3.5 rounded-2xl shadow-md break-words text-sm md:text-base transition-all duration-300 ease-in-out max-w-full'; 
@@ -146,12 +169,17 @@ const ChatMessageComponent = ({
       )}
     >
       {!isUser && (
-        <Avatar className="flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md self-end mb-1 border-2 border-accent/40 group-hover:border-accent transition-all">
-            <AvatarImage src={aiAvatarUrl} alt={message.characterName || 'AI'} />
-            <AvatarFallback className="bg-accent/20 text-accent text-sm font-semibold">
-              {message.characterName ? getInitials(message.characterName) : <Bot size={18}/>}
-            </AvatarFallback>
-        </Avatar>
+        <div className="flex-shrink-0 self-end mb-1 flex items-center gap-1.5">
+            <Avatar className="w-9 h-9 md:w-10 md:h-10 rounded-full shadow-md border-2 border-accent/40 group-hover:border-accent transition-all">
+                <AvatarImage src={aiAvatarUrl} alt={message.characterName || 'AI'} />
+                <AvatarFallback className="bg-accent/20 text-accent text-sm font-semibold">
+                  {message.characterName ? getInitials(message.characterName) : <Bot size={18}/>}
+                </AvatarFallback>
+            </Avatar>
+            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary hover:bg-primary/10" onClick={handleShare}>
+                <Share2 className="h-4 w-4" />
+            </Button>
+        </div>
       )}
       <div
         className={cn(
