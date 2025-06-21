@@ -141,7 +141,7 @@ function StoryListingContent() {
                   className={cn(
                     "rounded-full text-xs px-3.5 py-1.5 transition-all duration-200 ease-in-out transform hover:scale-105 shadow-sm",
                     selectedTags.includes(tag) ? 
-                      `${tagColors[tag] || 'bg-primary hover:bg-primary/90'} ${ (tag === 'Comedy' || tag === 'Spiritual' || tag === 'Hinglish' || tag === 'Foodie') ? 'text-black' : 'text-primary-foreground'}` : 
+                      `${tagColors[tag] || 'bg-primary hover:bg-primary/90'} ${ (tag === 'Comedy' || tag === 'Spiritual' || tag === 'Hinglish' || tag === 'Foodie' || tag === 'Adventure') ? 'text-black' : 'text-primary-foreground'}` : 
                       'border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/70 bg-card'
                   )}
                 >

@@ -19,7 +19,7 @@ const AlertDialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50 bg-background/80 data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in data-[state=open]:opacity-100",
+      "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in data-[state=open]:opacity-100",
       className
     )}
     {...props}
@@ -37,7 +37,7 @@ const AlertDialogContent = React.forwardRef<
     <AlertDialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-red-200 p-6 shadow-lg duration-200 data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in data-[state=open]:opacity-100 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-popover p-6 shadow-lg duration-200 data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in data-[state=open]:opacity-100 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
         className
       )}
       {...props}
