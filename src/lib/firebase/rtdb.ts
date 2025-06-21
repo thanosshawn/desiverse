@@ -19,7 +19,7 @@ import {
   equalTo, // Added for querying
 } from 'firebase/database';
 import { db } from './config'; // RTDB instance
-import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult, InteractiveStory, UserStoryProgress, StoryTurnRecord } from '@/lib/types';
+import type { UserProfile, CharacterMetadata, UserChatSessionMetadata, MessageDocument, AdminCredentials, UserChatStreakData, StreakUpdateResult, InteractiveStory, UserStoryProgress, StoryTurnRecord, GroupChatMetadata } from '@/lib/types';
 import { DEFAULT_AVATAR_DATA_URI } from '@/lib/types';
 
 // --- User Profile ---
@@ -615,4 +615,42 @@ export async function updateUserStoryProgress(
   };
 
   await set(progressRef, updatePayload);
+}
+
+// --- Group Chats ---
+export async function addGroupChat(groupId: string, data: Omit<GroupChatMetadata, 'id' | 'createdAt' | 'updatedAt'>): Promise<void> {
+  const groupRef = ref(db, `groupChats/${groupId}`);
+  const groupDataForWrite = {
+    ...data,
+    id: groupId,
+    createdAt: rtdbServerTimestamp(),
+    updatedAt: rtdbServerTimestamp(),
+    participantCount: data.participantCount || 0,
+  };
+  await set(groupRef, groupDataForWrite);
+}
+
+export async function getAllGroupChats(): Promise<GroupChatMetadata[]> {
+  const groupsRef = ref(db, 'groupChats');
+  const snapshot = await get(query(groupsRef, orderByChild('createdAt')));
+  const groups: GroupChatMetadata[] = [];
+  if (snapshot.exists()) {
+    snapshot.forEach((childSnapshot) => {
+      const val = childSnapshot.val();
+      const key = childSnapshot.key;
+      if (key && val && typeof val === 'object' && val.title && val.characterId) {
+        groups.push({
+          id: key,
+          ...val,
+        } as GroupChatMetadata);
+      }
+    });
+  }
+  return groups.reverse(); // Newest first
+}
+
+export async function deleteGroupChat(groupId: string): Promise<void> {
+  const groupRef = ref(db, `groupChats/${groupId}`);
+  await remove(groupRef);
+  // In the future, we would also delete all messages within the group chat here.
 }
