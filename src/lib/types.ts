@@ -187,3 +187,17 @@ export const StoryTurnOutputSchema = z.object({
   choiceB: z.string().optional().describe("Optional: A short, engaging text for choice B if the AI decides to offer choices. If not offering choices, omit this field or leave it empty/null."),
 });
 export type StoryTurnOutput = z.infer<typeof StoryTurnOutputSchema>;
+
+export const GenerateStoryIdeaInputSchema = z.object({
+  characterName: z.string().describe("The name of the protagonist character."),
+  characterPersonality: z.string().describe("A detailed description of the character's personality, backstory, and style tags."),
+});
+export type GenerateStoryIdeaInput = z.infer<typeof GenerateStoryIdeaInputSchema>;
+
+export const GenerateStoryIdeaOutputSchema = z.object({
+  title: z.string().describe("A catchy, evocative title for the story (5-10 words)."),
+  description: z.string().describe("A short, intriguing summary of the story's plot (2-3 sentences)."),
+  tagsString: z.string().describe("A comma-separated string of 3-5 relevant tags (e.g., Romance, Mystery, Heartbreak, Hidden Affair, College Romance)."),
+  initialSceneSummary: z.string().describe("A detailed, immersive opening scene prompt to kick off the story. It should set the mood and present an initial situation or dilemma for the user to react to. This should be 2-4 sentences long."),
+});
+export type GenerateStoryIdeaOutput = z.infer<typeof GenerateStoryIdeaOutputSchema>;

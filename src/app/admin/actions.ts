@@ -13,10 +13,10 @@ import {
   getCharacterMetadata,
   deleteInteractiveStory
 } from '@/lib/firebase/rtdb';
-import type { CharacterMetadata, CharacterCreationAdminFormValues, InteractiveStoryAdminFormValues, InteractiveStory } from '@/lib/types';
+import type { CharacterMetadata, CharacterCreationAdminFormValues, InteractiveStoryAdminFormValues, InteractiveStory, GenerateStoryIdeaOutput } from '@/lib/types';
 import { ref, get } from 'firebase/database';
 import { db } from '@/lib/firebase/config';
-import { generateStoryIdea, type GenerateStoryIdeaOutput } from '@/ai/flows/generate-story-idea-flow';
+import { generateStoryIdea } from '@/ai/flows/generate-story-idea-flow';
 
 
 export interface CreateCharacterActionState {
