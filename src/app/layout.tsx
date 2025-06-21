@@ -1,5 +1,5 @@
 
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext'; 
 import './globals.css';
@@ -24,7 +24,6 @@ export const metadata: Metadata = {
   title: 'DesiVerse Bae - Your Virtual Desi Companion 💖', 
   description: 'Pyaar, dosti aur thoda flirting... all in Hinglish with your virtual Desi Bae! Experience a new world of AI companionship.',
   manifest: '/manifest.json', 
-  themeColor: '#FF69B4', 
   appleWebAppCapable: 'yes',
   appleWebAppStatusBarStyle: 'default',
   icons: { 
@@ -35,6 +34,10 @@ export const metadata: Metadata = {
     apple: '/apple-touch-icon.png', 
     shortcut: '/favicon-16x16.png', 
   }
+};
+
+export const viewport: Viewport = {
+  themeColor: '#FF69B4',
 };
 
 export default function RootLayout({
