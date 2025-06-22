@@ -61,7 +61,7 @@ export function Header() {
   const navLinks = [
     { href: "/stories", label: "Stories", icon: BookHeart, activePath: "/stories"},
     { href: "/groups", label: "Groups", icon: Users, activePath: "/groups"},
-    { href: "https://t.me/desibaecommunity", label: "Join Group", icon: Send, target: "_blank"},
+    { href: "https://discord.gg/WaYUP6eD", label: "Join Discord", icon: Send, target: "_blank"},
     ...(user ? [{ href: "/history", label: "History", icon: History, activePath: "/history"}] : []),
   ];
 
@@ -237,8 +237,8 @@ export function Header() {
                       />
                   ))}
                    <NavLinkItem 
-                        href="https://t.me/desibaecommunity" 
-                        label="Join Telegram" 
+                        href="https://discord.gg/WaYUP6eD" 
+                        label="Join Discord" 
                         icon={Send} 
                         target="_blank" 
                         onClick={() => setIsMobileMenuOpen(false)}
